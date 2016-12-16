@@ -24,10 +24,10 @@ void main()
     BoneTransform += Bones[BoneIDs[2]] * Weights[2];
     BoneTransform += Bones[BoneIDs[3]] * Weights[3];
 
-    boneColour = BoneColours[BoneIDs[0]] * Weights[0] +
+    boneColour = vec3(0.6, 0.6, 0.6); /*BoneColours[BoneIDs[0]] * Weights[0] +
                  BoneColours[BoneIDs[1]] * Weights[1] +
                  BoneColours[BoneIDs[2]] * Weights[2] +
-                 BoneColours[BoneIDs[3]] * Weights[3];
+                 BoneColours[BoneIDs[3]] * Weights[3];*/
 
 
    vert = vertex.xyz;

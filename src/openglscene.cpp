@@ -7,16 +7,27 @@ OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
     m_yRot(0),
     m_zRot(0),
-    m_zDis(200),
-    m_shaderProg(0)
+    m_zDis(200)
 {
     QSurfaceFormat format;
     format.setVersion(4, 3);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
-
     setFormat(format);
+
+    setFocus();
+    setFocusPolicy(Qt::StrongFocus);
+
+    m_initGL = false;
+    m_animTime = 0.0f;
+
+    m_drawTimer = new QTimer(this);
+    connect(m_drawTimer, &QTimer::timeout, this, &OpenGLScene::UpdateDraw);
+
+    m_animTimer = new QTimer(this);
+    connect(m_animTimer, &QTimer::timeout, this, &OpenGLScene::UpdateAnim);
+
 }
 
 
@@ -25,6 +36,91 @@ OpenGLScene::~OpenGLScene()
     cleanup();
 }
 
+
+
+void OpenGLScene::AddModel(const std::string &_modelFile)
+{
+
+    if(m_initGL)
+    {
+        makeCurrent();
+        m_models.push_back(std::shared_ptr<Model>(new Model()));
+        m_models.back()->Load(_modelFile);
+        doneCurrent();
+        update();
+    }
+}
+
+
+void OpenGLScene::initializeGL()
+{
+    //connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OpenGLScene::cleanup);
+
+    glewInit();
+
+    //initializeOpenGLFunctions();
+    glClearColor(0.4, 0.4, 0.4, 1);
+
+
+    // Light position is fixed.
+    m_lightPos = glm::vec3(0, 0, 70);
+
+    m_initGL = true;
+    m_drawTimer->start(16);
+    m_animTimer->start(16);
+}
+
+void OpenGLScene::paintGL()
+{
+    // clean gl window
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    // update model matrix
+    m_modelMat = glm::mat4(1);
+    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -1.0f*m_zDis));// m_zDis));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
+
+
+    //---------------------------------------------------------------------------------------
+    // Draw code - replace this with project specific draw stuff
+    for(auto &&model : m_models)
+    {
+        model->SetLightPos(m_lightPos);
+        model->SetModelMatrix(m_modelMat);
+        model->SetNormalMatrix(glm::inverse(glm::mat3(m_modelMat)));
+        model->SetViewMatrix(m_viewMat);
+        model->SetProjectionMatrix(m_projMat);
+
+        model->DrawMesh();
+        //model->DrawRig();
+    }
+
+    //---------------------------------------------------------------------------------------
+
+}
+
+
+void OpenGLScene::UpdateAnim()
+{
+    m_animTime += 0.016f;
+    for(auto &&model : m_models)
+    {
+        model->Animate(m_animTime);
+    }
+}
+
+void OpenGLScene::UpdateDraw()
+{
+    update();
+}
+
+void OpenGLScene::resizeGL(int w, int h)
+{
+    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.01f, 2000.0f);
+}
 
 QSize OpenGLScene::minimumSizeHint() const
 {
@@ -46,7 +142,6 @@ static void qNormalizeAngle(int &angle)
 
 void OpenGLScene::setXTranslation(int x)
 {
-    qNormalizeAngle(x);
     if (x != m_xDis) {
         m_xDis = x;
         emit xTranslationChanged(x);
@@ -56,7 +151,6 @@ void OpenGLScene::setXTranslation(int x)
 
 void OpenGLScene::setYTranslation(int y)
 {
-    qNormalizeAngle(y);
     if (y != m_yDis) {
         m_yDis = y;
         emit yTranslationChanged(y);
@@ -66,7 +160,6 @@ void OpenGLScene::setYTranslation(int y)
 
 void OpenGLScene::setZTranslation(int z)
 {
-    qNormalizeAngle(z);
     if (z != m_zDis) {
         m_zDis= z;
         emit zTranslationChanged(z);
@@ -107,88 +200,8 @@ void OpenGLScene::setZRotation(int angle)
 void OpenGLScene::cleanup()
 {
     makeCurrent();
-    delete m_shaderProg;
-    m_shaderProg = 0;
     doneCurrent();
 }
-
-
-void OpenGLScene::initializeGL()
-{
-    connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OpenGLScene::cleanup);
-
-    glewInit();
-
-    //initializeOpenGLFunctions();
-    glClearColor(0.4, 0.4, 0.4, 1);
-
-    // setup shaders
-    m_shaderProg = new QOpenGLShaderProgram;
-    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/vert.glsl");
-    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/frag.glsl");
-    m_shaderProg->bindAttributeLocation("vertex", 0);
-    m_shaderProg->bindAttributeLocation("normal", 1);
-    m_shaderProg->link();
-
-    m_shaderProg->bind();
-    m_projMatrixLoc = m_shaderProg->uniformLocation("projMatrix");
-    m_mvMatrixLoc = m_shaderProg->uniformLocation("mvMatrix");
-    m_normalMatrixLoc = m_shaderProg->uniformLocation("normalMatrix");
-    m_lightPosLoc = m_shaderProg->uniformLocation("lightPos");
-
-    // initialise view and projection matrices
-    m_viewMat = glm::mat4(1);
-    m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
-    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 100.0f);
-
-    // Light position is fixed.
-    m_lightPos = glm::vec3(0, 0, 70);
-    glUniform3fv(m_lightPosLoc, 1, &m_lightPos[0]);
-
-
-
-
-    m_shaderProg->release();
-}
-
-
-void OpenGLScene::paintGL()
-{
-    // clean gl window
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    // update model matrix
-    m_modelMat = glm::mat4(1);
-    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -0.1f*m_zDis));// m_zDis));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
-
-
-    // Set shader params
-    m_shaderProg->bind();
-
-    glUniformMatrix4fv(m_projMatrixLoc, 1, false, &m_projMat[0][0]);
-    glUniformMatrix4fv(m_mvMatrixLoc, 1, false, &(m_modelMat*m_viewMat)[0][0]);
-    glm::mat3 normalMatrix =  glm::inverse(m_modelMat);
-    glUniformMatrix3fv(m_normalMatrixLoc, 1, true, &normalMatrix[0][0]);
-
-
-    //---------------------------------------------------------------------------------------
-    // Draw code - replace this with project specific draw stuff
-
-    //---------------------------------------------------------------------------------------
-
-
-    m_shaderProg->release();
-}
-
-void OpenGLScene::resizeGL(int w, int h)
-{
-    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.01f, 100.0f);
-}
-
 
 
 void OpenGLScene::mousePressEvent(QMouseEvent *event)
@@ -208,4 +221,15 @@ void OpenGLScene::mouseMoveEvent(QMouseEvent *event)
         setZTranslation(m_zDis + dy);
     }
     m_lastPos = event->pos();
+}
+
+void OpenGLScene::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_W)
+    {
+        for(auto &&model : m_models)
+        {
+            model->ToggleWireframe();
+        }
+    }
 }

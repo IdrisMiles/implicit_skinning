@@ -4,11 +4,12 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+static const unsigned int MaxNumBlendWeightsPerVertex = 4;
 
 struct VertexBoneData
 {
-    unsigned int boneID[4];
-    float boneWeight[4];
+    unsigned int boneID[MaxNumBlendWeightsPerVertex];
+    float boneWeight[MaxNumBlendWeightsPerVertex];
 };
 
 

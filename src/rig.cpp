@@ -32,6 +32,7 @@ void Rig::UpdateBoneHierarchy(const float _animationTime, std::shared_ptr<Bone> 
 {
     if(_pBone == nullptr)
     {
+        printf("null bone exiting updateBoneHierarcht\n");
         return;
     }
 
@@ -69,12 +70,14 @@ void Rig::UpdateBoneHierarchy(const float _animationTime, std::shared_ptr<Bone> 
     boneTransform =  translationMat * rotationMat * scalingMat;
 
 
-    glm::mat4 globalTransformation = boneTransform * _parentTransform;
+
+    glm::mat4 globalTransformation = glm::transpose(boneTransform)*_parentTransform; // boneTransform * _parentTransform;
 
 
     if (BoneIndex != -1)
     {
-        _pBone->m_currentTransform = m_globalInverseTransform * _pBone->m_boneOffset * globalTransformation;
+        m_boneTransforms[BoneIndex] = _pBone->m_currentTransform = _pBone->m_boneOffset * globalTransformation * m_globalInverseTransform;
+        //_pBone->m_currentTransform = m_globalInverseTransform * _pBone->m_boneOffset * globalTransformation;
     }
 
     for (uint i = 0 ; i < _pBone->m_children.size() ; i++)

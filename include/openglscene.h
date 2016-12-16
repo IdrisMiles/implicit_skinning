@@ -3,20 +3,20 @@
 
 
 #include <GL/glew.h>
-//#include <GL/gl.h>
-//#include <GL/glu.h>
-//#include <GL/glext.h>
 
 #include <QOpenGLWidget>
 #include <QOpenGLContext>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
+#include <QTimer>
+#include <QKeyEvent>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-
+#include <vector>
+#include "include/model.h"
 
 class OpenGLScene : public QOpenGLWidget
 {
@@ -26,6 +26,8 @@ class OpenGLScene : public QOpenGLWidget
 public:
     OpenGLScene(QWidget *parent = 0);
     ~OpenGLScene();
+
+    void AddModel(const std::string &_modelFile);
 
     QSize minimumSizeHint() const Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
@@ -38,6 +40,9 @@ public slots:
     void setYTranslation(int y);
     void setZTranslation(int z);
     void cleanup();
+
+    void UpdateAnim();
+    void UpdateDraw();
 
 signals:
     void xRotationChanged(int angle);
@@ -53,6 +58,8 @@ protected:
     void resizeGL(int width, int height) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent *event) override;
+
 
 private:
 
@@ -65,17 +72,16 @@ private:
     QPoint m_lastPos;
     glm::vec3 m_lightPos;
 
-    QOpenGLShaderProgram *m_shaderProg;
-
-    int m_projMatrixLoc;
-    int m_mvMatrixLoc;
-    int m_normalMatrixLoc;
-    int m_lightPosLoc;
+    bool m_initGL;
+    QTimer *m_drawTimer;
+    QTimer *m_animTimer;
+    float m_animTime;
 
     glm::mat4 m_projMat;
     glm::mat4 m_viewMat;
     glm::mat4 m_modelMat;
 
+    std::vector<std::shared_ptr<Model>> m_models;
 
 
 };
