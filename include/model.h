@@ -13,6 +13,9 @@
 #include "include/rig.h"
 #include "include/mesh.h"
 
+#include "include/hrbf/hrbf_core.h"
+#include "include/hrbf/hrbf_phi_funcs.h"
+
 
 enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
 
@@ -49,10 +52,13 @@ public:
     void UploadBonesToShader(RenderType _rt);
 
 
-
     // Attributes
     Rig m_rig;
     Mesh m_mesh;
+    Mesh m_rigMesh;
+
+    std::vector<Mesh> m_meshParts;
+    std::vector<HRBF_fit<float, 3, Rbf_pow3<float>>> m_HRBF_ScalarField;
 
     bool m_wireframe;
     bool m_initGL;

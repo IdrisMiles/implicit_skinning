@@ -71,7 +71,7 @@ void Model::DrawRig()
 
         m_meshVAO[RIG].bind();
         glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-        glDrawArrays(GL_LINES, 0, m_mesh.m_rigVerts.size());
+        glDrawArrays(GL_LINES, 0, m_rigMesh.m_meshVerts.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         m_meshVAO[RIG].release();
 
@@ -367,21 +367,21 @@ void Model::UpdateVAOs()
 
     // Setup our vertex buffer object.
     m_meshVBO[RIG].bind();
-    m_meshVBO[RIG].allocate(&m_mesh.m_rigVerts[0], m_mesh.m_rigVerts.size() * sizeof(glm::vec3));
+    m_meshVBO[RIG].allocate(&m_rigMesh.m_meshVerts[0], m_rigMesh.m_meshVerts.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_vertAttrLoc[RIG]);
     glVertexAttribPointer(m_vertAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
     m_meshVBO[RIG].release();
 
     // Set up our Rig joint colour buffer object
     m_meshCBO[RIG].bind();
-    m_meshCBO[RIG].allocate(&m_mesh.m_rigJointColours[0], m_mesh.m_rigJointColours.size() * sizeof(glm::vec3));
+    m_meshCBO[RIG].allocate(&m_rigMesh.m_meshVertColours[0], m_rigMesh.m_meshVertColours.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_colourAttrLoc[RIG]);
     glVertexAttribPointer(m_colourAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
     m_meshCBO[RIG].release();
 
     // Set up vertex bone weighting buffer object
     m_meshBWBO[RIG].bind();
-    m_meshBWBO[RIG].allocate(&m_mesh.m_rigBoneWeights[0], m_mesh.m_rigBoneWeights.size() * sizeof(VertexBoneData));
+    m_meshBWBO[RIG].allocate(&m_rigMesh.m_meshBoneWeights[0], m_rigMesh.m_meshBoneWeights.size() * sizeof(VertexBoneData));
     glEnableVertexAttribArray(m_boneIDAttrLoc[RIG]);
     glVertexAttribIPointer(m_boneIDAttrLoc[RIG], MaxNumBlendWeightsPerVertex, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(m_boneWeightAttrLoc[RIG]);

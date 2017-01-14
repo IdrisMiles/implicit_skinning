@@ -24,13 +24,8 @@ public:
     std::vector<glm::vec3> m_meshNorms;
     std::vector<glm::ivec3> m_meshTris;
     std::vector<VertexBoneData> m_meshBoneWeights;
+    std::vector<glm::vec3> m_meshVertColours;
     glm::vec3 m_colour;
-
-    // Rig info
-    std::vector<glm::vec3> m_rigVerts;
-    std::vector<glm::vec3> m_rigNorms;
-    std::vector<VertexBoneData> m_rigBoneWeights;
-    std::vector<glm::vec3> m_rigJointColours;
 };
 
 #endif // MESH_H

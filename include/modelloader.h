@@ -23,6 +23,7 @@ public:
     static glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m);
     static void CopyRigStructure(const std::unordered_map<std::string, unsigned int> &_boneMapping, const aiScene *_aiScene, aiNode *_aiNode, Rig &_rig, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
     static BoneAnim ConvertToBoneAnim(const aiNodeAnim *_pNodeAnim);
+    static const aiNodeAnim* FindNodeAnim(const aiAnimation* _pAnimation, const std::string _nodeName);
 
 };
 

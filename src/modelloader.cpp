@@ -45,8 +45,24 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
         _model->m_rig.m_rootBone->m_name = std::string(scene->mRootNode->mName.data);
         _model->m_rig.m_rootBone->m_transform = ConvertToGlmMat(scene->mRootNode->mTransformation);
         _model->m_rig.m_rootBone->m_boneOffset = glm::mat4(1.0f);
-        _model->m_rig.m_rootBone->m_parent = NULL;
+        _model->m_rig.m_rootBone->m_parent = nullptr;
 
+        const aiNodeAnim *pNodeAnim = FindNodeAnim(scene->mAnimations[scene->mNumAnimations-1], std::string(scene->mRootNode->mName.data));
+        if(pNodeAnim)
+        {
+            _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = ConvertToBoneAnim(pNodeAnim);
+            _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
+
+        }
+        else
+        {
+            BoneAnim rootAnim;
+            rootAnim.m_name = _model->m_rig.m_rootBone->m_name;
+            rootAnim.m_posAnim.push_back(PosAnim(0.0f, glm::vec3(0, 0, 0)));
+            rootAnim.m_scaleAnim.push_back(ScaleAnim(0.0f, glm::vec3(1, 1, 1)));
+            _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = rootAnim;
+            _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
+        }
 
         unsigned int numChildren = scene->mRootNode->mNumChildren;
         for (unsigned int i=0; i<numChildren; i++)
@@ -169,24 +185,24 @@ void ModelLoader::InitRigMesh(Model *_model, const aiScene *_scene)
         SetRigVerts(_model, _scene->mRootNode, _scene->mRootNode->mChildren[i], mat, mat);
     }
 
-    if(_model->m_mesh.m_rigVerts.size() % 2)
+    if(_model->m_rigMesh.m_meshVerts.size() % 2)
     {
-        for(unsigned int i=0; i<_model->m_mesh.m_rigVerts.size()/2; i++)
+        for(unsigned int i=0; i<_model->m_rigMesh.m_meshVerts.size()/2; i++)
         {
             int id = i*2;
-            if(_model->m_mesh.m_rigVerts[id] == _model->m_mesh.m_rigVerts[id+1])
+            if(_model->m_rigMesh.m_meshVerts[id] == _model->m_rigMesh.m_meshVerts[id+1])
             {
                 std::cout<<"Repeated joint causing rig issue, removing joint\n";
-                _model->m_mesh.m_rigVerts.erase(_model->m_mesh.m_rigVerts.begin()+id);
-                _model->m_mesh.m_rigJointColours.erase(_model->m_mesh.m_rigJointColours.begin()+id);
-                _model->m_mesh.m_rigBoneWeights.erase(_model->m_mesh.m_rigBoneWeights.begin()+id);
+                _model->m_rigMesh.m_meshVerts.erase(_model->m_rigMesh.m_meshVerts.begin()+id);
+                _model->m_rigMesh.m_meshVertColours.erase(_model->m_rigMesh.m_meshVertColours.begin()+id);
+                _model->m_rigMesh.m_meshBoneWeights.erase(_model->m_rigMesh.m_meshBoneWeights.begin()+id);
 
                 break;
             }
         }
     }
 
-    std::cout<<"Number of rig verts:\t"<<_model->m_mesh.m_rigVerts.size()<<"\n";
+    std::cout<<"Number of rig verts:\t"<<_model->m_rigMesh.m_meshVerts.size()<<"\n";
 
 }
 
@@ -233,9 +249,9 @@ void ModelLoader::SetJointVert(Model *_model, const std::string _nodeName, const
         _vb.boneWeight[2] = 0.0f;
         _vb.boneWeight[3] = 0.0f;
 
-        _model->m_mesh.m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f) * _transform));
-        _model->m_mesh.m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
-        _model->m_mesh.m_rigBoneWeights.push_back(_vb);
+        _model->m_rigMesh.m_meshVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f) * _transform));
+        _model->m_rigMesh.m_meshVertColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
+        _model->m_rigMesh.m_meshBoneWeights.push_back(_vb);
     }
     else
     {
@@ -276,7 +292,7 @@ const aiBone* GetBone(const aiScene *_aiScene, std::string _name)
     return NULL;
 }
 
-const aiNodeAnim* FindNodeAnim(const aiAnimation* _pAnimation, const std::string _nodeName)
+const aiNodeAnim* ModelLoader::FindNodeAnim(const aiAnimation* _pAnimation, const std::string _nodeName)
 {
     for (uint i = 0 ; i < _pAnimation->mNumChannels ; i++) {
         const aiNodeAnim* pNodeAnim = _pAnimation->mChannels[i];
