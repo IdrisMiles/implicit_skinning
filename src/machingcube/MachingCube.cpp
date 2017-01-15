@@ -22,10 +22,27 @@ MachingCube::~MachingCube()
     m_meshVAO.destroy();
 }
 
+
+//----------------------------------------------------------------------------------------------------------------------
+void MachingCube::Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
+{
+    generateVolume(_volumeData, _w, _h, _d, _voxelW, _voxelH, _voxelD);
+    createVerts();
+    GetVerts(_verts, _norms);
+}
+
+
+void MachingCube::Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, std::string _vol, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
+{
+    LoadVolumeFromFile(_vol, _w, _h, _d, _voxelW, _voxelH, _voxelD);
+    createVerts();
+    GetVerts(_verts, _norms);
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 
 
-bool MachingCube::LoadVolumeFromFile(std::string _vol)
+bool MachingCube::LoadVolumeFromFile(std::string _vol, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
 {
     std::ifstream in(_vol.c_str(), std::ifstream::binary);
     if (in.is_open() != true)
@@ -33,10 +50,16 @@ bool MachingCube::LoadVolumeFromFile(std::string _vol)
         std::cout<<"FILE NOT FOUND !!!! "<<_vol.c_str()<<"\n";
         return false;
     }
+
     // read in the volume data 200x160x160, 1 byte per voxel
-    volume_width = 200;
-    volume_height = 160;
-    volume_depth = 160;
+    volume_width = _w;
+    volume_height = _h;
+    volume_depth = _d;
+
+    voxel_width = _voxelW;
+    voxel_height = _voxelH;
+    voxel_depth = _voxelD;
+
     unsigned int volume_size = volume_width*volume_height*volume_depth;
     char *volData = new char[volume_size];
     in.read(volData, volume_size);
@@ -72,7 +95,12 @@ void MachingCube::generateVolume(float *_volumeData, const int &_w, const int &_
     volume_width = _w;
     volume_height = _h;
     volume_depth = _d;
-    unsigned int volume_size = volume_width*volume_height*volume_depth;
+
+    voxel_width = _voxelW;
+    voxel_height = _voxelH;
+    voxel_depth = _voxelD;
+
+    volume_size = volume_width*volume_height*volume_depth;
     unsigned int i,j,k;
     volumeData = new float[volume_size];
     for (i=0;i<volume_depth;i++)
@@ -81,12 +109,14 @@ void MachingCube::generateVolume(float *_volumeData, const int &_w, const int &_
         {
             for (k=0;k<volume_width;k++)
             {
-//                volumeData[i*volume_width*volume_height + j*volume_width + k] = ((float)i/volume_depth-0.5)*((float)i/volume_depth-0.5)+((float)j/volume_height-0.5)*((float)j/volume_height-0.5) + ((float)k/volume_width-0.5)*((float)k/volume_width-0.5);
+//                volumeData[i*volume_width*volume_height + j*volume_width + k] = ((float)i/volume_depth-0.5)*((float)i/volume_depth-0.5) +
+//                                                                                ((float)j/volume_height-0.5)*((float)j/volume_height-0.5) +
+//                                                                                ((float)k/volume_width-0.5)*((float)k/volume_width-0.5);
                 volumeData[i*volume_width*volume_height + j*volume_width + k] = _volumeData[i*volume_width*volume_height + j*volume_width + k];
             }
         }
     }
-    isolevel = 0.25;
+    isolevel = 0.2;
 
 }
 
@@ -111,38 +141,46 @@ void MachingCube::createVerts()
         {
             for (k=0;k<volume_width-1;k++)
             {
-                grid.p[0].x = i;
+                // back bottom left
+                grid.p[0].x = k;
                 grid.p[0].y = j;
-                grid.p[0].z = k;
+                grid.p[0].z = i;
                 grid.val[0] = volumeData[i*volume_width*volume_height + j*volume_width + k];
-                grid.p[1].x = (i+1);
+                // back bottom right
+                grid.p[1].x = k+1;
                 grid.p[1].y = j;
-                grid.p[1].z = k;
-                grid.val[1] = volumeData[(i+1)*volume_width*volume_height + j*volume_width + k];
-                grid.p[2].x = (i+1);
-                grid.p[2].y = (j+1);
-                grid.p[2].z = k;
-                grid.val[2] = volumeData[(i+1)*volume_width*volume_height + (j+1)*volume_width + k];
-                grid.p[3].x = i;
-                grid.p[3].y = (j+1);
-                grid.p[3].z = k;
-                grid.val[3] = volumeData[i*volume_width*volume_height + (j+1)*volume_width + k];
-                grid.p[4].x = i;
-                grid.p[4].y = j;
-                grid.p[4].z = (k+1);
-                grid.val[4] = volumeData[i*volume_width*volume_height + j*volume_width + k+1];
-                grid.p[5].x = (i+1);
-                grid.p[5].y = j;
-                grid.p[5].z = (k+1);
-                grid.val[5] = volumeData[(i+1)*volume_width*volume_height + j*volume_width + k+1];
-                grid.p[6].x = (i+1);
-                grid.p[6].y = (j+1);
-                grid.p[6].z = (k+1);
-                grid.val[6] = volumeData[(i+1)*volume_width*volume_height + (j+1)*volume_width + k+1];
-                grid.p[7].x = i;
-                grid.p[7].y = (j+1);
-                grid.p[7].z = (k+1);
-                grid.val[7] = volumeData[i*volume_width*volume_height + (j+1)*volume_width + k+1];
+                grid.p[1].z = i;
+                grid.val[1] = volumeData[i*volume_width*volume_height + j*volume_width + (k+1)];
+                // front bottom right
+                grid.p[2].x = k+1;
+                grid.p[2].y = j;
+                grid.p[2].z = i+1;
+                grid.val[2] = volumeData[(i+1)*volume_width*volume_height + j*volume_width + (k+1)];
+                // front bottom left
+                grid.p[3].x = k;
+                grid.p[3].y = j;
+                grid.p[3].z = i+1;
+                grid.val[3] = volumeData[(i+1)*volume_width*volume_height + j*volume_width + k];
+                // back top left
+                grid.p[4].x = k;
+                grid.p[4].y = j+1;
+                grid.p[4].z = i;
+                grid.val[4] = volumeData[i*volume_width*volume_height + (j+1)*volume_width + k];
+                // back top right
+                grid.p[5].x = k+1;
+                grid.p[5].y = j+1;
+                grid.p[5].z = i;
+                grid.val[5] = volumeData[i*volume_width*volume_height + (j+1)*volume_width + (k+1)];
+                // front top right
+                grid.p[6].x = k+1;
+                grid.p[6].y = j+1;
+                grid.p[6].z = i+1;
+                grid.val[6] = volumeData[(i+1)*volume_width*volume_height + (j+1)*volume_width + (k+1)];
+                // front top left
+                grid.p[7].x = k;
+                grid.p[7].y = j+1;
+                grid.p[7].z = i+1;
+                grid.val[7] = volumeData[(i+1)*volume_width*volume_height + (j+1)*volume_width + k];
                 numTris = MachingTriangles(grid, isolevel, allTriangles);
                 m_nVerts += numTris*3;
             }
@@ -312,7 +350,41 @@ unsigned int MachingCube::MachingTriangles(Voxel _g, float _iso, std::vector<Tri
        |/       |/    |/       |/
        3--------2     *---2----*
     */
-    const static int edgeTable[256]={
+//    const static int edgeTable[256]={
+//    0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
+//    0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
+//    0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
+//    0x99c, 0x895, 0xb9f, 0xa96, 0xd9a, 0xc93, 0xf99, 0xe90,
+//    0x230, 0x339, 0x33 , 0x13a, 0x636, 0x73f, 0x435, 0x53c,
+//    0xa3c, 0xb35, 0x83f, 0x936, 0xe3a, 0xf33, 0xc39, 0xd30,
+//    0x3a0, 0x2a9, 0x1a3, 0xaa , 0x7a6, 0x6af, 0x5a5, 0x4ac,
+//    0xbac, 0xaa5, 0x9af, 0x8a6, 0xfaa, 0xea3, 0xda9, 0xca0,
+//    0x460, 0x569, 0x663, 0x76a, 0x66 , 0x16f, 0x265, 0x36c,
+//    0xc6c, 0xd65, 0xe6f, 0xf66, 0x86a, 0x963, 0xa69, 0xb60,
+//    0x5f0, 0x4f9, 0x7f3, 0x6fa, 0x1f6, 0xff , 0x3f5, 0x2fc,
+//    0xdfc, 0xcf5, 0xfff, 0xef6, 0x9fa, 0x8f3, 0xbf9, 0xaf0,
+//    0x650, 0x759, 0x453, 0x55a, 0x256, 0x35f, 0x55 , 0x15c,
+//    0xe5c, 0xf55, 0xc5f, 0xd56, 0xa5a, 0xb53, 0x859, 0x950,
+//    0x7c0, 0x6c9, 0x5c3, 0x4ca, 0x3c6, 0x2cf, 0x1c5, 0xcc ,
+//    0xfcc, 0xec5, 0xdcf, 0xcc6, 0xbca, 0xac3, 0x9c9, 0x8c0,
+//    0x8c0, 0x9c9, 0xac3, 0xbca, 0xcc6, 0xdcf, 0xec5, 0xfcc,
+//    0xcc , 0x1c5, 0x2cf, 0x3c6, 0x4ca, 0x5c3, 0x6c9, 0x7c0,
+//    0x950, 0x859, 0xb53, 0xa5a, 0xd56, 0xc5f, 0xf55, 0xe5c,
+//    0x15c, 0x55 , 0x35f, 0x256, 0x55a, 0x453, 0x759, 0x650,
+//    0xaf0, 0xbf9, 0x8f3, 0x9fa, 0xef6, 0xfff, 0xcf5, 0xdfc,
+//    0x2fc, 0x3f5, 0xff , 0x1f6, 0x6fa, 0x7f3, 0x4f9, 0x5f0,
+//    0xb60, 0xa69, 0x963, 0x86a, 0xf66, 0xe6f, 0xd65, 0xc6c,
+//    0x36c, 0x265, 0x16f, 0x66 , 0x76a, 0x663, 0x569, 0x460,
+//    0xca0, 0xda9, 0xea3, 0xfaa, 0x8a6, 0x9af, 0xaa5, 0xbac,
+//    0x4ac, 0x5a5, 0x6af, 0x7a6, 0xaa , 0x1a3, 0x2a9, 0x3a0,
+//    0xd30, 0xc39, 0xf33, 0xe3a, 0x936, 0x83f, 0xb35, 0xa3c,
+//    0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x33 , 0x339, 0x230,
+//    0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c,
+//    0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
+//    0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
+//    0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   };
+
+    int edgeTable[256]={
     0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
     0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
     0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -588,7 +660,7 @@ unsigned int MachingCube::MachingTriangles(Voxel _g, float _iso, std::vector<Tri
     {9, 4, 5, 2, 11, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {2, 5, 10, 3, 5, 2, 3, 4, 5, 3, 8, 4, -1, -1, -1, -1},
     {5, 10, 2, 5, 2, 4, 4, 2, 0, -1, -1, -1, -1, -1, -1, -1},
-    {3, 10, 2, 3, 5, 10, 3, 38, 5, 4, 5, 8, 0, 1, 9, -1},
+    {3, 10, 2, 3, 5, 10, 3, 8, 5, 4, 5, 8, 0, 1, 9, -1},
     {5, 10, 2, 5, 2, 4, 1, 9, 2, 9, 4, 2, -1, -1, -1, -1},
     {8, 4, 5, 8, 5, 3, 3, 5, 1, -1, -1, -1, -1, -1, -1, -1},
     {0, 4, 5, 1, 0, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -654,7 +726,7 @@ unsigned int MachingCube::MachingTriangles(Voxel _g, float _iso, std::vector<Tri
        vertlist[0] = VertexInterp(_iso,_g.p[0],_g.p[1],_g.val[0],_g.val[1]);
     }
     if (edgeTable[cubeindex] & 2) {
-       vertlist[1] = VertexInterp(_iso,_g.p[1],_g.p[2],_g.val[0],_g.val[2]);
+       vertlist[1] = VertexInterp(_iso,_g.p[1],_g.p[2],_g.val[1],_g.val[2]);
     }
     if (edgeTable[cubeindex] & 4) {
        vertlist[2] = VertexInterp(_iso,_g.p[2],_g.p[3],_g.val[2],_g.val[3]);
@@ -672,7 +744,7 @@ unsigned int MachingCube::MachingTriangles(Voxel _g, float _iso, std::vector<Tri
        vertlist[6] = VertexInterp(_iso,_g.p[6],_g.p[7],_g.val[6],_g.val[7]);
     }
     if (edgeTable[cubeindex] & 128) {
-       vertlist[7] = VertexInterp(_iso,_g.p[7],_g.p[0],_g.val[7],_g.val[0]);
+       vertlist[7] = VertexInterp(_iso,_g.p[7],_g.p[4],_g.val[7],_g.val[4]);
     }
     if (edgeTable[cubeindex] & 256) {
        vertlist[8] = VertexInterp(_iso,_g.p[0],_g.p[4],_g.val[0],_g.val[4]);

@@ -16,8 +16,11 @@
 #include "include/hrbf/hrbf_core.h"
 #include "include/hrbf/hrbf_phi_funcs.h"
 
+#include "include/machingcube/MachingCube.h"
 
-enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
+
+enum RenderType { SKINNED = 0, RIG, ISO_SURFACE, NUMRENDERTYPES };
+typedef HRBF_fit<float, 3, Rbf_pow3<float> > HRBF;
 
 class Model
 {
@@ -58,7 +61,13 @@ public:
     Mesh m_rigMesh;
 
     std::vector<Mesh> m_meshParts;
-    std::vector<HRBF_fit<float, 3, Rbf_pow3<float>>> m_HRBF_ScalarField;
+    std::vector<Mesh> m_meshPartsIsoSurface;
+    std::vector<HRBF> m_HRBF_MeshParts;
+
+    Mesh m_meshIsoSurface;
+    HRBF m_HRBF_Global;
+
+    MachingCube m_polygonizer;
 
     bool m_wireframe;
     bool m_initGL;

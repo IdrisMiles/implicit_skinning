@@ -76,7 +76,7 @@ protected :
     /// @brief  load an volume data from a file
     /// @param[in]  &_vol Volume Data File name
     //----------------------------------------------------------------------------------------------------------------------
-    bool LoadVolumeFromFile(std::string _vol);
+    bool LoadVolumeFromFile(std::string _vol, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
 
     //----------------------------------------------------------------------------------------------------------------------
     void generateVolume(float *_volumeData, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
@@ -114,6 +114,7 @@ protected :
     unsigned int volume_width;
     unsigned int volume_height;
     unsigned int volume_depth;
+    unsigned int volume_size;
 
     float voxel_width;
     float voxel_height;

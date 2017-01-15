@@ -2,6 +2,7 @@
 #include "include/modelloader.h"
 
 #include <iostream>
+#include <math.h>
 
 Model::Model()
 {
@@ -21,10 +22,71 @@ Model::~Model()
 void Model::Load(const std::string &_file)
 {
     ModelLoader::LoadModel(this, _file);
+    //--------------------------------------------------
 
+    std::vector<HRBF::Vector> verts;
+    std::vector<HRBF::Vector> norms;
+
+    int counter=0;
+    for(auto v : m_mesh.m_meshVerts)
+    {
+        if(counter>1000)
+            break;
+
+        verts.push_back(HRBF::Vector(v.x, v.y, v.z));
+        counter++;
+    }
+
+    counter=0;
+    for(auto n : m_mesh.m_meshNorms)
+    {
+        if(counter>1000)
+            break;
+
+        norms.push_back(HRBF::Vector(n.x, n.y, n.z));
+        counter++;
+    }
+
+    m_HRBF_Global.hermite_fit(verts, norms);
+
+
+    int x = 16;
+    int y = 16;
+    int z = 16;
+    float size = 200.0f;
+    float *volumeData = new float[x*y*z];
+    for(int i=0;i<z;i++)
+    {
+        for(int j=0;j<y;j++)
+        {
+            for(int k=0;k<x;k++)
+            {
+                volumeData[i*x*y + j*x + k] =   ((float)i/z-0.5)*((float)i/z-0.5) +
+                                                ((float)j/y-0.5)*((float)j/y-0.5) +
+                                                ((float)k/x-0.5)*((float)k/x-0.5);
+
+                float d = m_HRBF_Global.eval(HRBF::Vector(   size*(((i/z)*2.0f)-1.0f),
+                                                             size*(((j/y)*2.0f)-1.0f),
+                                                             size*(((k/x)*2.0f)-1.0f)));
+                if(!std::isnan(d))
+                {
+                    volumeData[i*x*y + j*x + k] = d;
+                    std::cout<<"volume: "<<d<<"\n";
+                }
+            }
+        }
+    }
+
+    m_meshIsoSurface.m_colour = glm::vec3(0.8f, 0.4f, 0.4f);
+    m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, x, y, z, size, size, size);
+    std::cout<<"num verts"<<m_meshIsoSurface.m_meshVerts.size()<<"\n";
+
+    //--------------------------------------------------
     CreateShaders();
     CreateVAOs();
     UpdateVAOs();
+
+    delete volumeData;
 
 }
 
@@ -51,6 +113,25 @@ void Model::DrawMesh()
         m_meshVAO[SKINNED].release();
 
         m_shaderProg[SKINNED]->release();
+
+
+
+        m_shaderProg[ISO_SURFACE]->bind();
+        glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
+        glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+//        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+        glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
+        glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshIsoSurface.m_colour[0]);
+
+        m_meshVAO[ISO_SURFACE].bind();
+        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+        glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        m_meshVAO[ISO_SURFACE].release();
+
+        m_shaderProg[SKINNED]->release();
+
+
     }
 }
 
@@ -142,7 +223,7 @@ void Model::CreateShaders()
     }
     else
     {
-        std::cout<<m_shaderProg[SKINNED]->log().toStdString()<<"\n";
+        std::cout<<m_shaderProg[RIG]->log().toStdString()<<"\n";
     }
 
     m_shaderProg[RIG]->bind();
@@ -150,6 +231,33 @@ void Model::CreateShaders()
     m_mvMatrixLoc[RIG] = m_shaderProg[RIG]->uniformLocation("mvMatrix");
     m_normalMatrixLoc[RIG] = m_shaderProg[RIG]->uniformLocation("normalMatrix");
     m_shaderProg[RIG]->release();
+
+
+
+    //------------------------------------------------------------------------------------------------
+    // ISO SURFACE Shader
+    m_shaderProg[ISO_SURFACE] = new QOpenGLShaderProgram();
+    m_shaderProg[ISO_SURFACE]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/vert.glsl");
+    m_shaderProg[ISO_SURFACE]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/frag.glsl");
+    m_shaderProg[ISO_SURFACE]->bindAttributeLocation("vertex", 0);
+    if(m_shaderProg[ISO_SURFACE]->link())
+    {
+
+    }
+    else
+    {
+        std::cout<<m_shaderProg[ISO_SURFACE]->log().toStdString()<<"\n";
+    }
+
+    m_shaderProg[ISO_SURFACE]->bind();
+    m_projMatrixLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("projMatrix");
+    m_mvMatrixLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("mvMatrix");
+    m_normalMatrixLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("normalMatrix");
+    m_lightPosLoc[SKINNED] = m_shaderProg[ISO_SURFACE]->uniformLocation("lightPos");
+    // Light position is fixed.
+    m_lightPos = glm::vec3(0, 0, 70);
+    glUniform3fv(m_lightPosLoc[ISO_SURFACE], 1, &m_lightPos[0]);
+    m_shaderProg[ISO_SURFACE]->release();
 
 
     m_initGL = true;
@@ -182,15 +290,6 @@ void Model::CreateVAOs()
         m_boneWeightAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("Weights");
         m_boneUniformLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("Bones");
         m_colourAttrLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("BoneColours");
-
-
-        std::cout<<"SKINNED | vert Attr loc:\t"<<m_vertAttrLoc[SKINNED]<<"\n";
-        std::cout<<"SKINNED | norm Attr loc:\t"<<m_normAttrLoc[SKINNED]<<"\n";
-        std::cout<<"SKINNED | boneID Attr loc:\t"<<m_boneIDAttrLoc[SKINNED]<<"\n";
-        std::cout<<"SKINNED | boneWei Attr loc:\t"<<m_boneWeightAttrLoc[SKINNED]<<"\n";
-        std::cout<<"SKINNED | Bones Unif loc:\t"<<m_boneUniformLoc[SKINNED]<<"\n";
-        std::cout<<"SKINNED | Bones Colour Unif loc:\t"<<m_colourAttrLoc[SKINNED]<<"\n";
-
 
         // Set up VAO
         m_meshVAO[SKINNED].create();
@@ -275,6 +374,44 @@ void Model::CreateVAOs()
         m_meshVAO[RIG].release();
 
         m_shaderProg[RIG]->release();
+    }
+
+    //------------------------------------------------------------------------------------
+    // Iso surface
+    if(m_shaderProg[ISO_SURFACE]->bind())
+    {
+        // Get shader locations
+        m_mesh.m_colour = glm::vec3(0.4f,0.4f,0.4f);
+        m_colourLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("uColour");
+        glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_mesh.m_colour[0]);
+        m_vertAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("vertex");
+        m_normAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("normal");
+
+        // Set up VAO
+        m_meshVAO[ISO_SURFACE].create();
+        m_meshVAO[ISO_SURFACE].bind();
+
+
+        // Setup our vertex buffer object.
+        m_meshVBO[ISO_SURFACE].create();
+        m_meshVBO[ISO_SURFACE].bind();
+        glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshVBO[ISO_SURFACE].release();
+
+
+        // Setup our normals buffer object.
+        m_meshNBO[ISO_SURFACE].create();
+        m_meshNBO[ISO_SURFACE].bind();
+        glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshNBO[ISO_SURFACE].release();
+
+
+        m_meshVAO[ISO_SURFACE].release();
+
+        m_shaderProg[ISO_SURFACE]->release();
+
     }
 
 
@@ -391,6 +528,34 @@ void Model::UpdateVAOs()
     m_meshVAO[RIG].release();
 
     m_shaderProg[RIG]->release();
+
+
+
+    //--------------------------------------------------------------------------------------
+    // ISO SURFACE mesh
+    m_shaderProg[ISO_SURFACE]->bind();
+
+    m_meshVAO[ISO_SURFACE].bind();
+
+    // Setup our vertex buffer object.
+    m_meshVBO[ISO_SURFACE].bind();
+    m_meshVBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+    glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshVBO[ISO_SURFACE].release();
+
+
+    // Setup our normals buffer object.
+    m_meshNBO[ISO_SURFACE].bind();
+    m_meshNBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+    glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshNBO[ISO_SURFACE].release();
+
+
+    m_meshVAO[ISO_SURFACE].release();
+
+    m_shaderProg[ISO_SURFACE]->release();
 }
 
 
