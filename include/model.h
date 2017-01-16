@@ -89,6 +89,11 @@ public:
     QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
 
+    // VAO and BO's for iso-surface
+    std::vector<std::shared_ptr<QOpenGLVertexArrayObject>> m_meshPartIsoVAO;
+    std::vector<std::shared_ptr<QOpenGLBuffer>> m_meshPartIsoVBO;
+    std::vector<std::shared_ptr<QOpenGLBuffer>> m_meshPartIsoNBO;
+
     // Shader locations
     GLuint m_vertAttrLoc[NUMRENDERTYPES];
     GLuint m_normAttrLoc[NUMRENDERTYPES];

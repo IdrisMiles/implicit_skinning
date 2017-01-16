@@ -5,6 +5,7 @@
 /// @file hrbf_core.hpp
 /// Original author: Gael Guennebaud - gael.guennebaud@inria.fr - http://www.labri.fr/perso/guenneba/
 /// Rodolphe Vaillant - (Fixed the gradient evaluation) - http://www.irit.fr/~Rodolphe.Vaillant
+/// Idris Miles - (Fixed the hermite_fit function)
 
 #ifndef HRBF_CORE_HPP__
 #define HRBF_CORE_HPP__
@@ -98,14 +99,14 @@ public:
 
         x = D.fullPivLu().solve(f);
 
-        if((D*x).isApprox(f))
-        {
-            printf("there was a solution\n");
-        }
-        else
-        {
-            printf("there was NO solution\n");
-        }
+//        if((D*x).isApprox(f))
+//        {
+//            printf("there was a solution\n");
+//        }
+//        else
+//        {
+//            printf("there was NO solution\n");
+//        }
 
         Eigen::Map< Eigen::Matrix<Scalar,Dim+1,Eigen::Dynamic> > mx( x.data(), Dim + 1, nb_points);
 

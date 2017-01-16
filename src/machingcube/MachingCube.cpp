@@ -113,7 +113,7 @@ void MachingCube::generateVolume(float *_volumeData, const int &_w, const int &_
             }
         }
     }
-    isolevel = 0.2;
+    isolevel = 0.5;
 
 }
 
@@ -128,6 +128,8 @@ void MachingCube::createVerts()
     Voxel       grid;
     std::vector<Triangle> allTriangles;
     unsigned int    i,j,k, numTris;
+    m_meshVerts.clear();
+    m_meshNorms.clear();
 
     m_nVerts = 0;
 
