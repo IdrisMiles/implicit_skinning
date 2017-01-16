@@ -24,36 +24,56 @@ void Model::Load(const std::string &_file)
     ModelLoader::LoadModel(this, _file);
     //--------------------------------------------------
 
+    InitMeshParts();
+
+    //--------------------------------------------------
+    CreateShaders();
+    CreateVAOs();
+    UpdateVAOs();
+}
+
+
+void Model::InitMeshParts()
+{
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
 
+    m_meshIsoSurface.m_meshVerts.clear();
+    m_meshIsoSurface.m_meshNorms.clear();
+
     int counter=0;
-    for(auto v : m_mesh.m_meshVerts)
+    for(unsigned int v=0; v<m_mesh.m_meshVerts.size(); v++)
     {
-        if(counter>1000)
+        if(counter>=1000)
             break;
 
-        verts.push_back(HRBF::Vector(v.x, v.y, v.z));
-        counter++;
-    }
-
-    counter=0;
-    for(auto n : m_mesh.m_meshNorms)
-    {
-        if(counter>1000)
-            break;
-
-        norms.push_back(HRBF::Vector(n.x, n.y, n.z));
-        counter++;
+        float weight = 0.0f;
+        int boneId = -1;
+        for(int bw = 0; bw<4; bw++)
+        {
+            if(m_mesh.m_meshBoneWeights[v].boneWeight[bw] > weight)
+            {
+                weight = m_mesh.m_meshBoneWeights[v].boneWeight[bw];
+                boneId = m_mesh.m_meshBoneWeights[v].boneID[bw];
+            }
+        }
+        if(boneId == 1)
+        {
+            verts.push_back(HRBF::Vector(m_mesh.m_meshVerts[v].x, m_mesh.m_meshVerts[v].y, m_mesh.m_meshVerts[v].z));
+//            m_meshIsoSurface.m_meshVerts.push_back(m_mesh.m_meshVerts[v]);
+            norms.push_back(HRBF::Vector(m_mesh.m_meshNorms[v].x, m_mesh.m_meshNorms[v].y, m_mesh.m_meshNorms[v].z));
+//            m_meshIsoSurface.m_meshNorms.push_back(m_mesh.m_meshNorms[v]);
+            counter++;
+        }
     }
 
     m_HRBF_Global.hermite_fit(verts, norms);
 
 
-    int x = 16;
-    int y = 16;
-    int z = 16;
-    float size = 200.0f;
+    int x = 32;
+    int y = 32;
+    int z = 32;
+    float size = 100.0f;
     float *volumeData = new float[x*y*z];
     for(int i=0;i<z;i++)
     {
@@ -61,17 +81,17 @@ void Model::Load(const std::string &_file)
         {
             for(int k=0;k<x;k++)
             {
-                volumeData[i*x*y + j*x + k] =   ((float)i/z-0.5)*((float)i/z-0.5) +
-                                                ((float)j/y-0.5)*((float)j/y-0.5) +
-                                                ((float)k/x-0.5)*((float)k/x-0.5);
+//                volumeData[i*x*y + j*x + k] =   ((float)i/z-0.5)*((float)i/z-0.5) +
+//                                                ((float)j/y-0.5)*((float)j/y-0.5) +
+//                                                ((float)k/x-0.5)*((float)k/x-0.5);
 
-                float d = m_HRBF_Global.eval(HRBF::Vector(   size*(((i/z)*2.0f)-1.0f),
-                                                             size*(((j/y)*2.0f)-1.0f),
-                                                             size*(((k/x)*2.0f)-1.0f)));
+                float d = 1.0f* m_HRBF_Global.eval(HRBF::Vector(   4.0f*((((float)i/z)*2.0f)-1.0f),
+                                                                    4.0f*((((float)j/y)*2.0f)-1.0f),
+                                                                    4.0f*((((float)k/x)*2.0f)-1.0f)));
                 if(!std::isnan(d))
                 {
                     volumeData[i*x*y + j*x + k] = d;
-                    std::cout<<"volume: "<<d<<"\n";
+//                    printf("%f\n", d);
                 }
             }
         }
@@ -81,14 +101,17 @@ void Model::Load(const std::string &_file)
     m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, x, y, z, size, size, size);
     std::cout<<"num verts"<<m_meshIsoSurface.m_meshVerts.size()<<"\n";
 
-    //--------------------------------------------------
-    CreateShaders();
-    CreateVAOs();
-    UpdateVAOs();
+
 
     delete volumeData;
+}
+
+
+void Model::InitScalarFields()
+{
 
 }
+
 
 void Model::DrawMesh()
 {
@@ -99,27 +122,27 @@ void Model::DrawMesh()
     }
     else
     {
-        m_shaderProg[SKINNED]->bind();
-        glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
-        glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
-        glUniformMatrix3fv(m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
-        glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
+//        m_shaderProg[SKINNED]->bind();
+//        glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
+//        glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+//        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+//        glUniformMatrix3fv(m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
+//        glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
 
-        m_meshVAO[SKINNED].bind();
-        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-        glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        m_meshVAO[SKINNED].release();
+//        m_meshVAO[SKINNED].bind();
+//        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+//        glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//        m_meshVAO[SKINNED].release();
 
-        m_shaderProg[SKINNED]->release();
+//        m_shaderProg[SKINNED]->release();
 
 
 
         m_shaderProg[ISO_SURFACE]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
         glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-//        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
         glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshIsoSurface.m_colour[0]);
 

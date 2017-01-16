@@ -50,9 +50,12 @@ public:
     void SetViewMatrix(const glm::mat4 &_viewMat);
     void SetProjectionMatrix(const glm::mat4 &_projMat);
 
-
     void UploadBoneColoursToShader(RenderType _rt);
     void UploadBonesToShader(RenderType _rt);
+
+
+    void InitMeshParts();
+    void InitScalarFields();
 
 
     // Attributes

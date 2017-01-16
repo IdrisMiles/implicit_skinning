@@ -109,9 +109,6 @@ void MachingCube::generateVolume(float *_volumeData, const int &_w, const int &_
         {
             for (k=0;k<volume_width;k++)
             {
-//                volumeData[i*volume_width*volume_height + j*volume_width + k] = ((float)i/volume_depth-0.5)*((float)i/volume_depth-0.5) +
-//                                                                                ((float)j/volume_height-0.5)*((float)j/volume_height-0.5) +
-//                                                                                ((float)k/volume_width-0.5)*((float)k/volume_width-0.5);
                 volumeData[i*volume_width*volume_height + j*volume_width + k] = _volumeData[i*volume_width*volume_height + j*volume_width + k];
             }
         }
@@ -196,9 +193,9 @@ void MachingCube::createVerts()
         for(i=0;i<3;i++)
         {
             // pack in the vertex data first
-            vert.x = (((itr->p[i].x/volume_width) * 2.0) -1.0)    * voxel_width;
-            vert.y = (((itr->p[i].y/volume_height) * 2.0) -1.0 )  * voxel_height;
-            vert.z = (((itr->p[i].z/volume_depth) * 2.0) -1.0)    * voxel_depth;
+            vert.x = (((itr->p[i].x/volume_width) * 2.0f) -1.0f)    * voxel_width;
+            vert.y = (((itr->p[i].y/volume_height) * 2.0f) -1.0f)  * voxel_height;
+            vert.z = (((itr->p[i].z/volume_depth) * 2.0f) -1.0f)    * voxel_depth;
 
             // one normal for all three vertices in the triangle
             norm.x = triNormal.x;
