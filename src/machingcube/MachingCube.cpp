@@ -195,9 +195,9 @@ void MachingCube::createVerts()
         for(i=0;i<3;i++)
         {
             // pack in the vertex data first
-            vert.x = (((itr->p[i].x/volume_width) * 2.0f) -1.0f)    * voxel_width;
+            vert.z = (((itr->p[i].x/volume_width) * 2.0f) -1.0f)    * voxel_width;
             vert.y = (((itr->p[i].y/volume_height) * 2.0f) -1.0f)  * voxel_height;
-            vert.z = (((itr->p[i].z/volume_depth) * 2.0f) -1.0f)    * voxel_depth;
+            vert.x = (((itr->p[i].z/volume_depth) * 2.0f) -1.0f)    * voxel_depth;
 
             // one normal for all three vertices in the triangle
             norm.x = triNormal.x;

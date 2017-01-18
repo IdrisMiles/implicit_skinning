@@ -215,7 +215,7 @@ void ModelLoader::SetRigVerts(Model *_model, aiNode* _pParentNode, aiNode* _pNod
     const std::string nodeName = _pNode->mName.data;
     bool isBone = _model->m_rig.m_boneNameIdMapping.find(nodeName) != _model->m_rig.m_boneNameIdMapping.end();
 
-    glm::mat4 newThisTransform = ConvertToGlmMat(_pNode->mTransformation) * _thisTransform;
+    glm::mat4 newThisTransform = _thisTransform * ConvertToGlmMat(_pNode->mTransformation);
     glm::mat4 newParentTransform = _parentTransform;
     aiNode* newParent = _pParentNode;
 
@@ -252,7 +252,7 @@ void ModelLoader::SetJointVert(Model *_model, const std::string _nodeName, const
         _vb.boneWeight[2] = 0.0f;
         _vb.boneWeight[3] = 0.0f;
 
-        _model->m_rigMesh.m_meshVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f) * _transform));
+        _model->m_rigMesh.m_meshVerts.push_back(glm::vec3(_transform*glm::vec4(0.0f,0.0f,0.0f,1.0f)));
         _model->m_rigMesh.m_meshVertColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
         _model->m_rigMesh.m_meshBoneWeights.push_back(_vb);
     }
@@ -266,15 +266,15 @@ void ModelLoader::SetJointVert(Model *_model, const std::string _nodeName, const
 
 glm::mat4 ModelLoader::ConvertToGlmMat(const aiMatrix4x4 &m)
 {
-    glm::mat4 a(  m.a1, m.a2, m.a3, m.a4,
-                  m.b1, m.b2, m.b3, m.b4,
-                  m.c1, m.c2, m.c3, m.c4,
-                  m.d1, m.d2, m.d3, m.d4);
+//    glm::mat4 a(  m.a1, m.a2, m.a3, m.a4,
+//                  m.b1, m.b2, m.b3, m.b4,
+//                  m.c1, m.c2, m.c3, m.c4,
+//                  m.d1, m.d2, m.d3, m.d4);
 
-//    glm::mat4 a(  m.a1, m.b1, m.c1, m.d1,
-//                  m.a2, m.b2, m.c2, m.d2,
-//                  m.a3, m.b3, m.c3, m.d3,
-//                  m.a4, m.b4, m.c4, m.d4);
+    glm::mat4 a(  m.a1, m.b1, m.c1, m.d1,
+                  m.a2, m.b2, m.c2, m.d2,
+                  m.a3, m.b3, m.c3, m.d3,
+                  m.a4, m.b4, m.c4, m.d4);
     return a;
 }
 
@@ -317,18 +317,18 @@ void ModelLoader::CopyRigStructure(const std::unordered_map<std::string, unsigne
     if(_boneMapping.find(std::string(_aiNode->mName.data)) != _boneMapping.end())
     {
         newBone->m_name = std::string(_aiNode->mName.data);
-        newBone->m_transform = ConvertToGlmMat(_aiNode->mTransformation) * _parentTransform;
+        newBone->m_transform = _parentTransform * ConvertToGlmMat(_aiNode->mTransformation);
 
         // Get bone offset matrix
         const aiBone* paiBone = GetBone(_aiScene, newBone->m_name);
         if(paiBone)
         {
-            std::cout<<std::string(paiBone->mName.data)<< "valid bone\n";
+            std::cout<<std::string(paiBone->mName.data)<< "Model::CopyRigStructure | valid bone\n";
             newBone->m_boneOffset = ConvertToGlmMat(paiBone->mOffsetMatrix);
         }
         else
         {
-            std::cout<<"Well sheet, didn't find a bone in aiScene with name matching: "<<newBone->m_name<<". Thus not boneOffsetMatrix\n";
+            std::cout<<"Model::CopyRigStructure | Well sheet, didn't find a bone in aiScene with name matching: "<<newBone->m_name<<". Thus not boneOffsetMatrix\n";
             newBone->m_boneOffset = glm::mat4(1.0f);
         }
 
@@ -336,14 +336,14 @@ void ModelLoader::CopyRigStructure(const std::unordered_map<std::string, unsigne
         const aiNodeAnim *pNodeAnim = FindNodeAnim(_aiScene->mAnimations[_aiScene->mNumAnimations-1], newBone->m_name);
         if(pNodeAnim)
         {
-            std::cout<<std::string(pNodeAnim->mNodeName.data)<<" valid nodeAnim\n";
+            std::cout<<std::string(pNodeAnim->mNodeName.data)<<"Model::CopyRigStructure | valid nodeAnim\n";
             _rig.m_boneAnims[newBone->m_name] = ConvertToBoneAnim(pNodeAnim);
             newBone->m_boneAnim = std::make_shared<BoneAnim>(_rig.m_boneAnims[newBone->m_name]);
 
         }
         else
         {
-            std::cout<<"Daaannnng, didn't find aiNodeAnim in aiAnimation["<<_aiScene->mNumAnimations<<"] with matching name: "<<newBone->m_name<<". Thus No animation.\n";
+            std::cout<<"Model::CopyRigStructure | Daaannnng, didn't find aiNodeAnim in aiAnimation["<<_aiScene->mNumAnimations<<"] with matching name: "<<newBone->m_name<<". Thus No animation.\n";
             BoneAnim blankAnim;
             blankAnim.m_name = newBone->m_name;
             blankAnim.m_posAnim.push_back(PosAnim(0.0f, glm::vec3(0, 0, 0)));
@@ -363,7 +363,7 @@ void ModelLoader::CopyRigStructure(const std::unordered_map<std::string, unsigne
         // forward on this nodes transform to affect the next bone
         std::cout<<"Model::CopyRigStructure | "<<std::string(_aiNode->mName.data)<<" Is not a Bone, probably an arbitrary transform.\n";
         newBone = _parentBone;
-        newParentTransform = ConvertToGlmMat(_aiNode->mTransformation) * _parentTransform;
+        newParentTransform = _parentTransform * ConvertToGlmMat(_aiNode->mTransformation);
     }
 
 

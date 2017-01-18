@@ -67,18 +67,17 @@ void Rig::UpdateBoneHierarchy(const float _animationTime, std::shared_ptr<Bone> 
     translationMat = glm::translate(translationMat, translationVec);
 
     // Combine the above transformations
-    boneTransform = glm::transpose(translationMat * rotationMat * scalingMat);
-//    boneTransform = scalingMat * rotationMat * translationMat;
+    boneTransform = translationMat * rotationMat * scalingMat;
 
 
 
-    glm::mat4 globalTransformation = /*glm::transpose(boneTransform)*_parentTransform;*/ boneTransform*_parentTransform;
+    glm::mat4 globalTransformation = _parentTransform * boneTransform;
 
 
     if (BoneIndex != -1)
     {
-        m_boneTransforms[BoneIndex] = _pBone->m_currentTransform = _pBone->m_boneOffset * globalTransformation * m_globalInverseTransform;
-        //m_boneTransforms[BoneIndex] = _pBone->m_currentTransform = m_globalInverseTransform * globalTransformation * _pBone->m_boneOffset;
+//        m_boneTransforms[BoneIndex] = _pBone->m_currentTransform = glm::mat4(1.0f);
+        m_boneTransforms[BoneIndex] = _pBone->m_currentTransform = m_globalInverseTransform * globalTransformation * _pBone->m_boneOffset;
     }
 
     for (uint i = 0 ; i < _pBone->m_children.size() ; i++)

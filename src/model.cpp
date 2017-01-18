@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <glm/gtx/string_cast.hpp>
 
 Model::Model()
 {
@@ -79,10 +80,12 @@ void Model::InitMeshParts()
     int xRes = 64;
     int yRes = 64;
     int zRes = 64;
-    float dim = 8.0f;
-    float scale = 100.0f;
+    float dim = 8.0f; // dimension of sample range e.g. dim x dim x dim
+    float xScale = 1.0f* dim;
+    float yScale = 1.0f* dim;
+    float zScale = 1.0f* dim;
     float *volumeData = new float[xRes*yRes*zRes];
-    unsigned int numHrbfFitPoints = 1000;
+    unsigned int numHrbfFitPoints = 100;
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
     int counter=0;
@@ -134,7 +137,7 @@ void Model::InitMeshParts()
 
         // Polygonize scalar field using maching cube
         m_meshPartsIsoSurface[mp].m_colour = glm::vec3(0.8f, 0.4f, 0.4f);
-        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, xRes, yRes, zRes, scale, scale, scale);
+        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, xRes, yRes, zRes, xScale, yScale, zScale);
         std::cout<<"num verts"<<m_meshPartsIsoSurface[mp].m_meshVerts.size()<<"\n";
     }
 
@@ -158,31 +161,39 @@ void Model::DrawMesh()
     }
     else
     {
-//        m_shaderProg[SKINNED]->bind();
-//        glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
-//        glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-//        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
-//        glUniformMatrix3fv(m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
-//        glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
+        m_shaderProg[SKINNED]->bind();
+        glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
+        glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_viewMat*m_modelMat)[0][0]);
+        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+        glUniformMatrix3fv(m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
+        glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
 
-//        m_meshVAO[SKINNED].bind();
-//        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-//        glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//        m_meshVAO[SKINNED].release();
+        m_meshVAO[SKINNED].bind();
+        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+        glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        m_meshVAO[SKINNED].release();
 
-//        m_shaderProg[SKINNED]->release();
+        m_shaderProg[SKINNED]->release();
 
 
 
         m_shaderProg[ISO_SURFACE]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
         glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-        glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+        normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
         for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
         {
+
+            if(m_rig.m_boneTransforms.size()>0)
+            {
+            glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &((m_modelMat*m_rig.m_boneTransforms[mp])*m_viewMat)[0][0]);
+            normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+            glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
+            }
+
             glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);
 
             m_meshPartIsoVAO[mp]->bind();
@@ -750,6 +761,6 @@ void Model::UploadBonesToShader(RenderType _rt)
 {
     for(unsigned int b=0; b<m_rig.m_boneTransforms.size() && b<100; b++)
     {
-        glUniformMatrix4fv(m_boneUniformLoc[_rt] + b, 1, true, &m_rig.m_boneTransforms[b][0][0]);
+        glUniformMatrix4fv(m_boneUniformLoc[_rt] + b, 1, false, &m_rig.m_boneTransforms[b][0][0]);
     }
 }

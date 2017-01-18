@@ -27,12 +27,11 @@ OTHER_FILES += shader/*
 INCLUDEPATH +=  $$PWD/include \
                 /usr/local/include \
                 /usr/include \
-                /usr/include \
                 /home/idris/dev/include \
                 /home/idris/dev/eigen/include/eigen3
 
 LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW \
-        -L${HOME}/dev/lib -L/usr/local/lib -lassimp \
+        -L${HOME}/dev/lib -L/usr/local/lib -lassimp
 
 
 OBJECTS_DIR = ./obj
