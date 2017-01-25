@@ -28,7 +28,8 @@ INCLUDEPATH +=  $$PWD/include \
                 /usr/local/include \
                 /usr/include \
                 /home/idris/dev/include \
-                /home/idris/dev/eigen/include/eigen3
+                /home/idris/dev/eigen/include/eigen3 \
+                /usr/local/include/eigen3/
 
 LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW \
         -L${HOME}/dev/lib -L/usr/local/lib -lassimp
