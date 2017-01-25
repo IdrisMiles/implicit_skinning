@@ -27,7 +27,7 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
     }
 
 
-    glm::mat4 globalInverseTransform = ConvertToGlmMat(scene->mRootNode->mTransformation);
+    glm::mat4 globalInverseTransform = glm::mat4(1.0f);//ConvertToGlmMat(scene->mRootNode->mTransformation);
     _model->m_rig.m_globalInverseTransform  = glm::inverse(globalInverseTransform);
 
     if(!scene)

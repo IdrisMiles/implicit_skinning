@@ -77,9 +77,9 @@ void Model::InitMeshParts()
 
 
     // Get Scalar field for each mesh part and polygonize
-    int xRes = 64;
-    int yRes = 64;
-    int zRes = 64;
+    int xRes = 16;
+    int yRes = 16;
+    int zRes = 16;
     float dim = 8.0f; // dimension of sample range e.g. dim x dim x dim
     float xScale = 1.0f* dim;
     float yScale = 1.0f* dim;
@@ -137,7 +137,7 @@ void Model::InitMeshParts()
 
         // Polygonize scalar field using maching cube
         m_meshPartsIsoSurface[mp].m_colour = glm::vec3(0.8f, 0.4f, 0.4f);
-        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, xRes, yRes, zRes, xScale, yScale, zScale);
+        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.3f, xRes, yRes, zRes, xScale, yScale, zScale);
         std::cout<<"num verts"<<m_meshPartsIsoSurface[mp].m_meshVerts.size()<<"\n";
     }
 
@@ -154,6 +154,8 @@ void Model::InitScalarFields()
 
 void Model::DrawMesh()
 {
+    static float angle = 0.0f;
+    angle+=0.1f;
     if(!m_initGL)
     {
         CreateVAOs();
@@ -184,17 +186,71 @@ void Model::DrawMesh()
         normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
+
+        // Get Scalar field for each mesh part and polygonize
+        int xRes = 16;
+        int yRes = 16;
+        int zRes = 16;
+        float dim = 8.0f; // dimension of sample range e.g. dim x dim x dim
+        float xScale = 1.0f* dim;
+        float yScale = 1.0f* dim;
+        float zScale = 1.0f* dim;
+        float *volumeData = new float[xRes*yRes*zRes];
+        for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
+        {
+            // evaluate scalar field at uniform points
+            for(int i=0;i<zRes;i++)
+            {
+                for(int j=0;j<yRes;j++)
+                {
+                    for(int k=0;k<xRes;k++)
+                    {
+                        glm::vec4 point(dim*((((float)i/zRes)*2.0f)-1.0f), dim*((((float)j/yRes)*2.0f)-1.0f), dim*((((float)k/xRes)*2.0f)-1.0f), 1.0f);
+                        glm::vec4 transformedSpace = point;
+                        if(m_rig.m_boneTransforms.size()>0)
+                        {
+                            transformedSpace = glm::inverse(m_rig.m_boneTransforms[mp]) * transformedSpace;
+                        }
+
+
+                        float d = m_HRBF_MeshParts[mp].eval(HRBF::Vector(   transformedSpace.x, transformedSpace.y, transformedSpace.z));
+                        if(!std::isnan(d))
+                        {
+                            volumeData[i*xRes*yRes + j*xRes + k] = d;
+                        }
+                        else
+                        {
+                            volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
+                        }
+                    }
+                }
+            }
+
+            // Polygonize scalar field using maching cube
+            m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.3f, xRes, yRes, zRes, xScale, yScale, zScale);
+        }
+        //clean up
+        delete volumeData;
+
+
+
         for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
         {
 
-            if(m_rig.m_boneTransforms.size()>0)
-            {
-            glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &((m_modelMat*m_rig.m_boneTransforms[mp])*m_viewMat)[0][0]);
-            normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
-            glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
-            }
+            glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);// Setup our vertex buffer object.
+            m_meshPartIsoVBO[mp]->bind();
+            m_meshPartIsoVBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshVerts[0], m_meshPartsIsoSurface[mp].m_meshVerts.size() * sizeof(glm::vec3));
+            glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+            glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+            m_meshPartIsoVBO[mp]->release();
 
-            glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);
+
+            // Setup our normals buffer object.
+            m_meshPartIsoNBO[mp]->bind();
+            m_meshPartIsoNBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshNorms[0], m_meshPartsIsoSurface[mp].m_meshNorms.size() * sizeof(glm::vec3));
+            glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+            glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+            m_meshPartIsoNBO[mp]->release();
 
             m_meshPartIsoVAO[mp]->bind();
             glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
@@ -205,7 +261,6 @@ void Model::DrawMesh()
         }
 
         m_shaderProg[ISO_SURFACE]->release();
-
     }
 }
 

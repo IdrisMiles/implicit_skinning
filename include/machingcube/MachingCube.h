@@ -57,7 +57,7 @@ public :
     ~MachingCube();
 
     //----------------------------------------------------------------------------------------------------------------------
-    void Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
+    void Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
     void Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, std::string _vol, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ protected :
     bool LoadVolumeFromFile(std::string _vol, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
 
     //----------------------------------------------------------------------------------------------------------------------
-    void generateVolume(float *_volumeData, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
+    void generateVolume(float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
 
     //----------------------------------------------------------------------------------------------------------------------
     void createVerts();

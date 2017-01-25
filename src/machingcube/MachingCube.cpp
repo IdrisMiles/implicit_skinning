@@ -24,9 +24,9 @@ MachingCube::~MachingCube()
 
 
 //----------------------------------------------------------------------------------------------------------------------
-void MachingCube::Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
+void MachingCube::Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
 {
-    generateVolume(_volumeData, _w, _h, _d, _voxelW, _voxelH, _voxelD);
+    generateVolume(_volumeData, _isolevel, _w, _h, _d, _voxelW, _voxelH, _voxelD);
     createVerts();
     GetVerts(_verts, _norms);
 }
@@ -90,7 +90,7 @@ bool MachingCube::LoadVolumeFromFile(std::string _vol, const int &_w, const int 
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void MachingCube::generateVolume(float *_volumeData, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
+void MachingCube::generateVolume(float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
 {
     volume_width = _w;
     volume_height = _h;
@@ -113,7 +113,7 @@ void MachingCube::generateVolume(float *_volumeData, const int &_w, const int &_
             }
         }
     }
-    isolevel = 0.5;
+    isolevel = _isolevel;
 
 }
 

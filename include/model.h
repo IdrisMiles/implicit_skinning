@@ -57,7 +57,20 @@ public:
     void InitMeshParts();
     void InitScalarFields();
 
+    //-------------------------------------------------------------------
 
+    void GenerateMeshParts();
+    void GenerateHrbfCentres();
+    void GenerateDistanceFunctions();
+    float EvaluateDistanceFunctions(const glm::vec3 &_x);
+    float RemapDistanceToFieldFunction(const float _d, const float _r);
+    float EvaluateFieldFunctions(const glm::vec3 &_x);
+    float CompositionOperator(const float f1, const float f2, const float d);
+    float ThetaFunction(const float alpha);
+    float EvaluateGlobalFieldFunction(const glm::vec3 &_x);
+
+
+    //-------------------------------------------------------------------
     // Attributes
     Rig m_rig;
     Mesh m_mesh;
