@@ -108,7 +108,13 @@ void Model::GenerateDistanceFunctions()
         verts.clear();
         norms.clear();
 
-        // Generate HRBF centre
+        // --------------------------------------
+        // TODO
+        // Generate HRBF centre by sampling mesh
+        //
+        // Mesh samples = MeshSampler::SampleMesh(m_meshParts[mp], 50);
+        //
+        // --------------------------------------
 
         // Add verts and normals for HRBF fit
         for(unsigned int v=0; v<m_meshParts[mp].m_meshVerts.size(); v++)
