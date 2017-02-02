@@ -17,6 +17,7 @@ public:
     static void LoadModel(Model *_model, const std::string &_file);
     static void InitModelMesh(Model *_model, const aiScene *_scene);
     static void InitRigMesh(Model* _model, const aiScene *_scene);
+    static void InitRig(Model* _model, const aiScene *_scene);
     static void SetRigVerts(Model* _model, aiNode *_pParentNode, aiNode *_pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform);
     static void SetJointVert(Model* _model, const std::string _nodeName, const glm::mat4 &_transform, VertexBoneData &_vb);
 

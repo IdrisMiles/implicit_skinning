@@ -25,6 +25,7 @@ public:
     std::vector<glm::ivec3> m_meshTris;
     std::vector<VertexBoneData> m_meshBoneWeights;
     std::vector<glm::vec3> m_meshVertColours;
+    std::vector<glm::vec2> m_meshUVs;
     glm::vec3 m_colour;
 };
 

@@ -54,9 +54,6 @@ public:
     void UploadBonesToShader(RenderType _rt);
 
 
-    void InitMeshParts();
-    void InitScalarFields();
-
     //-------------------------------------------------------------------
 
     void GenerateMeshParts();
@@ -77,11 +74,11 @@ public:
     Mesh m_rigMesh;
 
     std::vector<Mesh> m_meshParts;
+    std::vector<Mesh> m_meshPartsHRBFCentres;
     std::vector<Mesh> m_meshPartsIsoSurface;
     std::vector<HRBF> m_HRBF_MeshParts;
 
     Mesh m_meshIsoSurface;
-    HRBF m_HRBF_Global;
 
     MachingCube m_polygonizer;
 

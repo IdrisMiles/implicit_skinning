@@ -27,7 +27,7 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
     }
 
 
-    glm::mat4 globalInverseTransform = glm::mat4(1.0f);//ConvertToGlmMat(scene->mRootNode->mTransformation);
+    glm::mat4 globalInverseTransform = ConvertToGlmMat(scene->mRootNode->mTransformation);
     _model->m_rig.m_globalInverseTransform  = glm::inverse(globalInverseTransform);
 
     if(!scene)
@@ -38,40 +38,7 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
     {
         InitModelMesh(_model, scene);
         InitRigMesh(_model, scene);
-
-
-
-
-        _model->m_rig.m_rootBone= std::shared_ptr<Bone>(new Bone());
-        _model->m_rig.m_rootBone->m_name = std::string(scene->mRootNode->mName.data);
-        _model->m_rig.m_rootBone->m_transform = ConvertToGlmMat(scene->mRootNode->mTransformation);
-        _model->m_rig.m_rootBone->m_boneOffset = glm::mat4(1.0f);
-        _model->m_rig.m_rootBone->m_parent = nullptr;
-        if(_model->m_rig.m_animExists)
-        {
-            const aiNodeAnim *pNodeAnim = FindNodeAnim(scene->mAnimations[scene->mNumAnimations-1], std::string(scene->mRootNode->mName.data));
-            if(pNodeAnim)
-            {
-                _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = ConvertToBoneAnim(pNodeAnim);
-                _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
-
-            }
-            else
-            {
-                BoneAnim rootAnim;
-                rootAnim.m_name = _model->m_rig.m_rootBone->m_name;
-                rootAnim.m_posAnim.push_back(PosAnim(0.0f, glm::vec3(0, 0, 0)));
-                rootAnim.m_scaleAnim.push_back(ScaleAnim(0.0f, glm::vec3(1, 1, 1)));
-                _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = rootAnim;
-                _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
-            }
-
-            unsigned int numChildren = scene->mRootNode->mNumChildren;
-            for (unsigned int i=0; i<numChildren; i++)
-            {
-                CopyRigStructure(_model->m_rig.m_boneNameIdMapping, scene, scene->mRootNode->mChildren[i], _model->m_rig, _model->m_rig.m_rootBone, ConvertToGlmMat(scene->mRootNode->mTransformation));
-            }
-        }
+        InitRig(_model, scene);
     }
 
 }
@@ -103,6 +70,12 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
                 auto norm = _scene->mMeshes[i]->mNormals[v];
                 _model->m_mesh.m_meshVerts.push_back(glm::vec3(vert.x, vert.y, vert.z));
                 _model->m_mesh.m_meshNorms.push_back(glm::vec3(norm.x, norm.y, norm.z));
+
+                if(_scene->mMeshes[i]->mNumUVComponents[v] < 0)
+                {
+                    auto uv = _scene->mMeshes[i]->mTextureCoords[v][0];
+                    _model->m_mesh.m_meshUVs.push_back(glm::vec2(uv.x, uv.y));
+                }
             }
 
 
@@ -207,6 +180,41 @@ void ModelLoader::InitRigMesh(Model *_model, const aiScene *_scene)
 
     std::cout<<"Number of rig verts:\t"<<_model->m_rigMesh.m_meshVerts.size()<<"\n";
 
+}
+
+
+void ModelLoader::InitRig(Model* _model, const aiScene *_scene)
+{
+    _model->m_rig.m_rootBone= std::shared_ptr<Bone>(new Bone());
+    _model->m_rig.m_rootBone->m_name = std::string(_scene->mRootNode->mName.data);
+    _model->m_rig.m_rootBone->m_transform = ConvertToGlmMat(_scene->mRootNode->mTransformation);
+    _model->m_rig.m_rootBone->m_boneOffset = glm::mat4(1.0f);
+    _model->m_rig.m_rootBone->m_parent = nullptr;
+    if(_model->m_rig.m_animExists)
+    {
+        const aiNodeAnim *pNodeAnim = FindNodeAnim(_scene->mAnimations[_scene->mNumAnimations-1], std::string(_scene->mRootNode->mName.data));
+        if(pNodeAnim)
+        {
+            _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = ConvertToBoneAnim(pNodeAnim);
+            _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
+
+        }
+        else
+        {
+            BoneAnim rootAnim;
+            rootAnim.m_name = _model->m_rig.m_rootBone->m_name;
+            rootAnim.m_posAnim.push_back(PosAnim(0.0f, glm::vec3(0, 0, 0)));
+            rootAnim.m_scaleAnim.push_back(ScaleAnim(0.0f, glm::vec3(1, 1, 1)));
+            _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = rootAnim;
+            _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
+        }
+
+        unsigned int numChildren = _scene->mRootNode->mNumChildren;
+        for (unsigned int i=0; i<numChildren; i++)
+        {
+            CopyRigStructure(_model->m_rig.m_boneNameIdMapping, _scene, _scene->mRootNode->mChildren[i], _model->m_rig, _model->m_rig.m_rootBone, ConvertToGlmMat(_scene->mRootNode->mTransformation));
+        }
+    }
 }
 
 void ModelLoader::SetRigVerts(Model *_model, aiNode* _pParentNode, aiNode* _pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform)

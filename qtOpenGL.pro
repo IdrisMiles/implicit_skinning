@@ -14,11 +14,13 @@ CONFIG += console c++11
 
 
 SOURCES +=  $$PWD/src/*.cpp \
-            $$PWD/src/machingcube/*.cpp
+            $$PWD/src/machingcube/*.cpp \
+            $$PWD/src/MeshSampler/*.cpp
 
 HEADERS  += $$PWD/include/*.h \
             $$PWD/include/hrbf/*.h \
-            $$PWD/include/machingcube/*.h
+            $$PWD/include/machingcube/*.h \
+            $$PWD/include/MeshSampler/*.h
 
 OTHER_FILES += shader/*
 

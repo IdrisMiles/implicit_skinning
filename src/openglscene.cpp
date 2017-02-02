@@ -74,8 +74,7 @@ void OpenGLScene::paintGL()
 {
     // clean gl window
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);;
 
     // update model matrix
     m_modelMat = glm::mat4(1);
@@ -95,7 +94,7 @@ void OpenGLScene::paintGL()
         model->SetProjectionMatrix(m_projMat);
 
         model->DrawMesh();
-        //model->DrawRig();
+//        model->DrawRig();
     }
 
     //---------------------------------------------------------------------------------------

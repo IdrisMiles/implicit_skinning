@@ -25,7 +25,8 @@ void Model::Load(const std::string &_file)
     ModelLoader::LoadModel(this, _file);
     //--------------------------------------------------
 
-    InitMeshParts();
+    GenerateMeshParts();
+    GenerateDistanceFunctions();
 
     //--------------------------------------------------
     CreateShaders();
@@ -34,10 +35,8 @@ void Model::Load(const std::string &_file)
 }
 
 
-void Model::InitMeshParts()
+void Model::GenerateMeshParts()
 {
-
-
     unsigned int numParts = m_rig.m_boneNameIdMapping.size();
     m_meshParts.resize(numParts);
     m_meshPartsIsoSurface.resize(numParts);
@@ -74,35 +73,56 @@ void Model::InitMeshParts()
         }
     }
 
+    for(unsigned int i=0 ;i<m_meshParts.size(); i++)
+    {
+        if(m_meshParts[i].m_meshVerts.size() < 1)
+        {
+            m_meshParts.erase(m_meshParts.begin()+i);
+            i--;
+        }
+    }
+
+}
+
+void Model::GenerateHrbfCentres()
+{
+    for(unsigned int i=0 ;i<m_meshParts.size(); i++)
+    {
+    }
+
+}
+
+void Model::GenerateDistanceFunctions()
+{
+    m_meshPartsIsoSurface.resize(m_meshParts.size());
+    m_HRBF_MeshParts.resize(m_meshParts.size());
 
 
-    // Get Scalar field for each mesh part and polygonize
-    int xRes = 16;
-    int yRes = 16;
-    int zRes = 16;
-    float dim = 8.0f; // dimension of sample range e.g. dim x dim x dim
-    float xScale = 1.0f* dim;
-    float yScale = 1.0f* dim;
-    float zScale = 1.0f* dim;
-    float *volumeData = new float[xRes*yRes*zRes];
     unsigned int numHrbfFitPoints = 100;
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
     int counter=0;
-    for(unsigned int mp=0; mp<numParts; mp++)
+    for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
     {
         counter = 0;
         verts.clear();
         norms.clear();
 
+        // Generate HRBF centre
+
         // Add verts and normals for HRBF fit
         for(unsigned int v=0; v<m_meshParts[mp].m_meshVerts.size(); v++)
         {
+            // Currently takes first 50 verts, not properly sampling surface
             if(counter>=numHrbfFitPoints)
+            {
                 break;
-
-            verts.push_back(HRBF::Vector(m_meshParts[mp].m_meshVerts[v].x, m_meshParts[mp].m_meshVerts[v].y, m_meshParts[mp].m_meshVerts[v].z));
-            norms.push_back(HRBF::Vector(m_meshParts[mp].m_meshNorms[v].x, m_meshParts[mp].m_meshNorms[v].y, m_meshParts[mp].m_meshNorms[v].z));
+            }
+            else
+            {
+                verts.push_back(HRBF::Vector(m_meshParts[mp].m_meshVerts[v].x, m_meshParts[mp].m_meshVerts[v].y, m_meshParts[mp].m_meshVerts[v].z));
+                norms.push_back(HRBF::Vector(m_meshParts[mp].m_meshNorms[v].x, m_meshParts[mp].m_meshNorms[v].y, m_meshParts[mp].m_meshNorms[v].z));
+            }
 
             counter++;
         }
@@ -110,45 +130,7 @@ void Model::InitMeshParts()
 
         // Generate HRBF fit and thus scalar field/implicit function
         m_HRBF_MeshParts[mp].hermite_fit(verts, norms);
-
-
-        // evaluate scalar field at uniform points
-        for(int i=0;i<zRes;i++)
-        {
-            for(int j=0;j<yRes;j++)
-            {
-                for(int k=0;k<xRes;k++)
-                {
-                    float d = m_HRBF_MeshParts[mp].eval(HRBF::Vector(   dim*((((float)i/zRes)*2.0f)-1.0f),
-                                                                        dim*((((float)j/yRes)*2.0f)-1.0f),
-                                                                        dim*((((float)k/xRes)*2.0f)-1.0f)));
-                    if(!std::isnan(d))
-                    {
-                        volumeData[i*xRes*yRes + j*xRes + k] = d;
-                    }
-                    else
-                    {
-                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
-                    }
-                }
-            }
-        }
-
-
-        // Polygonize scalar field using maching cube
-        m_meshPartsIsoSurface[mp].m_colour = glm::vec3(0.8f, 0.4f, 0.4f);
-        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.3f, xRes, yRes, zRes, xScale, yScale, zScale);
-        std::cout<<"num verts"<<m_meshPartsIsoSurface[mp].m_meshVerts.size()<<"\n";
     }
-
-    //clean up
-    delete volumeData;
-}
-
-
-void Model::InitScalarFields()
-{
-
 }
 
 
@@ -191,7 +173,7 @@ void Model::DrawMesh()
         int xRes = 16;
         int yRes = 16;
         int zRes = 16;
-        float dim = 8.0f; // dimension of sample range e.g. dim x dim x dim
+        float dim = 800.0f; // dimension of sample range e.g. dim x dim x dim
         float xScale = 1.0f* dim;
         float yScale = 1.0f* dim;
         float zScale = 1.0f* dim;
@@ -211,7 +193,6 @@ void Model::DrawMesh()
                         {
                             transformedSpace = glm::inverse(m_rig.m_boneTransforms[mp]) * transformedSpace;
                         }
-
 
                         float d = m_HRBF_MeshParts[mp].eval(HRBF::Vector(   transformedSpace.x, transformedSpace.y, transformedSpace.z));
                         if(!std::isnan(d))
@@ -237,6 +218,7 @@ void Model::DrawMesh()
         for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
         {
 
+            // upload new verts
             glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);// Setup our vertex buffer object.
             m_meshPartIsoVBO[mp]->bind();
             m_meshPartIsoVBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshVerts[0], m_meshPartsIsoSurface[mp].m_meshVerts.size() * sizeof(glm::vec3));
@@ -245,13 +227,15 @@ void Model::DrawMesh()
             m_meshPartIsoVBO[mp]->release();
 
 
-            // Setup our normals buffer object.
+            // upload new normals
             m_meshPartIsoNBO[mp]->bind();
             m_meshPartIsoNBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshNorms[0], m_meshPartsIsoSurface[mp].m_meshNorms.size() * sizeof(glm::vec3));
             glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
             glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
             m_meshPartIsoNBO[mp]->release();
 
+
+            // Draw marching cube of isosurface
             m_meshPartIsoVAO[mp]->bind();
             glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
             glDrawArrays(GL_TRIANGLES, 0, m_meshPartsIsoSurface[mp].m_meshVerts.size());
