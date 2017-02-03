@@ -2,10 +2,10 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <iostream>
 
 struct AcceptSample
 {
-    AcceptSample() : accept(false) {}
     AcceptSample(const glm::vec3 &_samplePoint, const float _sampleDist) :
         accept(false),
         samplePoint(_samplePoint),
@@ -14,10 +14,7 @@ struct AcceptSample
 
     void operator()(const glm::vec3 &activePoint)
     {
-        if(glm::distance(activePoint, samplePoint) < sampleDist)
-        {
-            accept = true;
-        }
+        accept |= (glm::distance(activePoint, samplePoint) >= sampleDist);
     }
 
     glm::vec3 samplePoint;
@@ -29,7 +26,7 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
 {
 
     // iterate through triangles and get their area
-    std::vector<float> triAreas;//(_mesh.m_meshTris.size());
+    std::vector<float> triAreas;
     for(auto &tri : _mesh.m_meshTris)
     {
         glm::vec3 v1 = _mesh.m_meshVerts[tri[0]];
@@ -72,7 +69,6 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
     }
 
 
-
     // figure out our sampling criteria
     float totalArea = std::accumulate(triAreas.begin(), triAreas.end(), 0);
     float sampleArea = totalArea / _numSamples;
@@ -81,7 +77,7 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
 
     // initiliase random number generator
     std::default_random_engine prg;
-    std::uniform_int_distribution<unsigned int> randDistTriIndex(0, sampleTriProbability.size());
+    std::uniform_int_distribution<unsigned int> randDistTriIndex(0, sampleTriProbability.size()-1);
     std::uniform_real_distribution<float> randDistBarycentric(0.0f, 1.0f);
 
 
@@ -93,6 +89,8 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
     {
         unsigned int sampleTriProbabilityIndex = randDistTriIndex(prg);
         triIndex = sampleTriProbability[sampleTriProbabilityIndex];
+//        std::cout<<"sampleTriProb size "<<sampleTriProbability.size()<<"\n";
+//        std::cout<<"sampleTriProbIndex "<<sampleTriProbabilityIndex<<"\n";
 
         glm::vec3 v1 = _mesh.m_meshVerts[_mesh.m_meshTris[triIndex][0]];
         glm::vec3 v2 = _mesh.m_meshVerts[_mesh.m_meshTris[triIndex][1]];
@@ -108,14 +106,23 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
 
         glm::vec3 samplePoint = (u*v1) + (v*v2) + (w*v3);
 
-        // Check samplePoint meets sampling criteria before adding to sample list
-        AcceptSample accept(samplePoint, sampleDist);
-        accept = std::for_each(samples.m_meshVerts.begin(), samples.m_meshVerts.end(), accept);
 
-        if(accept.accept)
+        if(currIteration == 0)
         {
             samples.m_meshVerts.push_back(samplePoint);
             samples.m_meshNorms.push_back(_mesh.m_meshNorms[_mesh.m_meshTris[triIndex][0]]);
+        }
+        else
+        {
+            // Check samplePoint meets sampling criteria before adding to sample list
+            AcceptSample acceptSample(samplePoint, sampleDist);
+            acceptSample = std::for_each(samples.m_meshVerts.begin(), samples.m_meshVerts.end(), acceptSample);
+
+            if(acceptSample.accept)
+            {
+                samples.m_meshVerts.push_back(samplePoint);
+                samples.m_meshNorms.push_back(_mesh.m_meshNorms[_mesh.m_meshTris[triIndex][0]]);
+            }
         }
 
 
@@ -123,7 +130,5 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
     }
 
 
-
-
-    return Mesh();
+    return samples;
 }

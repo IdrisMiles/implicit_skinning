@@ -1,5 +1,6 @@
 #include "include/model.h"
 #include "include/modelloader.h"
+#include "include/MeshSampler/meshsampler.h"
 
 #include <iostream>
 #include <math.h>
@@ -43,39 +44,59 @@ void Model::GenerateMeshParts()
     m_HRBF_MeshParts.resize(numParts);
 
 
-    // Fill individual mesh parts
-    for(unsigned int v=0; v<m_mesh.m_meshVerts.size(); v++)
+    for(unsigned int t=0; t<m_mesh.m_meshTris.size(); t++)
     {
-        // Find bone this vert most corresponds to
-        float weight = 0.0f;
-        int boneId = -1;
+        int v1 = m_mesh.m_meshTris[t].x;
+        int v2 = m_mesh.m_meshTris[t].y;
+        int v3 = m_mesh.m_meshTris[t].z;
+
+        float weight[3] = {0.0f, 0.0f, 0.0f};
+        int boneId[3] = {-1, -1, -1};
         for(int bw = 0; bw<4; bw++)
         {
-            if(m_mesh.m_meshBoneWeights[v].boneWeight[bw] > weight)
+            if(m_mesh.m_meshBoneWeights[v1].boneWeight[bw] > weight[0])
             {
-                weight = m_mesh.m_meshBoneWeights[v].boneWeight[bw];
-                boneId = m_mesh.m_meshBoneWeights[v].boneID[bw];
+                weight[0] = m_mesh.m_meshBoneWeights[v1].boneWeight[bw];
+                boneId[0] = m_mesh.m_meshBoneWeights[v1].boneID[bw];
+            }
+
+            if(m_mesh.m_meshBoneWeights[v2].boneWeight[bw] > weight[1])
+            {
+                weight[1] = m_mesh.m_meshBoneWeights[v2].boneWeight[bw];
+                boneId[1] = m_mesh.m_meshBoneWeights[v2].boneID[bw];
+            }
+
+            if(m_mesh.m_meshBoneWeights[v3].boneWeight[bw] > weight[2])
+            {
+                weight[2] = m_mesh.m_meshBoneWeights[v3].boneWeight[bw];
+                boneId[2] = m_mesh.m_meshBoneWeights[v3].boneID[bw];
             }
         }
 
-        // Add vert to corresponding mesh part
-        if(boneId > -1)
+        for(unsigned int v=0; v<3; v++)
         {
-            if(boneId >= numParts)
+            // Add vert to corresponding mesh part
+            if(boneId[v] > -1)
             {
-                printf("%u numparts, %i boneid\n", numParts, boneId);
-            }
-            else
-            {
-                m_meshParts[boneId].m_meshVerts.push_back(m_mesh.m_meshVerts[v]);
-                m_meshParts[boneId].m_meshNorms.push_back(m_mesh.m_meshNorms[v]);
+                if(boneId[v] >= numParts)
+                {
+                    printf("%u numparts, %i boneid\n", numParts, boneId[0]);
+                }
+                else
+                {
+                    m_meshParts[boneId[v]].m_meshTris.push_back(glm::ivec3(v1, v2, v3));
+                }
             }
         }
     }
 
+
     for(unsigned int i=0 ;i<m_meshParts.size(); i++)
     {
-        if(m_meshParts[i].m_meshVerts.size() < 1)
+        m_meshParts[i].m_meshVerts = m_mesh.m_meshVerts;
+        m_meshParts[i].m_meshNorms = m_mesh.m_meshNorms;
+
+        if(m_meshParts[i].m_meshTris.size() < 1)
         {
             m_meshParts.erase(m_meshParts.begin()+i);
             i--;
@@ -98,7 +119,7 @@ void Model::GenerateDistanceFunctions()
     m_HRBF_MeshParts.resize(m_meshParts.size());
 
 
-    unsigned int numHrbfFitPoints = 100;
+    unsigned int numHrbfFitPoints = 50;
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
     int counter=0;
@@ -108,16 +129,14 @@ void Model::GenerateDistanceFunctions()
         verts.clear();
         norms.clear();
 
-        // --------------------------------------
-        // TODO
+
         // Generate HRBF centre by sampling mesh
-        //
-        // Mesh samples = MeshSampler::SampleMesh(m_meshParts[mp], 50);
-        //
-        // --------------------------------------
+        Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_meshParts[mp], numHrbfFitPoints);
+//        Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_mesh, numHrbfFitPoints);
+
 
         // Add verts and normals for HRBF fit
-        for(unsigned int v=0; v<m_meshParts[mp].m_meshVerts.size(); v++)
+        for(unsigned int v=0; v<hrbfCentres.m_meshVerts.size(); v++)
         {
             // Currently takes first 50 verts, not properly sampling surface
             if(counter>=numHrbfFitPoints)
@@ -126,8 +145,8 @@ void Model::GenerateDistanceFunctions()
             }
             else
             {
-                verts.push_back(HRBF::Vector(m_meshParts[mp].m_meshVerts[v].x, m_meshParts[mp].m_meshVerts[v].y, m_meshParts[mp].m_meshVerts[v].z));
-                norms.push_back(HRBF::Vector(m_meshParts[mp].m_meshNorms[v].x, m_meshParts[mp].m_meshNorms[v].y, m_meshParts[mp].m_meshNorms[v].z));
+                verts.push_back(HRBF::Vector(hrbfCentres.m_meshVerts[v].x, hrbfCentres.m_meshVerts[v].y, hrbfCentres.m_meshVerts[v].z));
+                norms.push_back(HRBF::Vector(hrbfCentres.m_meshNorms[v].x, hrbfCentres.m_meshNorms[v].y, hrbfCentres.m_meshNorms[v].z));
             }
 
             counter++;
