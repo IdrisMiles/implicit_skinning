@@ -55,9 +55,16 @@ public:
 
 
     //-------------------------------------------------------------------
+    void UpdateImplicitSurface(int xRes = 32,
+                               int yRes = 32,
+                               int zRes = 32,
+                               float dim = 800.0f,
+                               float xScale = 800.0f,
+                               float yScale = 800.0f,
+                               float zScale = 800.0f);
+
 
     void GenerateMeshParts();
-    void GenerateHrbfCentres();
     void GenerateDistanceFunctions();
     float EvaluateDistanceFunctions(const glm::vec3 &_x);
     float RemapDistanceToFieldFunction(const float _d, const float _r);

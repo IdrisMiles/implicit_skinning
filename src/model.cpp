@@ -75,19 +75,22 @@ void Model::GenerateMeshParts()
 
         for(unsigned int v=0; v<3; v++)
         {
-            // Add vert to corresponding mesh part
-            if(boneId[v] > -1)
+            if(boneId[v] < 0 || boneId[v] >= numParts)
             {
-                if(boneId[v] >= numParts)
-                {
-                    printf("%u numparts, %i boneid\n", numParts, boneId[0]);
-                }
-                else
-                {
-                    m_meshParts[boneId[v]].m_meshTris.push_back(glm::ivec3(v1, v2, v3));
-                }
+                continue;
             }
+            if(v==1 && boneId[1] == boneId[0])
+            {
+                continue;
+            }
+            if((v==2) && (boneId[2] == boneId[1] || boneId[2] == boneId[0]))
+            {
+                continue;
+            }
+
+            m_meshParts[boneId[v]].m_meshTris.push_back(glm::ivec3(v1, v2, v3));
         }
+
     }
 
 
@@ -105,13 +108,6 @@ void Model::GenerateMeshParts()
 
 }
 
-void Model::GenerateHrbfCentres()
-{
-    for(unsigned int i=0 ;i<m_meshParts.size(); i++)
-    {
-    }
-
-}
 
 void Model::GenerateDistanceFunctions()
 {
@@ -122,40 +118,74 @@ void Model::GenerateDistanceFunctions()
     unsigned int numHrbfFitPoints = 50;
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
-    int counter=0;
     for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
     {
-        counter = 0;
         verts.clear();
         norms.clear();
 
 
         // Generate HRBF centre by sampling mesh
         Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_meshParts[mp], numHrbfFitPoints);
-//        Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_mesh, numHrbfFitPoints);
 
 
         // Add verts and normals for HRBF fit
         for(unsigned int v=0; v<hrbfCentres.m_meshVerts.size(); v++)
         {
-            // Currently takes first 50 verts, not properly sampling surface
-            if(counter>=numHrbfFitPoints)
-            {
-                break;
-            }
-            else
-            {
-                verts.push_back(HRBF::Vector(hrbfCentres.m_meshVerts[v].x, hrbfCentres.m_meshVerts[v].y, hrbfCentres.m_meshVerts[v].z));
-                norms.push_back(HRBF::Vector(hrbfCentres.m_meshNorms[v].x, hrbfCentres.m_meshNorms[v].y, hrbfCentres.m_meshNorms[v].z));
-            }
-
-            counter++;
+            verts.push_back(HRBF::Vector(hrbfCentres.m_meshVerts[v].x, hrbfCentres.m_meshVerts[v].y, hrbfCentres.m_meshVerts[v].z));
+            norms.push_back(HRBF::Vector(hrbfCentres.m_meshNorms[v].x, hrbfCentres.m_meshNorms[v].y, hrbfCentres.m_meshNorms[v].z));
         }
 
 
         // Generate HRBF fit and thus scalar field/implicit function
         m_HRBF_MeshParts[mp].hermite_fit(verts, norms);
     }
+}
+
+
+void Model::UpdateImplicitSurface(int xRes,
+                                  int yRes,
+                                  int zRes,
+                                  float dim,
+                                  float xScale,
+                                  float yScale,
+                                  float zScale)
+{
+    // Get Scalar field for each mesh part and polygonize
+    float *volumeData = new float[xRes*yRes*zRes];
+    for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
+    {
+        // evaluate scalar field at uniform points
+        for(int i=0;i<zRes;i++)
+        {
+            for(int j=0;j<yRes;j++)
+            {
+                for(int k=0;k<xRes;k++)
+                {
+                    glm::vec4 point(dim*((((float)i/zRes)*2.0f)-1.0f), dim*((((float)j/yRes)*2.0f)-1.0f), dim*((((float)k/xRes)*2.0f)-1.0f), 1.0f);
+                    glm::vec4 transformedSpace = point;
+                    if(m_rig.m_boneTransforms.size()>0)
+                    {
+                        transformedSpace = glm::inverse(m_rig.m_boneTransforms[mp]) * transformedSpace;
+                    }
+
+                    float d = m_HRBF_MeshParts[mp].eval(HRBF::Vector(   transformedSpace.x, transformedSpace.y, transformedSpace.z));
+                    if(!std::isnan(d))
+                    {
+                        volumeData[i*xRes*yRes + j*xRes + k] = d;
+                    }
+                    else
+                    {
+                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
+                    }
+                }
+            }
+        }
+
+        // Polygonize scalar field using maching cube
+        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.3f, xRes, yRes, zRes, xScale, yScale, zScale);
+    }
+    //clean up
+    delete volumeData;
 }
 
 
@@ -170,6 +200,7 @@ void Model::DrawMesh()
     }
     else
     {
+        // Draw skinned mesh
         m_shaderProg[SKINNED]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
         glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_viewMat*m_modelMat)[0][0]);
@@ -182,63 +213,26 @@ void Model::DrawMesh()
         glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         m_meshVAO[SKINNED].release();
-
         m_shaderProg[SKINNED]->release();
 
 
 
+        // Draw implicit mesh
         m_shaderProg[ISO_SURFACE]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
         glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-        normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+        normalMatrix =  glm::mat4(1.0f);//glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
-
         // Get Scalar field for each mesh part and polygonize
-        int xRes = 16;
-        int yRes = 16;
-        int zRes = 16;
+        int xRes = 32;
+        int yRes = 32;
+        int zRes = 32;
         float dim = 800.0f; // dimension of sample range e.g. dim x dim x dim
         float xScale = 1.0f* dim;
         float yScale = 1.0f* dim;
         float zScale = 1.0f* dim;
-        float *volumeData = new float[xRes*yRes*zRes];
-        for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
-        {
-            // evaluate scalar field at uniform points
-            for(int i=0;i<zRes;i++)
-            {
-                for(int j=0;j<yRes;j++)
-                {
-                    for(int k=0;k<xRes;k++)
-                    {
-                        glm::vec4 point(dim*((((float)i/zRes)*2.0f)-1.0f), dim*((((float)j/yRes)*2.0f)-1.0f), dim*((((float)k/xRes)*2.0f)-1.0f), 1.0f);
-                        glm::vec4 transformedSpace = point;
-                        if(m_rig.m_boneTransforms.size()>0)
-                        {
-                            transformedSpace = glm::inverse(m_rig.m_boneTransforms[mp]) * transformedSpace;
-                        }
-
-                        float d = m_HRBF_MeshParts[mp].eval(HRBF::Vector(   transformedSpace.x, transformedSpace.y, transformedSpace.z));
-                        if(!std::isnan(d))
-                        {
-                            volumeData[i*xRes*yRes + j*xRes + k] = d;
-                        }
-                        else
-                        {
-                            volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
-                        }
-                    }
-                }
-            }
-
-            // Polygonize scalar field using maching cube
-            m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.3f, xRes, yRes, zRes, xScale, yScale, zScale);
-        }
-        //clean up
-        delete volumeData;
-
-
+        UpdateImplicitSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
 
         for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
         {
