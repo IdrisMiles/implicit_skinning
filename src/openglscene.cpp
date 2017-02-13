@@ -94,7 +94,7 @@ void OpenGLScene::paintGL()
         model->SetProjectionMatrix(m_projMat);
 
         model->DrawMesh();
-//        model->DrawRig();
+        model->DrawRig();
     }
 
     //---------------------------------------------------------------------------------------

@@ -15,6 +15,7 @@
 
 #include "include/hrbf/hrbf_core.h"
 #include "include/hrbf/hrbf_phi_funcs.h"
+#include "fieldfunction.h"
 
 #include "include/machingcube/MachingCube.h"
 
@@ -65,7 +66,7 @@ public:
 
 
     void GenerateMeshParts();
-    void GenerateDistanceFunctions();
+    void GenerateFieldFunctions();
     float EvaluateDistanceFunctions(const glm::vec3 &_x);
     float RemapDistanceToFieldFunction(const float _d, const float _r);
     float EvaluateFieldFunctions(const glm::vec3 &_x);
@@ -83,7 +84,7 @@ public:
     std::vector<Mesh> m_meshParts;
     std::vector<Mesh> m_meshPartsHRBFCentres;
     std::vector<Mesh> m_meshPartsIsoSurface;
-    std::vector<HRBF> m_HRBF_MeshParts;
+    std::vector<FieldFunction> m_fieldFunctions;
 
     Mesh m_meshIsoSurface;
 

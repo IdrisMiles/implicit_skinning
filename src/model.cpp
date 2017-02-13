@@ -27,7 +27,7 @@ void Model::Load(const std::string &_file)
     //--------------------------------------------------
 
     GenerateMeshParts();
-    GenerateDistanceFunctions();
+    GenerateFieldFunctions();
 
     //--------------------------------------------------
     CreateShaders();
@@ -41,7 +41,7 @@ void Model::GenerateMeshParts()
     unsigned int numParts = m_rig.m_boneNameIdMapping.size();
     m_meshParts.resize(numParts);
     m_meshPartsIsoSurface.resize(numParts);
-    m_HRBF_MeshParts.resize(numParts);
+    m_fieldFunctions.resize(numParts);
 
 
     for(unsigned int t=0; t<m_mesh.m_meshTris.size(); t++)
@@ -88,7 +88,8 @@ void Model::GenerateMeshParts()
                 continue;
             }
 
-            m_meshParts[boneId[v]].m_meshTris.push_back(glm::ivec3(v1, v2, v3));
+            if(weight[v] >0.2f)
+                m_meshParts[boneId[v]].m_meshTris.push_back(glm::ivec3(v1, v2, v3));
         }
 
     }
@@ -99,20 +100,23 @@ void Model::GenerateMeshParts()
         m_meshParts[i].m_meshVerts = m_mesh.m_meshVerts;
         m_meshParts[i].m_meshNorms = m_mesh.m_meshNorms;
 
-        if(m_meshParts[i].m_meshTris.size() < 1)
-        {
-            m_meshParts.erase(m_meshParts.begin()+i);
-            i--;
-        }
+//        if(m_meshParts[i].m_meshTris.size() < 1)
+//        {
+//            m_meshParts.erase(m_meshParts.begin()+i);
+//            i--;
+//        }
+//        else
+//        {
+//        }
     }
 
 }
 
 
-void Model::GenerateDistanceFunctions()
+void Model::GenerateFieldFunctions()
 {
     m_meshPartsIsoSurface.resize(m_meshParts.size());
-    m_HRBF_MeshParts.resize(m_meshParts.size());
+    m_fieldFunctions.resize(m_meshParts.size());
 
 
     unsigned int numHrbfFitPoints = 50;
@@ -120,6 +124,12 @@ void Model::GenerateDistanceFunctions()
     std::vector<HRBF::Vector> norms;
     for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
     {
+        if(m_meshParts[mp].m_meshTris.size() < 1)
+        {
+            continue;
+        }
+
+
         verts.clear();
         norms.clear();
 
@@ -128,16 +138,64 @@ void Model::GenerateDistanceFunctions()
         Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_meshParts[mp], numHrbfFitPoints);
 
 
-        // Add verts and normals for HRBF fit
-        for(unsigned int v=0; v<hrbfCentres.m_meshVerts.size(); v++)
+        // Determine distance of closest point to bone
+        glm::vec3 jointStart = m_rigMesh.m_meshVerts[mp*2];
+        glm::vec3 jointEnd = m_rigMesh.m_meshVerts[(mp*2) + 1];
+        glm::vec3 edge = jointEnd - jointStart;
+        float minDist = FLT_MAX;
+        for(auto &&tri : m_meshParts[mp].m_meshTris)
         {
-            verts.push_back(HRBF::Vector(hrbfCentres.m_meshVerts[v].x, hrbfCentres.m_meshVerts[v].y, hrbfCentres.m_meshVerts[v].z));
-            norms.push_back(HRBF::Vector(hrbfCentres.m_meshNorms[v].x, hrbfCentres.m_meshNorms[v].y, hrbfCentres.m_meshNorms[v].z));
+            glm::vec3 v0 = m_meshParts[mp].m_meshVerts[tri.x];
+            glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
+            glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
+
+            glm::vec3 e = v0 - jointStart;
+            float t = glm::dot(e, edge);
+            float dist = glm::distance(v0, jointStart + (t*edge));
+            minDist = dist < minDist ? dist : minDist;
+
+            e = v1 - jointStart;
+            t = glm::dot(e, edge);
+            dist = glm::distance(v1, jointStart + (t*edge));
+            minDist = dist < minDist ? dist : minDist;
+
+            e = v2 - jointStart;
+            t = glm::dot(e, edge);
+            dist = glm::distance(v2, jointStart + (t*edge));
+            minDist = dist < minDist ? dist : minDist;
         }
 
 
+        // Add these points to close holes of scalar field smoothly
+        hrbfCentres.m_meshVerts.push_back(jointStart - (minDist * glm::normalize(edge)));
+        hrbfCentres.m_meshNorms.push_back(-glm::normalize(edge));
+        hrbfCentres.m_meshVerts.push_back(jointEnd + (minDist * glm::normalize(edge)));
+        hrbfCentres.m_meshNorms.push_back(glm::normalize(edge));
+
+
         // Generate HRBF fit and thus scalar field/implicit function
-        m_HRBF_MeshParts[mp].hermite_fit(verts, norms);
+        m_fieldFunctions[mp].Fit(hrbfCentres.m_meshVerts, hrbfCentres.m_meshNorms);
+
+
+        // Find maximun range of scalar field
+        float maxDist = FLT_MIN;
+        for(auto &&tri : m_meshParts[mp].m_meshTris)
+        {
+            glm::vec3 v0 = m_meshParts[mp].m_meshVerts[tri.x];
+            glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
+            glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
+
+            float f0 = m_fieldFunctions[mp].Eval(v0);
+            maxDist = f0 > maxDist ? f0 : maxDist;
+            float f1 = m_fieldFunctions[mp].Eval(v1);
+            maxDist = f1 > maxDist ? f1 : maxDist;
+            float f2 = m_fieldFunctions[mp].Eval(v2);
+            maxDist = f2 > maxDist ? f2 : maxDist;
+        }
+
+
+        // Set R in order to make field function compactly supported
+        m_fieldFunctions[mp].SetR(maxDist);
     }
 }
 
@@ -154,6 +212,11 @@ void Model::UpdateImplicitSurface(int xRes,
     float *volumeData = new float[xRes*yRes*zRes];
     for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
     {
+        if(m_meshParts[mp].m_meshTris.size() < 1)
+        {
+            continue;
+        }
+
         // evaluate scalar field at uniform points
         for(int i=0;i<zRes;i++)
         {
@@ -168,7 +231,8 @@ void Model::UpdateImplicitSurface(int xRes,
                         transformedSpace = glm::inverse(m_rig.m_boneTransforms[mp]) * transformedSpace;
                     }
 
-                    float d = m_HRBF_MeshParts[mp].eval(HRBF::Vector(   transformedSpace.x, transformedSpace.y, transformedSpace.z));
+                    float d = m_fieldFunctions[mp].Eval(transformedSpace);
+
                     if(!std::isnan(d))
                     {
                         volumeData[i*xRes*yRes + j*xRes + k] = d;
@@ -182,7 +246,7 @@ void Model::UpdateImplicitSurface(int xRes,
         }
 
         // Polygonize scalar field using maching cube
-        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.3f, xRes, yRes, zRes, xScale, yScale, zScale);
+        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
     }
     //clean up
     delete volumeData;
@@ -200,6 +264,7 @@ void Model::DrawMesh()
     }
     else
     {
+        //-------------------------------------------------------------------------------------
         // Draw skinned mesh
         m_shaderProg[SKINNED]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
@@ -216,7 +281,7 @@ void Model::DrawMesh()
         m_shaderProg[SKINNED]->release();
 
 
-
+        //-------------------------------------------------------------------------------------
         // Draw implicit mesh
         m_shaderProg[ISO_SURFACE]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
@@ -225,9 +290,9 @@ void Model::DrawMesh()
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
         // Get Scalar field for each mesh part and polygonize
-        int xRes = 32;
-        int yRes = 32;
-        int zRes = 32;
+        int xRes = 16;
+        int yRes = 16;
+        int zRes = 16;
         float dim = 800.0f; // dimension of sample range e.g. dim x dim x dim
         float xScale = 1.0f* dim;
         float yScale = 1.0f* dim;
