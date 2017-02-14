@@ -3,8 +3,12 @@
 #include "include/MeshSampler/meshsampler.h"
 
 #include <iostream>
+#include <algorithm>
 #include <math.h>
 #include <glm/gtx/string_cast.hpp>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
 
 Model::Model()
 {
@@ -99,15 +103,6 @@ void Model::GenerateMeshParts()
     {
         m_meshParts[i].m_meshVerts = m_mesh.m_meshVerts;
         m_meshParts[i].m_meshNorms = m_mesh.m_meshNorms;
-
-//        if(m_meshParts[i].m_meshTris.size() < 1)
-//        {
-//            m_meshParts.erase(m_meshParts.begin()+i);
-//            i--;
-//        }
-//        else
-//        {
-//        }
     }
 
 }
@@ -115,10 +110,10 @@ void Model::GenerateMeshParts()
 
 void Model::GenerateFieldFunctions()
 {
-    m_meshPartsIsoSurface.resize(m_meshParts.size());
     m_fieldFunctions.resize(m_meshParts.size());
 
 
+    int numParts = 0;
     unsigned int numHrbfFitPoints = 50;
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
@@ -128,6 +123,7 @@ void Model::GenerateFieldFunctions()
         {
             continue;
         }
+        numParts++;
 
 
         verts.clear();
@@ -197,6 +193,33 @@ void Model::GenerateFieldFunctions()
         // Set R in order to make field function compactly supported
         m_fieldFunctions[mp].SetR(maxDist);
     }
+
+
+    // Remove redundant stuff
+//    int mp2=0;
+//    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
+//    {
+//        if(m_meshParts[mp2].m_meshTris.size() < 1)
+//        {
+//            m_fieldFunctions.erase(m_fieldFunctions.begin()+mp);
+//            m_meshPartsIsoSurface.erase(m_meshPartsIsoSurface.begin()+mp);
+//            m_meshParts.erase(m_meshParts.begin()+mp);
+//            mp--;
+//        }
+//        mp2++;
+//    }
+    m_meshPartsIsoSurface.resize(m_meshParts.size());
+
+
+    // Generate composition Graph
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> Graph;
+    Graph g(numParts);
+    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
+    {
+        Graph::vertex_descriptor v = boost::add_vertex(g);
+    }
+
+
 }
 
 
