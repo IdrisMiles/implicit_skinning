@@ -254,7 +254,7 @@ void Model::UpdateImplicitSurface(int xRes,
                         transformedSpace = glm::inverse(m_rig.m_boneTransforms[mp]) * transformedSpace;
                     }
 
-                    float d = m_fieldFunctions[mp].Eval(transformedSpace);
+                    float d = m_fieldFunctions[mp].Eval(glm::vec3(transformedSpace));
 
                     if(!std::isnan(d))
                     {
@@ -309,7 +309,7 @@ void Model::DrawMesh()
         m_shaderProg[ISO_SURFACE]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
         glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-        normalMatrix =  glm::mat4(1.0f);//glm::inverse(glm::mat3(m_modelMat));
+        normalMatrix =  glm::mat3(1.0f);//glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
         // Get Scalar field for each mesh part and polygonize
