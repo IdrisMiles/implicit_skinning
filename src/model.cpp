@@ -30,6 +30,7 @@ void Model::Load(const std::string &_file)
 
     GenerateMeshParts();
     GenerateFieldFunctions();
+    GenerateGlobalFieldFunctions();
 
     //--------------------------------------------------
     CreateShaders();
@@ -110,7 +111,6 @@ void Model::GenerateFieldFunctions()
     m_fieldFunctions.resize(m_meshParts.size());
 
 
-    int numParts = 0;
     unsigned int numHrbfFitPoints = 50;
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
@@ -123,7 +123,6 @@ void Model::GenerateFieldFunctions()
             // skip empty meshes
             continue;
         }
-        numParts++;
 
 
         verts.clear();
@@ -194,62 +193,62 @@ void Model::GenerateFieldFunctions()
         m_fieldFunctions[mp].SetR(maxDist);
     }
 
-
-//    typedef std::shared_ptr<InteriorNode> InteriorNodePtr;
-//    typedef std::shared_ptr<LeafNode> LeafNodePtr;
-//    typedef std::shared_ptr<CompositionOp> CompositionOpPtr;
-//    CompositionOpPtr contactOp = CompositionOpPtr(new CompositionOp());
-//    CompositionOpPtr bulgeOp = CompositionOpPtr(new CompositionOp());
-
-//    // Generate Leaf nodes of field functions
-//    std::stack<std::shared_ptr<AbstractNode>> compositionTreeStack;
-//    for(unsigned int mp=0; mp<2/*m_fieldFunctions.size()*/; mp++)
-//    {
-//        if(m_meshParts[mp].m_meshTris.size() < 1)
-//        {
-//            continue;
-//        }
-
-//        auto f = std::make_shared<FieldFunction>(m_fieldFunctions[mp]);
-//        compositionTreeStack.push(LeafNodePtr(new LeafNode(f)));
-//    }
-//    while(compositionTreeStack.size() > 1)
-//    {
-//        auto first = compositionTreeStack.top();
-//        compositionTreeStack.pop();
-
-//        auto second = compositionTreeStack.top();
-//        compositionTreeStack.pop();
-//        if(second == nullptr)
-//        {
-//            break;
-//        }
-
-//        auto tmp = InteriorNodePtr(new InteriorNode(contactOp, first, second));
-
-//        compositionTreeStack.push(tmp);
-//    }
-
-//    m_compositionTree = compositionTreeStack.top();
-//    compositionTreeStack.pop();
-
-
-
-
-
-    // Remove redundant stuff
-//    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
-//    {
-//        if(m_meshParts[mp].m_meshTris.size() < 1)
-//        {
-//            m_fieldFunctions.erase(m_fieldFunctions.begin()+mp);
-////            m_meshPartsIsoSurface.erase(m_meshPartsIsoSurface.begin()+mp);
-////            m_meshParts.erase(m_meshParts.begin()+mp);
-//            mp--;
-//        }
-//    }
     m_meshPartsIsoSurface.resize(m_meshParts.size());
+}
 
+
+void Model::GenerateGlobalFieldFunctions()
+{
+    // Time to build composition tree
+    typedef std::shared_ptr<InteriorNode> InteriorNodePtr;
+    typedef std::shared_ptr<LeafNode> LeafNodePtr;
+    typedef std::shared_ptr<CompositionOp> CompositionOpPtr;
+
+
+    // Initialise our various type of gradient based operators
+    CompositionOpPtr contactOp = CompositionOpPtr(new CompositionOp());
+    CompositionOpPtr bulgeOp = CompositionOpPtr(new CompositionOp());
+
+    //TODO: Fit the operators so the dc(alpha) matches specific effect
+    // contactOp->Fit();
+    // bulgeOp->Fit();
+    //
+
+
+    // Generate Leaf nodes of field functions
+    std::stack<std::shared_ptr<AbstractNode>> compositionTreeStack;
+    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
+    {
+        if(m_meshParts[mp].m_meshTris.size() < 1)
+        {
+            continue;
+        }
+
+        auto l = LeafNodePtr(new LeafNode());
+        l->SetFieldFunction(&m_fieldFunctions[mp]);
+        compositionTreeStack.push(l);
+    }
+
+    // Generate binary tree
+    while(compositionTreeStack.size() > 1)
+    {
+        auto first = compositionTreeStack.top();
+        compositionTreeStack.pop();
+
+        auto second = compositionTreeStack.top();
+        compositionTreeStack.pop();
+        if(second == nullptr)
+        {
+            break;
+        }
+
+        auto tmp = InteriorNodePtr(new InteriorNode(contactOp, first, second));
+
+        compositionTreeStack.push(tmp);
+    }
+
+    m_compositionTree = compositionTreeStack.top();
+    compositionTreeStack.pop();
 }
 
 
@@ -291,7 +290,9 @@ void Model::UpdateImplicitSurface(int xRes,
             {
                 for(int k=0;k<xRes;k++)
                 {
-                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f), dim*((((float)j/yRes)*2.0f)-1.0f), dim*((((float)k/xRes)*2.0f)-1.0f));
+                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f),
+                                    dim*((((float)j/yRes)*2.0f)-1.0f),
+                                    dim*((((float)k/xRes)*2.0f)-1.0f));
 
                     float d = m_fieldFunctions[mp].Eval(point);
 
@@ -313,46 +314,45 @@ void Model::UpdateImplicitSurface(int xRes,
 
 
     // Global IsoSurface
-//    if(m_compositionTree != nullptr)
-//    {
-//        for(int i=0;i<zRes;i++)
-//        {
-//            for(int j=0;j<yRes;j++)
-//            {
-//                for(int k=0;k<xRes;k++)
-//                {
-//                    glm::vec4 point(dim*((((float)i/zRes)*2.0f)-1.0f),
-//                                    dim*((((float)j/yRes)*2.0f)-1.0f),
-//                                    dim*((((float)k/xRes)*2.0f)-1.0f), 1.0f);
+    if(m_compositionTree != nullptr)
+    {
+        for(int i=0;i<zRes;i++)
+        {
+            for(int j=0;j<yRes;j++)
+            {
+                for(int k=0;k<xRes;k++)
+                {
+                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f),
+                                    dim*((((float)j/yRes)*2.0f)-1.0f),
+                                    dim*((((float)k/xRes)*2.0f)-1.0f));
 
-////                    float d = m_compositionTree->Eval(point);
-//                    float d2 = FLT_MAX;
-
-//                        for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
+                    float d = m_compositionTree->Eval(point);
+//                    float d = FLT_MIN;
+//                    for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
+//                    {
+//                        if(m_meshParts[mp].m_meshTris.size() < 1)
 //                        {
-//                            if(m_meshParts[mp].m_meshTris.size() < 1)
-//                            {
-//                                continue;
-//                            }
-//                            float tmp = m_fieldFunctions[mp].Eval(point);
-//                            d2 = tmp < d2 ? tmp : d2;
+//                            continue;
 //                        }
-
-//                    if(!std::isnan(d2))
-//                    {
-//                        volumeData[i*xRes*yRes + j*xRes + k] = d2;
+//                        float tmp = m_fieldFunctions[mp].Eval(point);
+//                        d = tmp > d ? tmp : d;
 //                    }
-//                    else
-//                    {
-//                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
-//                    }
-//                }
-//            }
-//        }
-//    }
 
-//    // Polygonize scalar field using maching cube
-//    m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
+                    if(!std::isnan(d))
+                    {
+                        volumeData[i*xRes*yRes + j*xRes + k] = d;
+                    }
+                    else
+                    {
+                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
+                    }
+                }
+            }
+        }
+    }
+
+    // Polygonize scalar field using maching cube
+    m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
 
 
     //clean up
@@ -433,7 +433,7 @@ void Model::DrawMesh()
             // Draw marching cube of isosurface
             m_meshPartIsoVAO[mp]->bind();
             glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-            glDrawArrays(GL_TRIANGLES, 0, m_meshPartsIsoSurface[mp].m_meshVerts.size());
+//            glDrawArrays(GL_TRIANGLES, 0, m_meshPartsIsoSurface[mp].m_meshVerts.size());
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             m_meshPartIsoVAO[mp]->release();
 

@@ -55,5 +55,15 @@ void LeafNode::SetFieldFunction(std::shared_ptr<FieldFunction> _fieldFunction)
     m_fieldFunction = _fieldFunction;
 }
 
+void LeafNode::SetFieldFunction(FieldFunction *_fieldFunction)
+{
+    m_fieldFunction.reset(_fieldFunction);
+}
+
+void LeafNode::SetFieldFunction(FieldFunction &_fieldFunction)
+{
+    m_fieldFunction.reset(&_fieldFunction);
+}
+
 
 

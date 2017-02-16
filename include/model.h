@@ -70,6 +70,7 @@ public:
 
     void GenerateMeshParts();
     void GenerateFieldFunctions();
+    void GenerateGlobalFieldFunctions();
 
 
     //-------------------------------------------------------------------

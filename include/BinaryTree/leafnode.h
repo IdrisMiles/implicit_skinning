@@ -16,6 +16,8 @@ public:
     virtual glm::vec3 Grad(const glm::vec3 _x);
 
     void SetFieldFunction(std::shared_ptr<FieldFunction> _fieldFunction);
+    void SetFieldFunction(FieldFunction *_fieldFunction);
+    void SetFieldFunction(FieldFunction &_fieldFunction);
 
 private:
     std::shared_ptr<FieldFunction> m_fieldFunction;

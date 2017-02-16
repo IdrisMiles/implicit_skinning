@@ -21,7 +21,7 @@ void CompositionOp::Fit(const unsigned int _dim)
 
 float CompositionOp::Eval(const float f1, const float f2, const float d)
 {
-    return f1 < f2 ? f1 : f2;
+    return f1 > f2 ? f1 : f2;
 //    return TrilinearInterpolate(f1, f2, d);
 }
 
