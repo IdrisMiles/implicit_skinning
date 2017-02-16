@@ -274,43 +274,43 @@ void Model::UpdateImplicitSurface(int xRes,
         m_fieldFunctions[mp].SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
     }
 
-    // Get Scalar field for each mesh part and polygonize
     float *volumeData = new float[xRes*yRes*zRes];
-    for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
-    {
-        if(m_meshParts[mp].m_meshTris.size() < 1)
-        {
-            continue;
-        }
+    // Get Scalar field for each mesh part and polygonize
+//    for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
+//    {
+//        if(m_meshParts[mp].m_meshTris.size() < 1)
+//        {
+//            continue;
+//        }
 
-        // evaluate scalar field at uniform points
-        for(int i=0;i<zRes;i++)
-        {
-            for(int j=0;j<yRes;j++)
-            {
-                for(int k=0;k<xRes;k++)
-                {
-                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f),
-                                    dim*((((float)j/yRes)*2.0f)-1.0f),
-                                    dim*((((float)k/xRes)*2.0f)-1.0f));
+//        // evaluate scalar field at uniform points
+//        for(int i=0;i<zRes;i++)
+//        {
+//            for(int j=0;j<yRes;j++)
+//            {
+//                for(int k=0;k<xRes;k++)
+//                {
+//                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f),
+//                                    dim*((((float)j/yRes)*2.0f)-1.0f),
+//                                    dim*((((float)k/xRes)*2.0f)-1.0f));
 
-                    float d = m_fieldFunctions[mp].Eval(point);
+//                    float d = m_fieldFunctions[mp].Eval(point);
 
-                    if(!std::isnan(d))
-                    {
-                        volumeData[i*xRes*yRes + j*xRes + k] = d;
-                    }
-                    else
-                    {
-                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
-                    }
-                }
-            }
-        }
+//                    if(!std::isnan(d))
+//                    {
+//                        volumeData[i*xRes*yRes + j*xRes + k] = d;
+//                    }
+//                    else
+//                    {
+//                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
+//                    }
+//                }
+//            }
+//        }
 
-        // Polygonize scalar field using maching cube
-        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
-    }
+//        // Polygonize scalar field using maching cube
+//        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
+//    }
 
 
     // Global IsoSurface
@@ -327,16 +327,6 @@ void Model::UpdateImplicitSurface(int xRes,
                                     dim*((((float)k/xRes)*2.0f)-1.0f));
 
                     float d = m_compositionTree->Eval(point);
-//                    float d = FLT_MIN;
-//                    for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
-//                    {
-//                        if(m_meshParts[mp].m_meshTris.size() < 1)
-//                        {
-//                            continue;
-//                        }
-//                        float tmp = m_fieldFunctions[mp].Eval(point);
-//                        d = tmp > d ? tmp : d;
-//                    }
 
                     if(!std::isnan(d))
                     {
@@ -406,38 +396,38 @@ void Model::DrawMesh()
         float zScale = 1.0f* dim;
         UpdateImplicitSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
 
-        for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
-        {
-            if(m_meshParts[mp].m_meshTris.size() < 1)
-            {
-                continue;
-            }
+//        for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
+//        {
+//            if(m_meshParts[mp].m_meshTris.size() < 1)
+//            {
+//                continue;
+//            }
 
-            // upload new verts
-            glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);// Setup our vertex buffer object.
-            m_meshPartIsoVBO[mp]->bind();
-            m_meshPartIsoVBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshVerts[0], m_meshPartsIsoSurface[mp].m_meshVerts.size() * sizeof(glm::vec3));
-            glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
-            glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-            m_meshPartIsoVBO[mp]->release();
-
-
-            // upload new normals
-            m_meshPartIsoNBO[mp]->bind();
-            m_meshPartIsoNBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshNorms[0], m_meshPartsIsoSurface[mp].m_meshNorms.size() * sizeof(glm::vec3));
-            glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
-            glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-            m_meshPartIsoNBO[mp]->release();
+//            // upload new verts
+//            glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);// Setup our vertex buffer object.
+//            m_meshPartIsoVBO[mp]->bind();
+//            m_meshPartIsoVBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshVerts[0], m_meshPartsIsoSurface[mp].m_meshVerts.size() * sizeof(glm::vec3));
+//            glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+//            glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+//            m_meshPartIsoVBO[mp]->release();
 
 
-            // Draw marching cube of isosurface
-            m_meshPartIsoVAO[mp]->bind();
-            glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-//            glDrawArrays(GL_TRIANGLES, 0, m_meshPartsIsoSurface[mp].m_meshVerts.size());
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            m_meshPartIsoVAO[mp]->release();
+//            // upload new normals
+//            m_meshPartIsoNBO[mp]->bind();
+//            m_meshPartIsoNBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshNorms[0], m_meshPartsIsoSurface[mp].m_meshNorms.size() * sizeof(glm::vec3));
+//            glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+//            glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+//            m_meshPartIsoNBO[mp]->release();
 
-        }
+
+//            // Draw marching cube of isosurface
+//            m_meshPartIsoVAO[mp]->bind();
+//            glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+////            glDrawArrays(GL_TRIANGLES, 0, m_meshPartsIsoSurface[mp].m_meshVerts.size());
+//            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//            m_meshPartIsoVAO[mp]->release();
+
+//        }
 
         // Global IsoSurface
         // upload new verts
