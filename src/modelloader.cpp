@@ -215,6 +215,8 @@ void ModelLoader::InitRig(Model* _model, const aiScene *_scene)
             CopyRigStructure(_model->m_rig.m_boneNameIdMapping, _scene, _scene->mRootNode->mChildren[i], _model->m_rig, _model->m_rig.m_rootBone, ConvertToGlmMat(_scene->mRootNode->mTransformation));
         }
     }
+
+    _model->m_rig.m_boneTransforms.resize(_model->m_rig.m_boneAnims.size(), glm::mat4(1.0f));
 }
 
 void ModelLoader::SetRigVerts(Model *_model, aiNode* _pParentNode, aiNode* _pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform)

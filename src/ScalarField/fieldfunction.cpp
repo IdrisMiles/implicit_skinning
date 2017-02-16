@@ -1,6 +1,7 @@
-#include "include/fieldfunction.h"
+#include "ScalarField/fieldfunction.h"
 
-FieldFunction::FieldFunction()
+FieldFunction::FieldFunction(glm::mat4 _transform) :
+    m_transform(_transform)
 {
 
 }
@@ -9,15 +10,6 @@ FieldFunction::FieldFunction()
 FieldFunction::~FieldFunction()
 {
 
-}
-
-void FieldFunction::Fit(const std::vector<DistanceField::Vector>& points,
-                        const std::vector<DistanceField::Vector>& normals,
-                        const float _r)
-{
-    r = _r;
-
-    m_distanceField.hermite_fit(points, normals);
 }
 
 void FieldFunction::Fit(const std::vector<glm::vec3>& points,
@@ -50,29 +42,28 @@ void FieldFunction::SetR(const float _r)
     r = _r;
 }
 
-DistanceField::Scalar FieldFunction::Eval(const DistanceField::Vector& x)
+
+void FieldFunction::SetTransform(glm::mat4 _transform)
 {
-    return Remap(m_distanceField.eval(x));
+    m_transform = _transform;
 }
 
 float FieldFunction::Eval(const glm::vec3& x)
 {
-    return Remap(m_distanceField.eval(DistanceField::Vector(x.x, x.y, x.z)));
+    glm::vec3 tx = TransformSpace(x);
+    return Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
 }
 
 float FieldFunction::EvalDist(const glm::vec3& x)
 {
-    return m_distanceField.eval(DistanceField::Vector(x.x, x.y, x.z));
-}
-
-DistanceField::Vector FieldFunction::Grad(const DistanceField::Vector& x)
-{
-    return m_distanceField.grad(x);
+    glm::vec3 tx = TransformSpace(x);
+    return m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z));
 }
 
 glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 {
-    auto g = m_distanceField.grad(DistanceField::Vector(x.x, x.y, x.z));
+    glm::vec3 tx = TransformSpace(x);
+    auto g = m_distanceField.grad(DistanceField::Vector(tx.x, tx.y, tx.z));
 
     return glm::vec3(g(0), g(1), g(2));
 }
@@ -100,4 +91,10 @@ float FieldFunction::Remap(float _df)
     }
 
     return f;
+}
+
+
+glm::vec3 FieldFunction::TransformSpace(glm::vec3 _x)
+{
+    return glm::vec3(m_transform * glm::vec4(_x, 1.0f));
 }

@@ -1,21 +1,19 @@
-#include "include/model.h"
-#include "include/modelloader.h"
-#include "include/MeshSampler/meshsampler.h"
+#include "model.h"
+#include "modelloader.h"
+#include "MeshSampler/meshsampler.h"
 
 #include <iostream>
 #include <algorithm>
+#include <stack>
 #include <math.h>
 #include <glm/gtx/string_cast.hpp>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
 
 Model::Model()
 {
     m_wireframe = false;
     m_initGL = false;
 }
-
 
 Model::~Model()
 {
@@ -79,7 +77,7 @@ void Model::GenerateMeshParts()
 
         for(unsigned int v=0; v<3; v++)
         {
-            if(boneId[v] < 0 || boneId[v] >= numParts)
+            if(boneId[v] < 0 || boneId[v] >= (int)numParts)
             {
                 continue;
             }
@@ -107,7 +105,6 @@ void Model::GenerateMeshParts()
 
 }
 
-
 void Model::GenerateFieldFunctions()
 {
     m_fieldFunctions.resize(m_meshParts.size());
@@ -117,10 +114,13 @@ void Model::GenerateFieldFunctions()
     unsigned int numHrbfFitPoints = 50;
     std::vector<HRBF::Vector> verts;
     std::vector<HRBF::Vector> norms;
+
+    // iterate through mesh parts and initalise bone field functions
     for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
     {
         if(m_meshParts[mp].m_meshTris.size() < 1)
         {
+            // skip empty meshes
             continue;
         }
         numParts++;
@@ -181,11 +181,11 @@ void Model::GenerateFieldFunctions()
             glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
             glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
 
-            float f0 = m_fieldFunctions[mp].Eval(v0);
+            float f0 = m_fieldFunctions[mp].EvalDist(v0);
             maxDist = f0 > maxDist ? f0 : maxDist;
-            float f1 = m_fieldFunctions[mp].Eval(v1);
+            float f1 = m_fieldFunctions[mp].EvalDist(v1);
             maxDist = f1 > maxDist ? f1 : maxDist;
-            float f2 = m_fieldFunctions[mp].Eval(v2);
+            float f2 = m_fieldFunctions[mp].EvalDist(v2);
             maxDist = f2 > maxDist ? f2 : maxDist;
         }
 
@@ -195,30 +195,60 @@ void Model::GenerateFieldFunctions()
     }
 
 
+//    typedef std::shared_ptr<InteriorNode> InteriorNodePtr;
+//    typedef std::shared_ptr<LeafNode> LeafNodePtr;
+//    typedef std::shared_ptr<CompositionOp> CompositionOpPtr;
+//    CompositionOpPtr contactOp = CompositionOpPtr(new CompositionOp());
+//    CompositionOpPtr bulgeOp = CompositionOpPtr(new CompositionOp());
+
+//    // Generate Leaf nodes of field functions
+//    std::stack<std::shared_ptr<AbstractNode>> compositionTreeStack;
+//    for(unsigned int mp=0; mp<2/*m_fieldFunctions.size()*/; mp++)
+//    {
+//        if(m_meshParts[mp].m_meshTris.size() < 1)
+//        {
+//            continue;
+//        }
+
+//        auto f = std::make_shared<FieldFunction>(m_fieldFunctions[mp]);
+//        compositionTreeStack.push(LeafNodePtr(new LeafNode(f)));
+//    }
+//    while(compositionTreeStack.size() > 1)
+//    {
+//        auto first = compositionTreeStack.top();
+//        compositionTreeStack.pop();
+
+//        auto second = compositionTreeStack.top();
+//        compositionTreeStack.pop();
+//        if(second == nullptr)
+//        {
+//            break;
+//        }
+
+//        auto tmp = InteriorNodePtr(new InteriorNode(contactOp, first, second));
+
+//        compositionTreeStack.push(tmp);
+//    }
+
+//    m_compositionTree = compositionTreeStack.top();
+//    compositionTreeStack.pop();
+
+
+
+
+
     // Remove redundant stuff
-//    int mp2=0;
 //    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
 //    {
-//        if(m_meshParts[mp2].m_meshTris.size() < 1)
+//        if(m_meshParts[mp].m_meshTris.size() < 1)
 //        {
 //            m_fieldFunctions.erase(m_fieldFunctions.begin()+mp);
-//            m_meshPartsIsoSurface.erase(m_meshPartsIsoSurface.begin()+mp);
-//            m_meshParts.erase(m_meshParts.begin()+mp);
+////            m_meshPartsIsoSurface.erase(m_meshPartsIsoSurface.begin()+mp);
+////            m_meshParts.erase(m_meshParts.begin()+mp);
 //            mp--;
 //        }
-//        mp2++;
 //    }
     m_meshPartsIsoSurface.resize(m_meshParts.size());
-
-
-    // Generate composition Graph
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> Graph;
-    Graph g(numParts);
-    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
-    {
-        Graph::vertex_descriptor v = boost::add_vertex(g);
-    }
-
 
 }
 
@@ -231,6 +261,20 @@ void Model::UpdateImplicitSurface(int xRes,
                                   float yScale,
                                   float zScale)
 {
+    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
+    {
+        if(m_meshParts[mp].m_meshTris.size() < 1)
+        {
+            continue;
+        }
+        if(m_rig.m_boneTransforms.size() <= mp)
+        {
+            continue;
+        }
+
+        m_fieldFunctions[mp].SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
+    }
+
     // Get Scalar field for each mesh part and polygonize
     float *volumeData = new float[xRes*yRes*zRes];
     for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
@@ -247,14 +291,9 @@ void Model::UpdateImplicitSurface(int xRes,
             {
                 for(int k=0;k<xRes;k++)
                 {
-                    glm::vec4 point(dim*((((float)i/zRes)*2.0f)-1.0f), dim*((((float)j/yRes)*2.0f)-1.0f), dim*((((float)k/xRes)*2.0f)-1.0f), 1.0f);
-                    glm::vec4 transformedSpace = point;
-                    if(m_rig.m_boneTransforms.size()>0)
-                    {
-                        transformedSpace = glm::inverse(m_rig.m_boneTransforms[mp]) * transformedSpace;
-                    }
+                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f), dim*((((float)j/yRes)*2.0f)-1.0f), dim*((((float)k/xRes)*2.0f)-1.0f));
 
-                    float d = m_fieldFunctions[mp].Eval(glm::vec3(transformedSpace));
+                    float d = m_fieldFunctions[mp].Eval(point);
 
                     if(!std::isnan(d))
                     {
@@ -271,6 +310,51 @@ void Model::UpdateImplicitSurface(int xRes,
         // Polygonize scalar field using maching cube
         m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
     }
+
+
+    // Global IsoSurface
+//    if(m_compositionTree != nullptr)
+//    {
+//        for(int i=0;i<zRes;i++)
+//        {
+//            for(int j=0;j<yRes;j++)
+//            {
+//                for(int k=0;k<xRes;k++)
+//                {
+//                    glm::vec4 point(dim*((((float)i/zRes)*2.0f)-1.0f),
+//                                    dim*((((float)j/yRes)*2.0f)-1.0f),
+//                                    dim*((((float)k/xRes)*2.0f)-1.0f), 1.0f);
+
+////                    float d = m_compositionTree->Eval(point);
+//                    float d2 = FLT_MAX;
+
+//                        for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
+//                        {
+//                            if(m_meshParts[mp].m_meshTris.size() < 1)
+//                            {
+//                                continue;
+//                            }
+//                            float tmp = m_fieldFunctions[mp].Eval(point);
+//                            d2 = tmp < d2 ? tmp : d2;
+//                        }
+
+//                    if(!std::isnan(d2))
+//                    {
+//                        volumeData[i*xRes*yRes + j*xRes + k] = d2;
+//                    }
+//                    else
+//                    {
+//                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+//    // Polygonize scalar field using maching cube
+//    m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
+
+
     //clean up
     delete volumeData;
 }
@@ -324,6 +408,10 @@ void Model::DrawMesh()
 
         for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
         {
+            if(m_meshParts[mp].m_meshTris.size() < 1)
+            {
+                continue;
+            }
 
             // upload new verts
             glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);// Setup our vertex buffer object.
@@ -350,6 +438,31 @@ void Model::DrawMesh()
             m_meshPartIsoVAO[mp]->release();
 
         }
+
+        // Global IsoSurface
+        // upload new verts
+        glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshIsoSurface.m_colour[0]);// Setup our vertex buffer object.
+        m_meshIsoVBO->bind();
+        m_meshIsoVBO->allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
+        glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshIsoVBO->release();
+
+
+        // upload new normals
+        m_meshIsoNBO->bind();
+        m_meshIsoNBO->allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
+        glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshIsoNBO->release();
+
+
+        // Draw marching cube of isosurface
+        m_meshIsoVAO->bind();
+        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+        glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        m_meshIsoVAO->release();
 
         m_shaderProg[ISO_SURFACE]->release();
     }
@@ -683,6 +796,44 @@ void Model::CreateVAOs()
 
             m_meshPartIsoVAO[mp]->release();
         }
+
+
+        // Global IsoSurface stuff
+        m_meshIsoVAO = std::shared_ptr<QOpenGLVertexArrayObject>(new QOpenGLVertexArrayObject());
+        m_meshIsoVBO = std::shared_ptr<QOpenGLBuffer>(new QOpenGLBuffer());
+        m_meshIsoNBO = std::shared_ptr<QOpenGLBuffer>(new QOpenGLBuffer());
+
+
+        // Get shader locations
+        m_mesh.m_colour = glm::vec3(0.4f,0.4f,0.4f);
+        m_colourLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("uColour");
+        glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_mesh.m_colour[0]);
+        m_vertAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("vertex");
+        m_normAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("normal");
+
+        // Set up VAO
+        m_meshIsoVAO->create();
+        m_meshIsoVAO->bind();
+
+
+        // Setup our vertex buffer object.
+        m_meshIsoVBO->create();
+        m_meshIsoVBO->bind();
+        glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshIsoVBO->release();
+
+
+        // Setup our normals buffer object.
+        m_meshIsoNBO->create();
+        m_meshIsoNBO->bind();
+        glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshIsoNBO->release();
+
+
+        m_meshIsoVAO->release();
+
         m_shaderProg[ISO_SURFACE]->release();
 
     }
@@ -860,6 +1011,28 @@ void Model::UpdateVAOs()
 
             m_meshPartIsoVAO[mp]->release();
         }
+
+
+        // Global IsoSurface
+        m_meshIsoVAO->bind();
+
+        // Setup our vertex buffer object.
+        m_meshIsoVBO->bind();
+        m_meshIsoVBO->allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
+        glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshIsoVBO->release();
+
+
+        // Setup our normals buffer object.
+        m_meshIsoNBO->bind();
+        m_meshIsoNBO->allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
+        glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+        glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_meshIsoNBO->release();
+
+
+        m_meshIsoVAO->release();
 
         m_shaderProg[ISO_SURFACE]->release();
     }

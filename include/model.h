@@ -13,11 +13,14 @@
 #include "include/rig.h"
 #include "include/mesh.h"
 
-#include "include/hrbf/hrbf_core.h"
-#include "include/hrbf/hrbf_phi_funcs.h"
-#include "fieldfunction.h"
+#include "ScalarField/Hrbf/hrbf_core.h"
+#include "ScalarField/Hrbf/hrbf_phi_funcs.h"
+#include "ScalarField/fieldfunction.h"
 
-#include "include/machingcube/MachingCube.h"
+#include "BinaryTree/interiornode.h"
+#include "BinaryTree/leafnode.h"
+
+#include "Machingcube/MachingCube.h"
 
 
 enum RenderType { SKINNED = 0, RIG, ISO_SURFACE, NUMRENDERTYPES };
@@ -67,12 +70,6 @@ public:
 
     void GenerateMeshParts();
     void GenerateFieldFunctions();
-    float EvaluateDistanceFunctions(const glm::vec3 &_x);
-    float RemapDistanceToFieldFunction(const float _d, const float _r);
-    float EvaluateFieldFunctions(const glm::vec3 &_x);
-    float CompositionOperator(const float f1, const float f2, const float d);
-    float ThetaFunction(const float alpha);
-    float EvaluateGlobalFieldFunction(const glm::vec3 &_x);
 
 
     //-------------------------------------------------------------------
@@ -85,7 +82,7 @@ public:
     std::vector<Mesh> m_meshPartsHRBFCentres;
     std::vector<Mesh> m_meshPartsIsoSurface;
     std::vector<FieldFunction> m_fieldFunctions;
-
+    std::shared_ptr<AbstractNode> m_compositionTree;
     Mesh m_meshIsoSurface;
 
     MachingCube m_polygonizer;
@@ -99,7 +96,7 @@ public:
     glm::mat4 m_modelMat;
     glm::mat3 m_normMat;
 
-    // OpenGL VAO and BO's
+    // OpenGL VAO and BO's LBW skinned mesh
     QOpenGLVertexArrayObject m_meshVAO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshVBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshNBO[NUMRENDERTYPES];
@@ -107,10 +104,15 @@ public:
     QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
 
-    // VAO and BO's for iso-surface
+    // VAO and BO's for iso-surface mesh parts
     std::vector<std::shared_ptr<QOpenGLVertexArrayObject>> m_meshPartIsoVAO;
     std::vector<std::shared_ptr<QOpenGLBuffer>> m_meshPartIsoVBO;
     std::vector<std::shared_ptr<QOpenGLBuffer>> m_meshPartIsoNBO;
+
+    // VAO and BO's for iso-surface global mesh
+    std::shared_ptr<QOpenGLVertexArrayObject> m_meshIsoVAO;
+    std::shared_ptr<QOpenGLBuffer> m_meshIsoVBO;
+    std::shared_ptr<QOpenGLBuffer> m_meshIsoNBO;
 
     // Shader locations
     GLuint m_vertAttrLoc[NUMRENDERTYPES];

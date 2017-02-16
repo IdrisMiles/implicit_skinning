@@ -12,15 +12,26 @@ TEMPLATE = app
 CONFIG += console c++11
 
 
+#QMAKE_CFLAGS+=-pg
+#QMAKE_CXXFLAGS+=-pg
+#QMAKE_LFLAGS+=-pg
 
-SOURCES +=  $$PWD/src/*.cpp \
-            $$PWD/src/machingcube/*.cpp \
-            $$PWD/src/MeshSampler/*.cpp
+#QMAKE_CXXFLAGS_DEBUG *= -pg
+#QMAKE_LFLAGS_DEBUG *= -pg
 
-HEADERS  += $$PWD/include/*.h \
-            $$PWD/include/hrbf/*.h \
-            $$PWD/include/machingcube/*.h \
-            $$PWD/include/MeshSampler/*.h
+
+SOURCES +=  src/*.cpp \
+            src/ScalarField/*.cpp \
+            src/Machingcube/*.cpp \
+            src/MeshSampler/*.cpp \
+            src/BinaryTree/*.cpp
+
+HEADERS  += include/*.h \
+            include/ScalarField/*.h \
+            include/ScalarField/Hrbf/*.h \
+            include/Machingcube/*.h \
+            include/MeshSampler/*.h \
+            include/BinaryTree/*.h
 
 OTHER_FILES += shader/*
 

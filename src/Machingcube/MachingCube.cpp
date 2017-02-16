@@ -1,4 +1,4 @@
-#include "include/machingcube/MachingCube.h"
+#include "include/Machingcube/MachingCube.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 /// @file MachingCube.cpp
