@@ -18,7 +18,7 @@ public:
     float Eval(const float f1, const float f2, const float d);
 
     /// @brief Method to compute the gradient of the composed field functions
-    glm::vec3 Grad(const float f1, const float f2, const float d);
+    //glm::vec3 Grad(const float f1, const float f2, const float d);
 
     /// @brief Method to map angle to a value between [0:1]
     /// Refered to as controller dc(alpha) parameter for composition operator

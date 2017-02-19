@@ -25,16 +25,17 @@ float CompositionOp::Eval(const float f1, const float f2, const float d)
 //    return TrilinearInterpolate(f1, f2, d);
 }
 
-glm::vec3 CompositionOp::Grad(const float f1, const float f2, const float d)
-{
-//    float h = 0.01;
+//glm::vec3 CompositionOp::Grad(const float f1, const float f2, const float d)
+//{
+//    return glm::vec3(0.0f, 1.0f, 0.0f);
+////    float h = 0.01;
 
-//    float x = (TrilinearInterpolate(f1-h, f2, d) - TrilinearInterpolate(f1+h, f2, d)) / 2.0f*h;
-//    float y = (TrilinearInterpolate(f1, f2-h, d) - TrilinearInterpolate(f1, f2+h, d)) / 2.0f*h;
-//    float z = (TrilinearInterpolate(f1, f2, d-h) - TrilinearInterpolate(f1, f2, d+h)) / 2.0f*h;
+////    float x = (TrilinearInterpolate(f1-h, f2, d) - TrilinearInterpolate(f1+h, f2, d)) / 2.0f*h;
+////    float y = (TrilinearInterpolate(f1, f2-h, d) - TrilinearInterpolate(f1, f2+h, d)) / 2.0f*h;
+////    float z = (TrilinearInterpolate(f1, f2, d-h) - TrilinearInterpolate(f1, f2, d+h)) / 2.0f*h;
 
-    return glm::vec3(0.0f, 1.0f, 0.0f);//glm::normalize(glm::vec3(x, y, z));
-}
+////    return glm::normalize(glm::vec3(x, y, z));
+//}
 
 float CompositionOp::Theta(const float _angleRadians)
 {

@@ -216,6 +216,8 @@ void Model::GenerateGlobalFieldFunctions()
 
 
     // Generate Leaf nodes of field functions
+    std::vector<std::shared_ptr<AbstractNode>> compositionTreeLeaves;
+    std::vector<std::shared_ptr<AbstractNode>> compositionTreeInterior;
     std::stack<std::shared_ptr<AbstractNode>> compositionTreeStack;
     for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
     {
@@ -226,29 +228,94 @@ void Model::GenerateGlobalFieldFunctions()
 
         auto l = LeafNodePtr(new LeafNode());
         l->SetFieldFunction(&m_fieldFunctions[mp]);
-        compositionTreeStack.push(l);
+        compositionTreeLeaves.push_back(l);
+//        compositionTreeStack.push(l);
     }
 
-    // Generate binary tree
-    while(compositionTreeStack.size() > 1)
+
+    // generate first level of interior nodes form leaf nodes
+    for(unsigned int mp=0; mp<compositionTreeLeaves.size(); mp+=2)
     {
-        auto first = compositionTreeStack.top();
-        compositionTreeStack.pop();
-
-        auto second = compositionTreeStack.top();
-        compositionTreeStack.pop();
-        if(second == nullptr)
+        auto l1 = compositionTreeLeaves[mp];
+        if(compositionTreeLeaves.size() <= mp+1)
         {
-            break;
+            if(l1 != nullptr)
+            {
+                auto lastNode = compositionTreeInterior.back();
+                compositionTreeInterior.pop_back();
+                auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, lastNode, l1));
+                compositionTreeInterior.push_back(interiorNode);
+            }
         }
-
-        auto tmp = InteriorNodePtr(new InteriorNode(contactOp, first, second));
-
-        compositionTreeStack.push(tmp);
+        else
+        {
+            auto l2 = compositionTreeLeaves[mp+1];
+            if(l1 != nullptr && l2 != nullptr)
+            {
+                auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, l1, l2));
+                compositionTreeInterior.push_back(interiorNode);
+            }
+        }
     }
 
-    m_compositionTree = compositionTreeStack.top();
-    compositionTreeStack.pop();
+    // Generate ~balanced~ binary composition tree
+    while(compositionTreeInterior.size() > 1)
+    {
+        std::cout<<compositionTreeInterior.size()<<"\n";
+        for(unsigned int mp=0; mp<compositionTreeInterior.size(); mp++)
+        {
+            auto l1 = compositionTreeInterior[mp];
+            if(compositionTreeInterior.size() <= mp+1)
+            {
+                if(l1 != nullptr && mp > 0)
+                {
+                    auto lastNode = compositionTreeInterior[mp-1];
+                    auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, lastNode, l1));
+                    compositionTreeInterior[mp - 1] = interiorNode;
+                    compositionTreeInterior.pop_back();
+                }
+            }
+            else
+            {
+                auto l2 = compositionTreeInterior[mp+1];
+                if(l1 != nullptr && l2 != nullptr)
+                {
+                    auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, l1, l2));
+                    compositionTreeInterior[mp] = interiorNode;
+                    compositionTreeInterior.erase(compositionTreeInterior.begin() + mp+1);
+                }
+            }
+
+        }
+    }
+
+    m_compositionTree = compositionTreeInterior[0];
+
+
+    // Generate ~unbalanced~ binary tree
+//    while(compositionTreeStack.size() > 1)
+//    {
+//        std::cout<<compositionTreeStack.size()<<"\n";
+//        auto first = compositionTreeStack.top();
+//        compositionTreeStack.pop();
+
+//        auto second = compositionTreeStack.top();
+//        compositionTreeStack.pop();
+//        if(second == nullptr)
+//        {
+//            break;
+//        }
+
+//        auto tmp = InteriorNodePtr(new InteriorNode(contactOp, first, second));
+
+//        compositionTreeStack.push(tmp);
+//        std::cout<<compositionTreeStack.size()<<"\n_____\n";
+//    }
+
+//    m_compositionTree = compositionTreeStack.top();
+//    compositionTreeStack.pop();
+
+
 }
 
 

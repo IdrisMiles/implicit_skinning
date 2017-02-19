@@ -50,6 +50,10 @@ void FieldFunction::SetTransform(glm::mat4 _transform)
 
 float FieldFunction::Eval(const glm::vec3& x)
 {
+//    static int i=0;
+//    i++;
+//    std::cout<<i<<"\n";
+
     glm::vec3 tx = TransformSpace(x);
     return Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
 }
@@ -62,6 +66,8 @@ float FieldFunction::EvalDist(const glm::vec3& x)
 
 glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 {
+    return glm::vec3(0.0f, 1.0f, 0.0f);
+
     glm::vec3 tx = TransformSpace(x);
     auto g = m_distanceField.grad(DistanceField::Vector(tx.x, tx.y, tx.z));
 

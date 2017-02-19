@@ -47,11 +47,13 @@ float InteriorNode::Eval(const glm::vec3 _x)
 
         if(m_children[0] != nullptr && m_children[1] != nullptr)
         {
-//            glm::vec3 g1 = m_children[0]->Grad(_x);
-//            glm::vec3 g2 = m_children[1]->Grad(_x);
-//            float angle = glm::angle(g1, g2);
+//            glm::vec3 g1 = glm::vec3(0.0f,1.0f,0.0f);
+//            glm::vec3 g2 = glm::vec3(0.0f,1.0f,0.0f);
+            glm::vec3 g1 = m_children[0]->Grad(_x);
+            glm::vec3 g2 = m_children[1]->Grad(_x);
+            float angle = glm::angle(g1, g2);
 
-//            d = m_compositionOp->Theta(angle);
+            d = m_compositionOp->Theta(angle);
         }
 
         return m_compositionOp->Eval(f1, f2, d);
@@ -64,6 +66,8 @@ float InteriorNode::Eval(const glm::vec3 _x)
 
 glm::vec3 InteriorNode::Grad(const glm::vec3 _x)
 {
+//    return glm::vec3(0.0f, 1.0f, 0.0f);
+
     try
     {
         // Do a bit of error checking
