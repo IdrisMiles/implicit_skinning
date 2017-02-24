@@ -191,6 +191,8 @@ void Model::GenerateFieldFunctions()
 
         // Set R in order to make field function compactly supported
         m_fieldFunctions[mp].SetR(maxDist);
+        m_fieldFunctions[mp].SetTransform(glm::inverse(m_rig.m_globalInverseTransform));
+        m_fieldFunctions[mp].PrecomputeField();
     }
 
     m_meshPartsIsoSurface.resize(m_meshParts.size());
@@ -383,25 +385,25 @@ void Model::UpdateImplicitSurface(int xRes,
     // Global IsoSurface
     if(m_compositionTree != nullptr)
     {
-        for(int i=0;i<zRes;i++)
+        for(int z=0;z<zRes;z++)
         {
-            for(int j=0;j<yRes;j++)
+            for(int y=0;y<yRes;y++)
             {
-                for(int k=0;k<xRes;k++)
+                for(int x=0;x<xRes;x++)
                 {
-                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f),
-                                    dim*((((float)j/yRes)*2.0f)-1.0f),
-                                    dim*((((float)k/xRes)*2.0f)-1.0f));
+                    glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
+                                    dim*((((float)y/yRes)*2.0f)-1.0f),
+                                    dim*((((float)z/xRes)*2.0f)-1.0f));
 
                     float d = m_compositionTree->Eval(point);
 
                     if(!std::isnan(d))
                     {
-                        volumeData[i*xRes*yRes + j*xRes + k] = d;
+                        volumeData[z*xRes*yRes + y*xRes + x] = d;
                     }
                     else
                     {
-                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
+                        volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
                     }
                 }
             }
@@ -454,9 +456,9 @@ void Model::DrawMesh()
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
         // Get Scalar field for each mesh part and polygonize
-        int xRes = 16;
-        int yRes = 16;
-        int zRes = 16;
+        int xRes = 32;
+        int yRes = 32;
+        int zRes = 32;
         float dim = 800.0f; // dimension of sample range e.g. dim x dim x dim
         float xScale = 1.0f* dim;
         float yScale = 1.0f* dim;
@@ -579,11 +581,7 @@ void Model::CreateShaders()
     m_shaderProg[SKINNED]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
     m_shaderProg[SKINNED]->bindAttributeLocation("vertex", 0);
     m_shaderProg[SKINNED]->bindAttributeLocation("normal", 1);
-    if(m_shaderProg[SKINNED]->link())
-    {
-
-    }
-    else
+    if(!m_shaderProg[SKINNED]->link())
     {
         std::cout<<m_shaderProg[SKINNED]->log().toStdString()<<"\n";
     }
@@ -607,11 +605,7 @@ void Model::CreateShaders()
     m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/rigFrag.glsl");
     m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Geometry, "../shader/rigGeo.glsl");
     m_shaderProg[RIG]->bindAttributeLocation("vertex", 0);
-    if(m_shaderProg[RIG]->link())
-    {
-
-    }
-    else
+    if(!m_shaderProg[RIG]->link())
     {
         std::cout<<m_shaderProg[RIG]->log().toStdString()<<"\n";
     }
@@ -630,11 +624,7 @@ void Model::CreateShaders()
     m_shaderProg[ISO_SURFACE]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/vert.glsl");
     m_shaderProg[ISO_SURFACE]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/frag.glsl");
     m_shaderProg[ISO_SURFACE]->bindAttributeLocation("vertex", 0);
-    if(m_shaderProg[ISO_SURFACE]->link())
-    {
-
-    }
-    else
+    if(!m_shaderProg[ISO_SURFACE]->link())
     {
         std::cout<<m_shaderProg[ISO_SURFACE]->log().toStdString()<<"\n";
     }

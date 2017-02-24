@@ -1,5 +1,5 @@
 #include "ScalarField/fieldfunction.h"
-
+#include <glm/gtx/string_cast.hpp>
 FieldFunction::FieldFunction(glm::mat4 _transform) :
     m_transform(_transform)
 {
@@ -36,6 +36,41 @@ void FieldFunction::Fit(const std::vector<glm::vec3>& points,
     m_distanceField.hermite_fit(DFVpoints, DFVnormals);
 }
 
+void FieldFunction::PrecomputeField()
+{
+    unsigned int dim = 32;
+    float data[dim*dim*dim] = {0.0f};
+    float scale = 800.0f;
+
+    for(unsigned int z=0; z<dim; ++z)
+    {
+        for(unsigned int y=0; y<dim; ++y)
+        {
+            for(unsigned int x=0; x<dim; ++x)
+            {
+                glm::vec3 point(scale*((((float)x/dim)*2.0f)-1.0f),
+                                scale*((((float)y/dim)*2.0f)-1.0f),
+                                scale*((((float)z/dim)*2.0f)-1.0f));
+
+                glm::vec3 tx = TransformSpace(point);
+                float d = Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
+
+                if(!std::isnan(d))
+                {
+                    data[z*dim*dim + y*dim+ x] = d;
+                    std::cout<<glm::to_string(tx)<<"\n";
+                }
+                else
+                {
+                    data[z*dim*dim + y*dim + x] = 0.0f;
+                }
+            }
+        }
+    }
+
+    m_field.SetData(dim, data);
+
+}
 
 void FieldFunction::SetR(const float _r)
 {
@@ -50,11 +85,14 @@ void FieldFunction::SetTransform(glm::mat4 _transform)
 
 float FieldFunction::Eval(const glm::vec3& x)
 {
-//    static int i=0;
-//    i++;
-//    std::cout<<i<<"\n";
-
     glm::vec3 tx = TransformSpace(x);
+//    std::cout<<glm::to_string(tx)<<"\n";
+
+    // need to normalize vector [0:1]
+    glm::vec3 nx = (((tx/7.5f)+glm::vec3(1.0f,1.0f,1.0f))/2.0f);
+//    std::cout<<glm::to_string(tx)<<"\n\n";
+
+    return m_field.Eval(nx);
     return Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
 }
 

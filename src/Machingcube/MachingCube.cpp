@@ -7,8 +7,6 @@
 
 MachingCube::MachingCube()
 {
-    m_vbo=false;
-    m_vao=false;
     isolevel = 0.8;
 }
 
@@ -18,8 +16,6 @@ MachingCube::~MachingCube()
 
     m_meshVerts.erase(m_meshVerts.begin(),m_meshVerts.end());
     m_meshNorms.erase(m_meshNorms.begin(),m_meshNorms.end());
-    m_meshVBO.destroy();
-    m_meshVAO.destroy();
 }
 
 
@@ -195,9 +191,9 @@ void MachingCube::createVerts()
         for(i=0;i<3;i++)
         {
             // pack in the vertex data first
-            vert.z = (((itr->p[i].x/volume_width) * 2.0f) -1.0f)    * voxel_width;
+            vert.x = (((itr->p[i].x/volume_width) * 2.0f) -1.0f)    * voxel_width;
             vert.y = (((itr->p[i].y/volume_height) * 2.0f) -1.0f)  * voxel_height;
-            vert.x = (((itr->p[i].z/volume_depth) * 2.0f) -1.0f)    * voxel_depth;
+            vert.z = (((itr->p[i].z/volume_depth) * 2.0f) -1.0f)    * voxel_depth;
 
             // one normal for all three vertices in the triangle
             norm.x = triNormal.x;
@@ -207,62 +203,6 @@ void MachingCube::createVerts()
             m_meshVerts.push_back(vert);
             m_meshNorms.push_back(norm);
         }
-    }
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-void MachingCube::createVAO()
-{
-    // if we have already created a VBO just return.
-    if(m_vao == true)
-    {
-        std::cout<<"VAO exist so returning\n";
-        return;
-    }
-
-
-    m_meshVAO.create();
-    m_meshVAO.bind();
-
-
-    m_meshVBO.create();
-    m_meshVBO.bind();
-    m_meshVBO.allocate(&m_meshVerts[0].x, m_meshVerts.size()*sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_vertAttrLoc);
-    glVertexAttribPointer(m_vertAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshVBO.release();
-
-
-    m_meshNBO.create();
-    m_meshNBO.bind();
-    m_meshNBO.allocate(&m_meshNorms[0].x, m_meshNorms.size()*sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_normAttrLoc+1);
-    glVertexAttribPointer(m_normAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshNBO.release();
-
-
-    m_meshVAO.release();
-
-
-    m_vbo = true;
-    m_vao=true;
-
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-void MachingCube::draw()
-{
-    if(m_vao == true)
-    {
-        m_meshVAO.bind();
-        glDrawArrays(GL_TRIANGLES, 0, m_meshVerts.size());
-        m_meshVAO.release();
     }
 }
 
