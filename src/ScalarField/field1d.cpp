@@ -9,6 +9,8 @@ Field1D::Field1D(unsigned int _dim, const float _initValue) :
     {
         m_data[i] = _initValue;
     }
+
+    m_textureSpaceTransform = [](glm::vec3 _v){return _v;};
 }
 
 Field1D::~Field1D()
@@ -40,6 +42,11 @@ float* Field1D::RawData()const
     return m_data;
 }
 
+void::Field1D::SetTextureSpaceTransform(std::function<glm::vec3 (glm::vec3)> _textureSpaceTransform)
+{
+    m_textureSpaceTransform = _textureSpaceTransform;
+}
+
 void Field1D::SetData(unsigned int _dim, float *_data)
 {
     delete [] m_data;
@@ -65,10 +72,13 @@ float Field1D::Eval(const float _x, const float _y, const float _z)
 
 float Field1D::TrilinearInterpolate(const float _x, const float _y, const float _z)
 {
+
+    glm::vec3 texSpace = m_textureSpaceTransform(glm::vec3(_x, _y, _z));
+
     // Get data coords
-    unsigned int x0 = floor(_x * m_dim);
-    unsigned int y0 = floor(_y * m_dim);
-    unsigned int z0 = floor(_z * m_dim);
+    unsigned int x0 = floor(texSpace.x * m_dim);
+    unsigned int y0 = floor(texSpace.y * m_dim);
+    unsigned int z0 = floor(texSpace.z * m_dim);
 
     // Adjust for potential out of bounds
     x0 = x0 >= m_dim ? m_dim - 1 : x0;
@@ -98,15 +108,15 @@ float Field1D::TrilinearInterpolate(const float _x, const float _y, const float 
 
 
     // do interpolation here
-    float valX0 = LinearInterpolate(val0, val1, _x);
-    float valX1 = LinearInterpolate(val2, val3, _x);
-    float valX2 = LinearInterpolate(val4, val5, _x);
-    float valX3 = LinearInterpolate(val6, val7, _x);
+    float valX0 = LinearInterpolate(val0, val1, texSpace.x);
+    float valX1 = LinearInterpolate(val2, val3, texSpace.x);
+    float valX2 = LinearInterpolate(val4, val5, texSpace.x);
+    float valX3 = LinearInterpolate(val6, val7, texSpace.x);
 
-    float valY0 = LinearInterpolate(valX0, valX2, _y);
-    float valY1 = LinearInterpolate(valX1, valX3, _y);
+    float valY0 = LinearInterpolate(valX0, valX2, texSpace.y);
+    float valY1 = LinearInterpolate(valX1, valX3, texSpace.y);
 
-    float valZ0 = LinearInterpolate(valY0, valY1, _z);
+    float valZ0 = LinearInterpolate(valY0, valY1, texSpace.z);
 
 
 

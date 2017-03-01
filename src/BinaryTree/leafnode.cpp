@@ -15,37 +15,24 @@ LeafNode::~LeafNode()
 
 float LeafNode::Eval(const glm::vec3 _x)
 {
-    try
+    if(m_fieldFunction == nullptr)
     {
-        if(m_fieldFunction == nullptr)
-        {
-            throw NullFieldFuncException();
-        }
+        std::cout<<"No field function in leafnode\n";
+        return 0.0f;
+    }
 
-        return m_fieldFunction->Eval(_x);
-    }
-    catch(NullFieldFuncException e)
-    {
-        std::cout<<e.what();
-    }
+    return m_fieldFunction->Eval(_x);
 }
 
 glm::vec3 LeafNode::Grad(const glm::vec3 _x)
 {
-    try
+    if(m_fieldFunction == nullptr)
     {
-        if(m_fieldFunction == nullptr)
-        {
-            throw NullFieldFuncException();
-        }
-
-
-        return m_fieldFunction->Grad(_x);
+        std::cout<<"No field function in leafnode\n";
+        return glm::vec3(0.0f, 1.0f, 0.0f);
     }
-    catch(NullFieldFuncException e)
-    {
-        std::cout<<e.what();
-    }
+
+    return m_fieldFunction->Grad(_x);
 }
 
 

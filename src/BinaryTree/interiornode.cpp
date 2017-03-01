@@ -21,76 +21,62 @@ InteriorNode::~InteriorNode()
 
 float InteriorNode::Eval(const glm::vec3 _x)
 {
-    try
+    // Do a bit of error checking
+    if(m_compositionOp == nullptr)
     {
-        // Do a bit of error checking
-        if(m_compositionOp == nullptr)
-        {
-            std::cout<<"no comp op in interior node\n";
-            throw NullCompositionOpException();
-        }
-
-
-        // Do actual evaluation
-        float f1 = 0.0f;
-        float f2 = 0.0f;
-        float d = 0.0f;
-        if(m_children[0] != nullptr)
-        {
-            f1 = m_children[0]->Eval(_x);
-        }
-
-        if(m_children[1] != nullptr)
-        {
-            f2 = m_children[1]->Eval(_x);
-        }
-
-        if(m_children[0] != nullptr && m_children[1] != nullptr)
-        {
-//            glm::vec3 g1 = glm::vec3(0.0f,1.0f,0.0f);
-//            glm::vec3 g2 = glm::vec3(0.0f,1.0f,0.0f);
-            glm::vec3 g1 = m_children[0]->Grad(_x);
-            glm::vec3 g2 = m_children[1]->Grad(_x);
-            float angle = glm::angle(g1, g2);
-
-            d = m_compositionOp->Theta(angle);
-        }
-
-        return m_compositionOp->Eval(f1, f2, d);
+        std::cout<<"Composition op null in interiornode\n";
     }
-    catch(NullCompositionOpException e)
+
+
+    // Do actual evaluation
+    float f1 = 0.0f;
+    float f2 = 0.0f;
+    float d = 0.0f;
+    if(m_children[0] != nullptr)
     {
-        std::cout<<e.what();
+        f1 = m_children[0]->Eval(_x);
     }
+
+    if(m_children[1] != nullptr)
+    {
+        f2 = m_children[1]->Eval(_x);
+    }
+
+    if(m_children[0] != nullptr && m_children[1] != nullptr)
+    {
+        glm::vec3 g1 = m_children[0]->Grad(_x);
+        glm::vec3 g2 = m_children[1]->Grad(_x);
+        float angle = glm::angle(g1, g2);
+
+        d = m_compositionOp->Theta(angle);
+    }
+
+    return m_compositionOp->Eval(f1, f2, d);
 }
 
 glm::vec3 InteriorNode::Grad(const glm::vec3 _x)
 {
     return glm::vec3(0.0f, 1.0f, 0.0f);
 
-    try
+    // Do a bit of error checking
+    if(m_compositionOp == nullptr)
     {
-        // Do a bit of error checking
-        if(m_compositionOp == nullptr)
-        {
-            throw NullCompositionOpException();
-        }
-
-
-        // Do actual evaluation
-        float h= 0.01f;
-        float h2 = 2.0f*h;
-
-        float dx = (Eval(_x + glm::vec3(h, 0.0f, 0.0f)) - Eval(_x + glm::vec3(-h, 0.0f, 0.0f))) / h2;
-        float dy = (Eval(_x + glm::vec3(0.0f, h, 0.0f)) - Eval(_x + glm::vec3(0.0f, -h, 0.0f))) / h2;
-        float dz = (Eval(_x + glm::vec3(0.0f, 0.0f, h)) - Eval(_x + glm::vec3(0.0f, 0.0f, -h))) / h2;
-
-        return glm::vec3(dx, dy, dz);
-
+        std::cout<<"Composition op null in interiornode\n";
+        return glm::vec3(0.0f, 1.0f, 0.0f);
     }
-    catch(NullCompositionOpException e)
-    {
-        std::cout<<e.what();
-    }
+
+
+    // Do actual evaluation
+    float h= 0.01f;
+    float h2 = 2.0f*h;
+
+    float f = Eval(_x);
+
+    float dx = (Eval(_x + glm::vec3(h, 0.0f, 0.0f)) - f) / h2;
+    float dy = (Eval(_x + glm::vec3(0.0f, h, 0.0f)) - f) / h2;
+    float dz = (Eval(_x + glm::vec3(0.0f, 0.0f, h)) - f) / h2;
+
+    return glm::vec3(dx, dy, dz);
+
 }
 

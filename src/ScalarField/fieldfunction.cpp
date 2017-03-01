@@ -55,20 +55,16 @@ void FieldFunction::PrecomputeField()
                 glm::vec3 tx = TransformSpace(point);
                 float d = Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
 
-                if(!std::isnan(d))
-                {
-                    data[z*dim*dim + y*dim+ x] = d;
-                    std::cout<<glm::to_string(tx)<<"\n";
-                }
-                else
-                {
-                    data[z*dim*dim + y*dim + x] = 0.0f;
-                }
+                data[z*dim*dim + y*dim+ x] = d;
             }
         }
     }
 
     m_field.SetData(dim, data);
+    m_field.SetTextureSpaceTransform([](glm::vec3 x){
+        float scale = 1.0f/7.5f;
+        return (((x*scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
+    });
 
 }
 
@@ -86,14 +82,10 @@ void FieldFunction::SetTransform(glm::mat4 _transform)
 float FieldFunction::Eval(const glm::vec3& x)
 {
     glm::vec3 tx = TransformSpace(x);
-//    std::cout<<glm::to_string(tx)<<"\n";
+    return m_field.Eval(tx);
 
-    // need to normalize vector [0:1]
-    glm::vec3 nx = (((tx/7.5f)+glm::vec3(1.0f,1.0f,1.0f))/2.0f);
-//    std::cout<<glm::to_string(tx)<<"\n\n";
 
-    return m_field.Eval(nx);
-    return Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
+//    return Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
 }
 
 float FieldFunction::EvalDist(const glm::vec3& x)
@@ -106,10 +98,25 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 {
     return glm::vec3(0.0f, 1.0f, 0.0f);
 
-    glm::vec3 tx = TransformSpace(x);
-    auto g = m_distanceField.grad(DistanceField::Vector(tx.x, tx.y, tx.z));
 
-    return glm::vec3(g(0), g(1), g(2));
+//    glm::vec3 tx = TransformSpace(x);
+//    const static float scale = 1.0f/7.5f;
+//    float h= 0.01f;
+//    float h2 = 2.0f*h;
+//    glm::vec3 nx = (((tx*scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
+//    float f = m_field.Eval(nx);
+//    float dx = (m_field.Eval(nx + glm::vec3(h, 0.0f, 0.0f)) - f) / h2;
+//    float dy = (m_field.Eval(nx + glm::vec3(0.0f, h, 0.0f)) - f) / h2;
+//    float dz = (m_field.Eval(nx + glm::vec3(0.0f, 0.0f, h)) - f) / h2;
+
+//    return glm::vec3(dx, dy, dz);
+
+
+
+//    glm::vec3 tx = TransformSpace(x);
+//    auto g = m_distanceField.grad(DistanceField::Vector(tx.x, tx.y, tx.z));
+
+//    return glm::vec3(g(0), g(1), g(2));
 }
 
 float FieldFunction::Remap(float _df)
