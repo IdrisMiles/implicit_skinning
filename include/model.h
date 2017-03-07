@@ -71,6 +71,17 @@ public:
     void GenerateMeshParts();
     void GenerateFieldFunctions();
     void GenerateGlobalFieldFunctions();
+    void GenerateMeshVertIsoValue();
+
+    void GenerateOneRingNeighbours();
+    void GenerateCentroidWeights();
+
+    //-------------------------------------------------------------------
+
+    void PerformLBWSkinning();
+    void PerformVertexProjection();
+    void PerformTangentialRelaxation();
+    void PerformLaplacianSmoothing();
 
 
     //-------------------------------------------------------------------
@@ -80,11 +91,14 @@ public:
     Mesh m_rigMesh;
 
     std::vector<Mesh> m_meshParts;
-    std::vector<Mesh> m_meshPartsHRBFCentres;
-    std::vector<Mesh> m_meshPartsIsoSurface;
+
     std::vector<FieldFunction> m_fieldFunctions;
     std::shared_ptr<AbstractNode> m_compositionTree;
     Mesh m_meshIsoSurface;
+
+    std::vector<float> m_meshVertIsoValues;
+    std::vector<std::vector<unsigned int>> m_meshVertOneRingNeighbour;
+    std::vector<std::vector<float>> m_meshVertCentroidWeights;
 
     MachingCube m_polygonizer;
 
@@ -104,11 +118,6 @@ public:
     QOpenGLBuffer m_meshIBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
-
-    // VAO and BO's for iso-surface mesh parts
-    std::vector<std::shared_ptr<QOpenGLVertexArrayObject>> m_meshPartIsoVAO;
-    std::vector<std::shared_ptr<QOpenGLBuffer>> m_meshPartIsoVBO;
-    std::vector<std::shared_ptr<QOpenGLBuffer>> m_meshPartIsoNBO;
 
     // VAO and BO's for iso-surface global mesh
     std::shared_ptr<QOpenGLVertexArrayObject> m_meshIsoVAO;

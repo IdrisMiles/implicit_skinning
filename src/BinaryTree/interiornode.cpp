@@ -72,9 +72,9 @@ glm::vec3 InteriorNode::Grad(const glm::vec3 _x)
 
     float f = Eval(_x);
 
-    float dx = (Eval(_x + glm::vec3(h, 0.0f, 0.0f)) - f) / h2;
-    float dy = (Eval(_x + glm::vec3(0.0f, h, 0.0f)) - f) / h2;
-    float dz = (Eval(_x + glm::vec3(0.0f, 0.0f, h)) - f) / h2;
+    float dx = (Eval(_x + glm::vec3(h, 0.0f, 0.0f)) - f) / h;
+    float dy = (Eval(_x + glm::vec3(0.0f, h, 0.0f)) - f) / h;
+    float dz = (Eval(_x + glm::vec3(0.0f, 0.0f, h)) - f) / h;
 
     return glm::vec3(dx, dy, dz);
 

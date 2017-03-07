@@ -7,6 +7,8 @@
 #include <stack>
 #include <math.h>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/norm.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 
 Model::Model()
@@ -31,6 +33,7 @@ void Model::Load(const std::string &_file)
     GenerateMeshParts();
     GenerateFieldFunctions();
     GenerateGlobalFieldFunctions();
+    GenerateMeshVertIsoValue();
 
     //--------------------------------------------------
     CreateShaders();
@@ -43,7 +46,6 @@ void Model::GenerateMeshParts()
 {
     unsigned int numParts = m_rig.m_boneNameIdMapping.size();
     m_meshParts.resize(numParts);
-    m_meshPartsIsoSurface.resize(numParts);
     m_fieldFunctions.resize(numParts);
 
 
@@ -191,11 +193,10 @@ void Model::GenerateFieldFunctions()
 
         // Set R in order to make field function compactly supported
         m_fieldFunctions[mp].SetR(maxDist);
-        m_fieldFunctions[mp].SetTransform(glm::inverse(m_rig.m_globalInverseTransform));
+//        m_fieldFunctions[mp].SetTransform(glm::inverse(m_rig.m_globalInverseTransform));
         m_fieldFunctions[mp].PrecomputeField();
     }
 
-    m_meshPartsIsoSurface.resize(m_meshParts.size());
 }
 
 
@@ -292,34 +293,74 @@ void Model::GenerateGlobalFieldFunctions()
     }
 
     m_compositionTree = compositionTreeInterior[0];
+}
 
 
-    // Generate ~unbalanced~ binary tree
-//    while(compositionTreeStack.size() > 1)
-//    {
-//        std::cout<<compositionTreeStack.size()<<"\n";
-//        auto first = compositionTreeStack.top();
-//        compositionTreeStack.pop();
+void Model::GenerateMeshVertIsoValue()
+{
+    for(auto &v : m_mesh.m_meshVerts)
+    {
+        m_meshVertIsoValues.push_back(m_compositionTree->Eval(v));
+    }
+}
 
-//        auto second = compositionTreeStack.top();
-//        compositionTreeStack.pop();
-//        if(second == nullptr)
-//        {
-//            break;
-//        }
-
-//        auto tmp = InteriorNodePtr(new InteriorNode(contactOp, first, second));
-
-//        compositionTreeStack.push(tmp);
-//        std::cout<<compositionTreeStack.size()<<"\n_____\n";
-//    }
-
-//    m_compositionTree = compositionTreeStack.top();
-//    compositionTreeStack.pop();
-
+void Model::PerformLBWSkinning()
+{
 
 }
 
+void Model::PerformVertexProjection()
+{
+    std::vector<glm::vec3> newVert(m_mesh.m_meshVerts.size());
+    std::vector<glm::vec3> previousGrad(m_mesh.m_meshVerts.size());
+    std::vector<float> gradAngle(m_mesh.m_meshVerts.size());
+    float sigma = 0.35f;
+    float contactAngle = 55.0f;
+
+    // TODO
+    // Replace m_mesh.m_meshVerts[i] with LBW Skinned Tranformed Vert
+
+    for(int i =0; i<m_mesh.m_meshVerts.size(); i++)
+    {
+        glm::vec3 grad = m_compositionTree->Grad(m_mesh.m_meshVerts[i]);
+        float angle = gradAngle[i] = glm::angle(grad, previousGrad[i]);
+        if(angle < contactAngle)
+        {
+            newVert[i] = m_mesh.m_meshVerts[i] + ( sigma * (m_compositionTree->Eval(m_mesh.m_meshVerts[i]) - m_meshVertIsoValues[i]) * (grad / glm::length2(grad)));
+            previousGrad[i] = grad;
+        }
+    }
+}
+
+void Model::PerformTangentialRelaxation()
+{
+    std::vector<glm::vec3> newVert(m_mesh.m_meshVerts.size());
+
+    for(int i =0; i<m_mesh.m_meshVerts.size(); i++)
+    {
+        glm::vec3 origVert = m_mesh.m_meshVerts[i];
+        float newIsoValue = m_compositionTree->Eval(m_mesh.m_meshVerts[i]);
+        float mu = std::max(0.0f, 1.0f - (float)pow(fabs(newIsoValue - m_meshVertIsoValues[i]) - 1.0f, 4.0f));
+
+        glm::vec3 sumWeightedCentroid(0.0f);
+        int j=0;
+        for(auto &n : m_meshVertOneRingNeighbour[i])
+        {
+            glm::vec3 neighVert = m_mesh.m_meshVerts[n];
+            glm::vec3 projNeighVert = neighVert;
+            float barycentricCoord = m_meshVertCentroidWeights[i][j];
+            sumWeightedCentroid += barycentricCoord * projNeighVert;
+
+            j++;
+        }
+
+        newVert[i] = ((1.0f - mu) * origVert) + (mu * sumWeightedCentroid);
+    }
+}
+
+void Model::PerformLaplacianSmoothing()
+{
+}
 
 void Model::UpdateImplicitSurface(int xRes,
                                   int yRes,
@@ -344,42 +385,6 @@ void Model::UpdateImplicitSurface(int xRes,
     }
 
     float *volumeData = new float[xRes*yRes*zRes];
-    // Get Scalar field for each mesh part and polygonize
-//    for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
-//    {
-//        if(m_meshParts[mp].m_meshTris.size() < 1)
-//        {
-//            continue;
-//        }
-
-//        // evaluate scalar field at uniform points
-//        for(int i=0;i<zRes;i++)
-//        {
-//            for(int j=0;j<yRes;j++)
-//            {
-//                for(int k=0;k<xRes;k++)
-//                {
-//                    glm::vec3 point(dim*((((float)i/zRes)*2.0f)-1.0f),
-//                                    dim*((((float)j/yRes)*2.0f)-1.0f),
-//                                    dim*((((float)k/xRes)*2.0f)-1.0f));
-
-//                    float d = m_fieldFunctions[mp].Eval(point);
-
-//                    if(!std::isnan(d))
-//                    {
-//                        volumeData[i*xRes*yRes + j*xRes + k] = d;
-//                    }
-//                    else
-//                    {
-//                        volumeData[i*xRes*yRes + j*xRes + k] = 0.0f;
-//                    }
-//                }
-//            }
-//        }
-
-//        // Polygonize scalar field using maching cube
-//        m_polygonizer.Polygonize(m_meshPartsIsoSurface[mp].m_meshVerts, m_meshPartsIsoSurface[mp].m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
-//    }
 
 
     // Global IsoSurface
@@ -432,19 +437,22 @@ void Model::DrawMesh()
     {
         //-------------------------------------------------------------------------------------
         // Draw skinned mesh
+
         m_shaderProg[SKINNED]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
         glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_viewMat*m_modelMat)[0][0]);
         glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
         glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
-
+        if(!m_wireframe)
+        {
         m_meshVAO[SKINNED].bind();
         glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
         glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         m_meshVAO[SKINNED].release();
         m_shaderProg[SKINNED]->release();
+        }
 
 
         //-------------------------------------------------------------------------------------
@@ -464,39 +472,6 @@ void Model::DrawMesh()
         float yScale = 1.0f* dim;
         float zScale = 1.0f* dim;
         UpdateImplicitSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
-
-//        for(unsigned int mp=0; mp<m_meshPartsIsoSurface.size(); mp++)
-//        {
-//            if(m_meshParts[mp].m_meshTris.size() < 1)
-//            {
-//                continue;
-//            }
-
-//            // upload new verts
-//            glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshPartsIsoSurface[mp].m_colour[0]);// Setup our vertex buffer object.
-//            m_meshPartIsoVBO[mp]->bind();
-//            m_meshPartIsoVBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshVerts[0], m_meshPartsIsoSurface[mp].m_meshVerts.size() * sizeof(glm::vec3));
-//            glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
-//            glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-//            m_meshPartIsoVBO[mp]->release();
-
-
-//            // upload new normals
-//            m_meshPartIsoNBO[mp]->bind();
-//            m_meshPartIsoNBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshNorms[0], m_meshPartsIsoSurface[mp].m_meshNorms.size() * sizeof(glm::vec3));
-//            glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
-//            glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-//            m_meshPartIsoNBO[mp]->release();
-
-
-//            // Draw marching cube of isosurface
-//            m_meshPartIsoVAO[mp]->bind();
-//            glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-////            glDrawArrays(GL_TRIANGLES, 0, m_meshPartsIsoSurface[mp].m_meshVerts.size());
-//            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//            m_meshPartIsoVAO[mp]->release();
-
-//        }
 
         // Global IsoSurface
         // upload new verts
@@ -518,7 +493,7 @@ void Model::DrawMesh()
 
         // Draw marching cube of isosurface
         m_meshIsoVAO->bind();
-        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_FILL:GL_FILL);
         glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         m_meshIsoVAO->release();
@@ -802,49 +777,6 @@ void Model::CreateVAOs()
     // Iso surface MeshParts
     if(m_shaderProg[ISO_SURFACE]->bind())
     {
-        m_meshPartIsoVAO.resize(m_meshParts.size());
-        m_meshPartIsoVBO.resize(m_meshParts.size());
-        m_meshPartIsoNBO.resize(m_meshParts.size());
-
-        for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
-        {
-            m_meshPartIsoVAO[mp] = std::shared_ptr<QOpenGLVertexArrayObject>(new QOpenGLVertexArrayObject());
-            m_meshPartIsoVBO[mp] = std::shared_ptr<QOpenGLBuffer>(new QOpenGLBuffer());
-            m_meshPartIsoNBO[mp] = std::shared_ptr<QOpenGLBuffer>(new QOpenGLBuffer());
-
-
-            // Get shader locations
-            m_mesh.m_colour = glm::vec3(0.4f,0.4f,0.4f);
-            m_colourLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("uColour");
-            glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_mesh.m_colour[0]);
-            m_vertAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("vertex");
-            m_normAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("normal");
-
-            // Set up VAO
-            m_meshPartIsoVAO[mp]->create();
-            m_meshPartIsoVAO[mp]->bind();
-
-
-            // Setup our vertex buffer object.
-            m_meshPartIsoVBO[mp]->create();
-            m_meshPartIsoVBO[mp]->bind();
-            glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
-            glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-            m_meshPartIsoVBO[mp]->release();
-
-
-            // Setup our normals buffer object.
-            m_meshPartIsoNBO[mp]->create();
-            m_meshPartIsoNBO[mp]->bind();
-            glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
-            glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-            m_meshPartIsoNBO[mp]->release();
-
-
-            m_meshPartIsoVAO[mp]->release();
-        }
-
-
         // Global IsoSurface stuff
         m_meshIsoVAO = std::shared_ptr<QOpenGLVertexArrayObject>(new QOpenGLVertexArrayObject());
         m_meshIsoVBO = std::shared_ptr<QOpenGLBuffer>(new QOpenGLBuffer());
@@ -1036,30 +968,6 @@ void Model::UpdateVAOs()
     // ISO SURFACE MeshParts
     if(m_shaderProg[ISO_SURFACE]->bind())
     {
-        for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
-        {
-            m_meshPartIsoVAO[mp]->bind();
-
-            // Setup our vertex buffer object.
-            m_meshPartIsoVBO[mp]->bind();
-            m_meshPartIsoVBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshVerts[0], m_meshPartsIsoSurface[mp].m_meshVerts.size() * sizeof(glm::vec3));
-            glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
-            glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-            m_meshPartIsoVBO[mp]->release();
-
-
-            // Setup our normals buffer object.
-            m_meshPartIsoNBO[mp]->bind();
-            m_meshPartIsoNBO[mp]->allocate(&m_meshPartsIsoSurface[mp].m_meshNorms[0], m_meshPartsIsoSurface[mp].m_meshNorms.size() * sizeof(glm::vec3));
-            glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
-            glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-            m_meshPartIsoNBO[mp]->release();
-
-
-            m_meshPartIsoVAO[mp]->release();
-        }
-
-
         // Global IsoSurface
         m_meshIsoVAO->bind();
 

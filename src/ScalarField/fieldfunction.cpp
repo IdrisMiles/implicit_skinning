@@ -38,9 +38,9 @@ void FieldFunction::Fit(const std::vector<glm::vec3>& points,
 
 void FieldFunction::PrecomputeField()
 {
-    unsigned int dim = 32;
+    unsigned int dim = 64;
     float data[dim*dim*dim] = {0.0f};
-    float scale = 800.0f;
+    float scale = 8.0f;
 
     for(unsigned int z=0; z<dim; ++z)
     {
@@ -61,9 +61,8 @@ void FieldFunction::PrecomputeField()
     }
 
     m_field.SetData(dim, data);
-    m_field.SetTextureSpaceTransform([](glm::vec3 x){
-        float scale = 1.0f/7.5f;
-        return (((x*scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
+    m_field.SetTextureSpaceTransform([scale](glm::vec3 x){
+        return (((x/scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
     });
 
 }
@@ -96,26 +95,23 @@ float FieldFunction::EvalDist(const glm::vec3& x)
 
 glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 {
-    return glm::vec3(0.0f, 1.0f, 0.0f);
+//    return glm::vec3(0.0f, 1.0f, 0.0f);
+
+    // forward difference gradient
+    glm::vec3 tx = TransformSpace(x);
+    float h= 0.01f;
+    float f = m_field.Eval(tx);
+
+    float dx = (m_field.Eval(tx + glm::vec3(h, 0.0f, 0.0f)) - f) / h;
+    float dy = (m_field.Eval(tx + glm::vec3(0.0f, h, 0.0f)) - f) / h;
+    float dz = (m_field.Eval(tx + glm::vec3(0.0f, 0.0f, h)) - f) / h;
+
+    return glm::vec3(dx, dy, dz);
 
 
-//    glm::vec3 tx = TransformSpace(x);
-//    const static float scale = 1.0f/7.5f;
-//    float h= 0.01f;
-//    float h2 = 2.0f*h;
-//    glm::vec3 nx = (((tx*scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
-//    float f = m_field.Eval(nx);
-//    float dx = (m_field.Eval(nx + glm::vec3(h, 0.0f, 0.0f)) - f) / h2;
-//    float dy = (m_field.Eval(nx + glm::vec3(0.0f, h, 0.0f)) - f) / h2;
-//    float dz = (m_field.Eval(nx + glm::vec3(0.0f, 0.0f, h)) - f) / h2;
-
-//    return glm::vec3(dx, dy, dz);
-
-
-
+    // more accurate but heavy gradient computation
 //    glm::vec3 tx = TransformSpace(x);
 //    auto g = m_distanceField.grad(DistanceField::Vector(tx.x, tx.y, tx.z));
-
 //    return glm::vec3(g(0), g(1), g(2));
 }
 
