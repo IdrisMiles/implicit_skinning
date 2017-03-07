@@ -8,6 +8,10 @@
 
 #include "ScalarField/field1d.h"
 
+#include <queue>
+#include <utility>
+
+
 typedef HRBF_fit<float, 3, Rbf_pow3<float> > DistanceField;
 
 class FieldFunction
@@ -27,7 +31,7 @@ public:
 
     void SetTransform(glm::mat4 _transform);
 
-    float Eval(const glm::vec3& x);
+    float Eval(const glm::vec3& _x);
     float EvalDist(const glm::vec3& x);
 
     glm::vec3 Grad(const glm::vec3& x);
@@ -42,8 +46,12 @@ private:
 
     glm::vec3 TransformSpace(glm::vec3 _x);
 
+    bool Equiv(glm::vec3 _a, glm::vec3 _b);
+
+    bool m_fit;
+
     /// @brief Attribute used for remapping distance field to compactly supported field function.
-    float r;
+    float m_r;
 
     /// @brief
     glm::mat4 m_transform;
@@ -54,6 +62,11 @@ private:
     /// @brief A field object to store precomputed field value,
     /// improves performance to interpolate values than compute them.
     Field1D m_field;
+
+
+    std::vector<std::pair<glm::vec3, float>> m_cachedEvals;
+    std::pair<glm::vec3, float> m_cachedEval;
+    std::vector<std::pair<glm::vec3, glm::vec3>> m_cachedGrads;
 
 };
 

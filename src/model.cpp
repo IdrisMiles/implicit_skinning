@@ -2,6 +2,8 @@
 #include "modelloader.h"
 #include "MeshSampler/meshsampler.h"
 
+#include <sys/time.h>
+
 #include <iostream>
 #include <algorithm>
 #include <stack>
@@ -123,9 +125,8 @@ void Model::GenerateFieldFunctions()
         if(m_meshParts[mp].m_meshTris.size() < 1)
         {
             // skip empty meshes
-            continue;
+//            continue;
         }
-
 
         verts.clear();
         norms.clear();
@@ -193,7 +194,6 @@ void Model::GenerateFieldFunctions()
 
         // Set R in order to make field function compactly supported
         m_fieldFunctions[mp].SetR(maxDist);
-//        m_fieldFunctions[mp].SetTransform(glm::inverse(m_rig.m_globalInverseTransform));
         m_fieldFunctions[mp].PrecomputeField();
     }
 
@@ -203,14 +203,12 @@ void Model::GenerateFieldFunctions()
 void Model::GenerateGlobalFieldFunctions()
 {
     // Time to build composition tree
-    typedef std::shared_ptr<InteriorNode> InteriorNodePtr;
-    typedef std::shared_ptr<LeafNode> LeafNodePtr;
     typedef std::shared_ptr<CompositionOp> CompositionOpPtr;
-
 
     // Initialise our various type of gradient based operators
     CompositionOpPtr contactOp = CompositionOpPtr(new CompositionOp());
     CompositionOpPtr bulgeOp = CompositionOpPtr(new CompositionOp());
+
 
     //TODO: Fit the operators so the dc(alpha) matches specific effect
     // contactOp->Fit();
@@ -218,89 +216,56 @@ void Model::GenerateGlobalFieldFunctions()
     //
 
 
-    // Generate Leaf nodes of field functions
-    std::vector<std::shared_ptr<AbstractNode>> compositionTreeLeaves;
-    std::vector<std::shared_ptr<AbstractNode>> compositionTreeInterior;
-    std::stack<std::shared_ptr<AbstractNode>> compositionTreeStack;
+    // This bit not needed atm
+    m_globalFieldFunction.AddCompositionOp(contactOp);
+    m_globalFieldFunction.AddCompositionOp(bulgeOp);
     for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
     {
         if(m_meshParts[mp].m_meshTris.size() < 1)
         {
-            continue;
+//            continue;
         }
 
-        auto l = LeafNodePtr(new LeafNode());
-        l->SetFieldFunction(&m_fieldFunctions[mp]);
-        compositionTreeLeaves.push_back(l);
-//        compositionTreeStack.push(l);
+        auto fieldFunc = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp]);
+        m_globalFieldFunction.AddFieldFunction(fieldFunc);
     }
 
-
-    // generate first level of interior nodes form leaf nodes
-    for(unsigned int mp=0; mp<compositionTreeLeaves.size(); mp+=2)
+    // ----------------TODO---------------------------------
+    // Create and set correct unique composition operator
+    //------------------------------------------------------
+    // add composed fields to global field
+    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp+=2)
     {
-        auto l1 = compositionTreeLeaves[mp];
-        if(compositionTreeLeaves.size() <= mp+1)
+        int fieldId = 0;
+        auto composedField = std::shared_ptr<ComposedField>(new ComposedField());
+        composedField->SetCompositionOp(contactOp);
+
+        if(m_meshParts[mp].m_meshTris.size() >0)
         {
-            if(l1 != nullptr)
+            auto fieldFunc1 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp]);
+            composedField->SetFieldFunc(fieldFunc1, fieldId++);
+        }
+
+        if(m_fieldFunctions.size() > mp)
+        {
+            if(m_meshParts[mp+1].m_meshTris.size() > 0)
             {
-                auto lastNode = compositionTreeInterior.back();
-                compositionTreeInterior.pop_back();
-                auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, lastNode, l1));
-                compositionTreeInterior.push_back(interiorNode);
+                auto fieldFunc2 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp+1]);
+                composedField->SetFieldFunc(fieldFunc2, fieldId);
             }
         }
-        else
-        {
-            auto l2 = compositionTreeLeaves[mp+1];
-            if(l1 != nullptr && l2 != nullptr)
-            {
-                auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, l1, l2));
-                compositionTreeInterior.push_back(interiorNode);
-            }
-        }
+
+        m_globalFieldFunction.AddComposedField(composedField);
     }
-
-    // Generate ~balanced~ binary composition tree
-    while(compositionTreeInterior.size() > 1)
-    {
-        std::cout<<compositionTreeInterior.size()<<"\n";
-        for(unsigned int mp=0; mp<compositionTreeInterior.size(); mp++)
-        {
-            auto l1 = compositionTreeInterior[mp];
-            if(compositionTreeInterior.size() <= mp+1)
-            {
-                if(l1 != nullptr && mp > 0)
-                {
-                    auto lastNode = compositionTreeInterior[mp-1];
-                    auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, lastNode, l1));
-                    compositionTreeInterior[mp - 1] = interiorNode;
-                    compositionTreeInterior.pop_back();
-                }
-            }
-            else
-            {
-                auto l2 = compositionTreeInterior[mp+1];
-                if(l1 != nullptr && l2 != nullptr)
-                {
-                    auto interiorNode = InteriorNodePtr(new InteriorNode(contactOp, l1, l2));
-                    compositionTreeInterior[mp] = interiorNode;
-                    compositionTreeInterior.erase(compositionTreeInterior.begin() + mp+1);
-                }
-            }
-
-        }
-    }
-
-    m_compositionTree = compositionTreeInterior[0];
 }
 
 
 void Model::GenerateMeshVertIsoValue()
 {
+    m_meshVertIsoValues.clear();
     for(auto &v : m_mesh.m_meshVerts)
     {
-        m_meshVertIsoValues.push_back(m_compositionTree->Eval(v));
+        m_meshVertIsoValues.push_back(m_globalFieldFunction.Eval(v));
     }
 }
 
@@ -322,11 +287,11 @@ void Model::PerformVertexProjection()
 
     for(int i =0; i<m_mesh.m_meshVerts.size(); i++)
     {
-        glm::vec3 grad = m_compositionTree->Grad(m_mesh.m_meshVerts[i]);
+        glm::vec3 grad = m_globalFieldFunction.Grad(m_mesh.m_meshVerts[i]);
         float angle = gradAngle[i] = glm::angle(grad, previousGrad[i]);
         if(angle < contactAngle)
         {
-            newVert[i] = m_mesh.m_meshVerts[i] + ( sigma * (m_compositionTree->Eval(m_mesh.m_meshVerts[i]) - m_meshVertIsoValues[i]) * (grad / glm::length2(grad)));
+            newVert[i] = m_mesh.m_meshVerts[i] + ( sigma * (m_globalFieldFunction.Eval(m_mesh.m_meshVerts[i]) - m_meshVertIsoValues[i]) * (grad / glm::length2(grad)));
             previousGrad[i] = grad;
         }
     }
@@ -339,7 +304,7 @@ void Model::PerformTangentialRelaxation()
     for(int i =0; i<m_mesh.m_meshVerts.size(); i++)
     {
         glm::vec3 origVert = m_mesh.m_meshVerts[i];
-        float newIsoValue = m_compositionTree->Eval(m_mesh.m_meshVerts[i]);
+        float newIsoValue = m_globalFieldFunction.Eval(m_mesh.m_meshVerts[i]);
         float mu = std::max(0.0f, 1.0f - (float)pow(fabs(newIsoValue - m_meshVertIsoValues[i]) - 1.0f, 4.0f));
 
         glm::vec3 sumWeightedCentroid(0.0f);
@@ -387,9 +352,6 @@ void Model::UpdateImplicitSurface(int xRes,
     float *volumeData = new float[xRes*yRes*zRes];
 
 
-    // Global IsoSurface
-    if(m_compositionTree != nullptr)
-    {
         for(int z=0;z<zRes;z++)
         {
             for(int y=0;y<yRes;y++)
@@ -400,7 +362,7 @@ void Model::UpdateImplicitSurface(int xRes,
                                     dim*((((float)y/yRes)*2.0f)-1.0f),
                                     dim*((((float)z/xRes)*2.0f)-1.0f));
 
-                    float d = m_compositionTree->Eval(point);
+                    float d = m_globalFieldFunction.Eval(point);// m_compositionTree->Eval(point);
 
                     if(!std::isnan(d))
                     {
@@ -413,7 +375,6 @@ void Model::UpdateImplicitSurface(int xRes,
                 }
             }
         }
-    }
 
     // Polygonize scalar field using maching cube
     m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
@@ -426,6 +387,16 @@ void Model::UpdateImplicitSurface(int xRes,
 
 void Model::DrawMesh()
 {
+
+    static double time = 0.0;
+    static double t1 = 0.0;
+    static double t2 = 0.0;
+    struct timeval tim;
+
+    gettimeofday(&tim, NULL);
+    t1=tim.tv_sec+(tim.tv_usec/1000000.0);
+
+
     static float angle = 0.0f;
     angle+=0.1f;
     if(!m_initGL)
@@ -500,6 +471,11 @@ void Model::DrawMesh()
 
         m_shaderProg[ISO_SURFACE]->release();
     }
+
+    gettimeofday(&tim, NULL);
+    t2=tim.tv_sec+(tim.tv_usec/1000000.0);
+    time += 10*(t2-t1);
+    std::cout<<"fps: "<<1.0/(t2-t1)<<"\n";
 }
 
 void Model::DrawRig()

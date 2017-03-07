@@ -24,6 +24,10 @@ struct AcceptSample
 
 Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples)
 {
+    if(_mesh.m_meshVerts.size() < 1 || _mesh.m_meshTris.size() < 1)
+    {
+        return Mesh();
+    }
 
     // iterate through triangles and get their area
     std::vector<float> triAreas;

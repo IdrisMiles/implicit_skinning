@@ -76,9 +76,13 @@ float Field1D::TrilinearInterpolate(const float _x, const float _y, const float 
     glm::vec3 texSpace = m_textureSpaceTransform(glm::vec3(_x, _y, _z));
 
     // Get data coords
-    unsigned int x0 = floor(texSpace.x * m_dim);
-    unsigned int y0 = floor(texSpace.y * m_dim);
-    unsigned int z0 = floor(texSpace.z * m_dim);
+    float x = texSpace.x * m_dim;
+    float y = texSpace.y * m_dim;
+    float z = texSpace.z * m_dim;
+
+    unsigned int x0 = floor(x);
+    unsigned int y0 = floor(y);
+    unsigned int z0 = floor(z);
 
     // Adjust for potential out of bounds
     x0 = x0 >= m_dim ? m_dim - 1 : x0;
@@ -108,15 +112,18 @@ float Field1D::TrilinearInterpolate(const float _x, const float _y, const float 
 
 
     // do interpolation here
-    float valX0 = LinearInterpolate(val0, val1, texSpace.x);
-    float valX1 = LinearInterpolate(val2, val3, texSpace.x);
-    float valX2 = LinearInterpolate(val4, val5, texSpace.x);
-    float valX3 = LinearInterpolate(val6, val7, texSpace.x);
+    float dx = x - x0;
+    float valX0 = LinearInterpolate(val0, val1, dx);
+    float valX1 = LinearInterpolate(val2, val3, dx);
+    float valX2 = LinearInterpolate(val4, val5, dx);
+    float valX3 = LinearInterpolate(val6, val7, dx);
 
-    float valY0 = LinearInterpolate(valX0, valX2, texSpace.y);
-    float valY1 = LinearInterpolate(valX1, valX3, texSpace.y);
+    float dy = y - y0;
+    float valY0 = LinearInterpolate(valX0, valX1, dy);
+    float valY1 = LinearInterpolate(valX2, valX3, dy);
 
-    float valZ0 = LinearInterpolate(valY0, valY1, texSpace.z);
+    float dz = z - z0;
+    float valZ0 = LinearInterpolate(valY0, valY1, dz);
 
 
 
@@ -125,6 +132,7 @@ float Field1D::TrilinearInterpolate(const float _x, const float _y, const float 
 
 float Field1D::LinearInterpolate(const float _f1, const float _f2, const float _t)
 {
+    float t = _t < 0.0f ? 0.0f : (_t > 1.0f ? 1.0f : _t);
     return _f1 + ((_f2-_f1) * _t);
 }
 

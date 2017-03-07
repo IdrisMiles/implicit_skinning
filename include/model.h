@@ -16,6 +16,7 @@
 #include "ScalarField/Hrbf/hrbf_core.h"
 #include "ScalarField/Hrbf/hrbf_phi_funcs.h"
 #include "ScalarField/fieldfunction.h"
+#include "ScalarField/globalfieldfunction.h"
 
 #include "BinaryTree/interiornode.h"
 #include "BinaryTree/leafnode.h"
@@ -93,7 +94,7 @@ public:
     std::vector<Mesh> m_meshParts;
 
     std::vector<FieldFunction> m_fieldFunctions;
-    std::shared_ptr<AbstractNode> m_compositionTree;
+    GlobalFieldFunction m_globalFieldFunction;
     Mesh m_meshIsoSurface;
 
     std::vector<float> m_meshVertIsoValues;
