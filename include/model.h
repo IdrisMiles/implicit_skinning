@@ -6,6 +6,8 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 
+#include <thread>
+
 // GLM
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -17,9 +19,6 @@
 #include "ScalarField/Hrbf/hrbf_phi_funcs.h"
 #include "ScalarField/fieldfunction.h"
 #include "ScalarField/globalfieldfunction.h"
-
-#include "BinaryTree/interiornode.h"
-#include "BinaryTree/leafnode.h"
 
 #include "Machingcube/MachingCube.h"
 
@@ -94,8 +93,9 @@ public:
     std::vector<Mesh> m_meshParts;
 
     std::vector<FieldFunction> m_fieldFunctions;
-    GlobalFieldFunction m_globalFieldFunction;
+    static GlobalFieldFunction m_globalFieldFunction;
     Mesh m_meshIsoSurface;
+    std::vector<std::thread> m_threads;
 
     std::vector<float> m_meshVertIsoValues;
     std::vector<std::vector<unsigned int>> m_meshVertOneRingNeighbour;

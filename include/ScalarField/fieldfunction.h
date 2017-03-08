@@ -25,7 +25,7 @@ public:
              const float _r = 1.0f);
 
     /// @brief Method to precompute field values and store them in m_field attribute.
-    void PrecomputeField();
+    void PrecomputeField(const unsigned int _dim = 32, const float _scale = 8.0f);
 
     void SetR(const float _r);
 

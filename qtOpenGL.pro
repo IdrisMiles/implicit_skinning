@@ -23,15 +23,13 @@ CONFIG += console c++11
 SOURCES +=  src/*.cpp \
             src/ScalarField/*.cpp \
             src/Machingcube/*.cpp \
-            src/MeshSampler/*.cpp \
-            src/BinaryTree/*.cpp
+            src/MeshSampler/*.cpp
 
 HEADERS  += include/*.h \
             include/ScalarField/*.h \
             include/ScalarField/Hrbf/*.h \
             include/Machingcube/*.h \
-            include/MeshSampler/*.h \
-            include/BinaryTree/*.h
+            include/MeshSampler/*.h
 
 OTHER_FILES += shader/*
 

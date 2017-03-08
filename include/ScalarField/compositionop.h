@@ -2,6 +2,8 @@
 #define COMPOSITIONOP_H
 
 #include <memory>
+#include <functional>
+
 #include <glm/glm.hpp>
 
 #include "ScalarField/field1d.h"
@@ -12,9 +14,9 @@ public:
     CompositionOp(const unsigned int _dim = 32);
     ~CompositionOp();
 
-    /// @brief Method to initialise the 3D array holding the evaluations
-    /// of the composition operator
-    void Fit(const unsigned int _dim = 32);
+    void SetTheta(std::function<float(float)> _theta);
+    void SetCompositionOp(std::function<float(float, float, float)> _compositionOp);
+    void Precompute(const unsigned int _dim = 32);
 
     /// @brief Method to compute the result value of the composed field functions
     float Eval(const float f1, const float f2, const float d);
@@ -26,8 +28,13 @@ public:
 
 
 private:
+    std::function<float(float)> m_theta;
+
+    std::function<float(float, float, float)> m_compositionOp;
+
 
     Field1D m_field;
+    bool m_precomputed;
 
 };
 

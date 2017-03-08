@@ -8,8 +8,6 @@ GlobalFieldFunction::GlobalFieldFunction()
 
 GlobalFieldFunction::~GlobalFieldFunction()
 {
-    m_compositionOps.clear();
-    m_initialFields.clear();
     m_composedFields.clear();
 }
 
@@ -39,22 +37,7 @@ glm::vec3 GlobalFieldFunction::Grad(const glm::vec3 &_x)
     return glm::vec3(dx, dy, dz);
 }
 
-
-
-void GlobalFieldFunction::AddCompositionOp(std::shared_ptr<CompositionOp> _compositionOp)
-{
-    m_compositionOps.push_back(_compositionOp);
-    std::cout<<"comp op size:\t"<<m_compositionOps.size()<<"\n";
-}
-
-void GlobalFieldFunction::AddFieldFunction(std::shared_ptr<FieldFunction> _fieldFunction)
-{
-    m_initialFields.push_back(_fieldFunction);
-    std::cout<<"Field func size:\t"<<m_initialFields.size()<<"\n";
-}
-
 void GlobalFieldFunction::AddComposedField(std::shared_ptr<ComposedField> _composedField)
 {
     m_composedFields.push_back(_composedField);
-    std::cout<<"comp fi size:\t"<<m_composedFields.size()<<"\n";
 }

@@ -8,10 +8,13 @@
 #include <algorithm>
 #include <stack>
 #include <math.h>
+
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+
+GlobalFieldFunction Model::m_globalFieldFunction;
 
 Model::Model()
 {
@@ -41,6 +44,8 @@ void Model::Load(const std::string &_file)
     CreateShaders();
     CreateVAOs();
     UpdateVAOs();
+
+    m_threads.resize(std::thread::hardware_concurrency()-1);
 }
 
 
@@ -122,12 +127,6 @@ void Model::GenerateFieldFunctions()
     // iterate through mesh parts and initalise bone field functions
     for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
     {
-        if(m_meshParts[mp].m_meshTris.size() < 1)
-        {
-            // skip empty meshes
-//            continue;
-        }
-
         verts.clear();
         norms.clear();
 
@@ -194,7 +193,7 @@ void Model::GenerateFieldFunctions()
 
         // Set R in order to make field function compactly supported
         m_fieldFunctions[mp].SetR(maxDist);
-        m_fieldFunctions[mp].PrecomputeField();
+        m_fieldFunctions[mp].PrecomputeField(64, 8.0f);
     }
 
 }
@@ -211,24 +210,17 @@ void Model::GenerateGlobalFieldFunctions()
 
 
     //TODO: Fit the operators so the dc(alpha) matches specific effect
-    // contactOp->Fit();
-    // bulgeOp->Fit();
-    //
+    contactOp->SetTheta([](float _angleRadians){
+        return _angleRadians <= M_PI ? (0.5f*(cosf(_angleRadians)+1.0f)) : 0.0f;
+    });
 
+    bulgeOp->SetTheta([](float _angleRadians){
+        return _angleRadians <= M_PI ? (0.5f*(cosf(2.0f*_angleRadians)+1.0f)) : 1.0f;
+    });
 
-    // This bit not needed atm
-    m_globalFieldFunction.AddCompositionOp(contactOp);
-    m_globalFieldFunction.AddCompositionOp(bulgeOp);
-    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
-    {
-        if(m_meshParts[mp].m_meshTris.size() < 1)
-        {
-//            continue;
-        }
+    contactOp->Precompute(64);
+    bulgeOp->Precompute(64);
 
-        auto fieldFunc = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp]);
-        m_globalFieldFunction.AddFieldFunction(fieldFunc);
-    }
 
     // ----------------TODO---------------------------------
     // Create and set correct unique composition operator
@@ -259,6 +251,7 @@ void Model::GenerateGlobalFieldFunctions()
     }
 }
 
+//---------------------------------------------------------------------------------
 
 void Model::GenerateMeshVertIsoValue()
 {
@@ -327,6 +320,8 @@ void Model::PerformLaplacianSmoothing()
 {
 }
 
+//---------------------------------------------------------------------------------
+
 void Model::UpdateImplicitSurface(int xRes,
                                   int yRes,
                                   int zRes,
@@ -335,12 +330,18 @@ void Model::UpdateImplicitSurface(int xRes,
                                   float yScale,
                                   float zScale)
 {
+
+//    static double time = 0.0;
+//    static double t1 = 0.0;
+//    static double t2 = 0.0;
+//    struct timeval tim;
+
+//    gettimeofday(&tim, NULL);
+//    t1=tim.tv_sec+(tim.tv_usec/1000000.0);
+
+
     for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
     {
-        if(m_meshParts[mp].m_meshTris.size() < 1)
-        {
-            continue;
-        }
         if(m_rig.m_boneTransforms.size() <= mp)
         {
             continue;
@@ -351,30 +352,79 @@ void Model::UpdateImplicitSurface(int xRes,
 
     float *volumeData = new float[xRes*yRes*zRes];
 
+    int numThreads = std::thread::hardware_concurrency();
+    int chunkSize = zRes / numThreads;
+    int startChunk = 0;
 
-        for(int z=0;z<zRes;z++)
-        {
-            for(int y=0;y<yRes;y++)
+    for(int i=0; i<numThreads-1; i++)
+    {
+        m_threads[i] = std::thread([startChunk, &chunkSize, &dim, &xRes, &yRes, zRes, &m_globalFieldFunction, &volumeData](){
+            for(int z=startChunk;z<startChunk+chunkSize;z++)
             {
-                for(int x=0;x<xRes;x++)
+                for(int y=0;y<yRes;y++)
                 {
-                    glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
-                                    dim*((((float)y/yRes)*2.0f)-1.0f),
-                                    dim*((((float)z/xRes)*2.0f)-1.0f));
-
-                    float d = m_globalFieldFunction.Eval(point);// m_compositionTree->Eval(point);
-
-                    if(!std::isnan(d))
+                    for(int x=0;x<xRes;x++)
                     {
-                        volumeData[z*xRes*yRes + y*xRes + x] = d;
-                    }
-                    else
-                    {
-                        volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
+                        glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
+                                        dim*((((float)y/yRes)*2.0f)-1.0f),
+                                        dim*((((float)z/xRes)*2.0f)-1.0f));
+
+                        float d = m_globalFieldFunction.Eval(point);
+
+                        if(!std::isnan(d))
+                        {
+                            volumeData[z*xRes*yRes + y*xRes + x] = d;
+                        }
+                        else
+                        {
+                            volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
+                        }
                     }
                 }
             }
+        });
+
+        startChunk += chunkSize;
+    }
+
+
+    for(int z=startChunk;z<zRes;z++)
+    {
+        for(int y=0;y<yRes;y++)
+        {
+            for(int x=0;x<xRes;x++)
+            {
+                glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
+                                dim*((((float)y/yRes)*2.0f)-1.0f),
+                                dim*((((float)z/xRes)*2.0f)-1.0f));
+
+                float d = m_globalFieldFunction.Eval(point);
+
+                if(!std::isnan(d))
+                {
+                    volumeData[z*xRes*yRes + y*xRes + x] = d;
+                }
+                else
+                {
+                    volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
+                }
+            }
         }
+    }
+
+    for(int i=0; i<numThreads-1; i++)
+    {
+        if(m_threads[i].joinable())
+        {
+            m_threads[i].join();
+        }
+    }
+
+
+//    gettimeofday(&tim, NULL);
+//    t2=tim.tv_sec+(tim.tv_usec/1000000.0);
+//    time += 10*(t2-t1);
+//    std::cout<<"evaluate global field: "<<1.0/(t2-t1)<<"\n";
 
     // Polygonize scalar field using maching cube
     m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
@@ -388,13 +438,6 @@ void Model::UpdateImplicitSurface(int xRes,
 void Model::DrawMesh()
 {
 
-    static double time = 0.0;
-    static double t1 = 0.0;
-    static double t2 = 0.0;
-    struct timeval tim;
-
-    gettimeofday(&tim, NULL);
-    t1=tim.tv_sec+(tim.tv_usec/1000000.0);
 
 
     static float angle = 0.0f;
@@ -472,10 +515,6 @@ void Model::DrawMesh()
         m_shaderProg[ISO_SURFACE]->release();
     }
 
-    gettimeofday(&tim, NULL);
-    t2=tim.tv_sec+(tim.tv_usec/1000000.0);
-    time += 10*(t2-t1);
-    std::cout<<"fps: "<<1.0/(t2-t1)<<"\n";
 }
 
 void Model::DrawRig()

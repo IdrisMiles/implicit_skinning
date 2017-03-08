@@ -73,6 +73,7 @@ float Field1D::Eval(const float _x, const float _y, const float _z)
 float Field1D::TrilinearInterpolate(const float _x, const float _y, const float _z)
 {
 
+    //[0:1]
     glm::vec3 texSpace = m_textureSpaceTransform(glm::vec3(_x, _y, _z));
 
     // Get data coords
