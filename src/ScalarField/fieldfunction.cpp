@@ -56,6 +56,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
     }
 
     float data[_dim*_dim*_dim] = {0.0f};
+    glm::vec3 grad[_dim*_dim*_dim];
 
     for(unsigned int z=0; z<_dim; ++z)
     {
@@ -68,17 +69,25 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
                                 _scale*((((float)z/_dim)*2.0f)-1.0f));
 
                 glm::vec3 tx = TransformSpace(point);
-                float d = Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
+                auto samplePoint = DistanceField::Vector(tx.x, tx.y, tx.z);
+
+                float d = Remap(m_distanceField.eval(samplePoint));
+                auto g = m_distanceField.grad(samplePoint);
 
                 data[z*_dim*_dim + y*_dim+ x] = d;
+                grad[z*_dim*_dim + y*_dim+ x] = glm::vec3(g(0), g(1), g(2));
             }
         }
     }
 
     m_field.SetData(_dim, data);
-    m_field.SetTextureSpaceTransform([_scale](glm::vec3 x){
+    m_grad.SetData(_dim, grad);
+
+    auto textureSpaceTransform = [_scale](glm::vec3 x){
         return (((x/_scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
-    });
+    };
+    m_field.SetTextureSpaceTransform(textureSpaceTransform);
+    m_grad.SetTextureSpaceTransform(textureSpaceTransform);
 
 }
 
@@ -117,8 +126,13 @@ float FieldFunction::Eval(const glm::vec3 &_x)
 
     // need to evaluate
     glm::vec3 tx = TransformSpace(_x);
+
+    // texture lookup
     float f = m_field.Eval(tx);
+
+    // accurate evaluation
 //    float f = Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
+
 
     // cache value
     if(m_cachedEvals.size() >= 4)
@@ -158,24 +172,14 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
         }
     }
 
-
-    // forward difference gradient
-//    glm::vec3 tx = TransformSpace(x);
-//    float h= 0.01f;
-//    float f = m_field.Eval(tx);
-
-//    float dx = (m_field.Eval(tx + glm::vec3(h, 0.0f, 0.0f)) - f) / h;
-//    float dy = (m_field.Eval(tx + glm::vec3(0.0f, h, 0.0f)) - f) / h;
-//    float dz = (m_field.Eval(tx + glm::vec3(0.0f, 0.0f, h)) - f) / h;
-
-//    glm::vec3 grad(dx, dy, dz);
-//    return grad;
-
-
     // more accurate but heavy gradient computation
+//    glm::vec3 tx = TransformSpace(x);
+//    auto g = m_distanceField.grad(DistanceField::Vector(tx.x, tx.y, tx.z));
+//    glm::vec3 grad(g(0), g(1), g(2));
+
+    // texture lookup
     glm::vec3 tx = TransformSpace(x);
-    auto g = m_distanceField.grad(DistanceField::Vector(tx.x, tx.y, tx.z));
-    glm::vec3 grad(g(0), g(1), g(2));
+    glm::vec3 grad = m_grad.Eval(tx);
 
 
 //    // cache value

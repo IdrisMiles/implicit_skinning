@@ -61,7 +61,8 @@ private:
 
     /// @brief A field object to store precomputed field value,
     /// improves performance to interpolate values than compute them.
-    Field1D m_field;
+    Field1D<float> m_field;
+    Field1D<glm::vec3> m_grad;
 
 
     std::vector<std::pair<glm::vec3, float>> m_cachedEvals;

@@ -210,9 +210,20 @@ void Model::GenerateGlobalFieldFunctions()
 
 
     //TODO: Fit the operators so the dc(alpha) matches specific effect
+//    contactOp->SetCompositionOp([](float f1, float f2, float d){
+//        if(f1 > 0.7f || f2 > 0.7f) return f1 > f2 ? f1 : f2;
+
+//        auto K = []()
+
+//    });
+
     contactOp->SetTheta([](float _angleRadians){
         return _angleRadians <= M_PI ? (0.5f*(cosf(_angleRadians)+1.0f)) : 0.0f;
     });
+
+//    bulgeOp->SetCompositionOp([](float f1, float f2, float d){
+
+//    });
 
     bulgeOp->SetTheta([](float _angleRadians){
         return _angleRadians <= M_PI ? (0.5f*(cosf(2.0f*_angleRadians)+1.0f)) : 1.0f;
