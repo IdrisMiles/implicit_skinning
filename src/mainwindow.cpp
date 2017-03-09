@@ -16,8 +16,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete ui;
-    delete m_scene;
+    if(ui != nullptr)
+    {
+        delete ui;
+    }
+
+    if(m_scene != nullptr)
+    {
+        delete m_scene;
+    }
 }
 
 

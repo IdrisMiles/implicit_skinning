@@ -92,7 +92,7 @@ public:
 
     std::vector<Mesh> m_meshParts;
 
-    std::vector<FieldFunction> m_fieldFunctions;
+    std::vector<std::shared_ptr<FieldFunction>> m_fieldFunctions;
     static GlobalFieldFunction m_globalFieldFunction;
     Mesh m_meshIsoSurface;
     std::vector<std::thread> m_threads;

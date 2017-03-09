@@ -2,6 +2,8 @@
 #include "modelloader.h"
 #include "MeshSampler/meshsampler.h"
 
+#include <QOpenGLContext>
+
 #include <sys/time.h>
 
 #include <iostream>
@@ -24,6 +26,15 @@ Model::Model()
 
 Model::~Model()
 {
+
+    for(int i=0; i<std::thread::hardware_concurrency()-1; i++)
+    {
+        if(m_threads[i].joinable())
+        {
+            m_threads[i].join();
+        }
+    }
+
     if(m_initGL)
     {
         DeleteVAOs();
@@ -171,7 +182,8 @@ void Model::GenerateFieldFunctions()
 
 
         // Generate HRBF fit and thus scalar field/implicit function
-        m_fieldFunctions[mp].Fit(hrbfCentres.m_meshVerts, hrbfCentres.m_meshNorms);
+        m_fieldFunctions[mp] = std::shared_ptr<FieldFunction>(new FieldFunction());
+        m_fieldFunctions[mp]->Fit(hrbfCentres.m_meshVerts, hrbfCentres.m_meshNorms);
 
 
         // Find maximun range of scalar field
@@ -182,18 +194,18 @@ void Model::GenerateFieldFunctions()
             glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
             glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
 
-            float f0 = m_fieldFunctions[mp].EvalDist(v0);
+            float f0 = m_fieldFunctions[mp]->EvalDist(v0);
             maxDist = f0 > maxDist ? f0 : maxDist;
-            float f1 = m_fieldFunctions[mp].EvalDist(v1);
+            float f1 = m_fieldFunctions[mp]->EvalDist(v1);
             maxDist = f1 > maxDist ? f1 : maxDist;
-            float f2 = m_fieldFunctions[mp].EvalDist(v2);
+            float f2 = m_fieldFunctions[mp]->EvalDist(v2);
             maxDist = f2 > maxDist ? f2 : maxDist;
         }
 
 
         // Set R in order to make field function compactly supported
-        m_fieldFunctions[mp].SetR(maxDist);
-        m_fieldFunctions[mp].PrecomputeField(64, 8.0f);
+        m_fieldFunctions[mp]->SetR(maxDist);
+        m_fieldFunctions[mp]->PrecomputeField(64, 8.0f);
     }
 
 }
@@ -245,16 +257,16 @@ void Model::GenerateGlobalFieldFunctions()
 
         if(m_meshParts[mp].m_meshTris.size() >0)
         {
-            auto fieldFunc1 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp]);
-            composedField->SetFieldFunc(fieldFunc1, fieldId++);
+//            auto fieldFunc1 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp]);
+            composedField->SetFieldFunc(m_fieldFunctions[mp], fieldId++);
         }
 
         if(m_fieldFunctions.size() > mp)
         {
             if(m_meshParts[mp+1].m_meshTris.size() > 0)
             {
-                auto fieldFunc2 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp+1]);
-                composedField->SetFieldFunc(fieldFunc2, fieldId);
+//                auto fieldFunc2 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp+1]);
+                composedField->SetFieldFunc(m_fieldFunctions[mp+1], fieldId);
             }
         }
 
@@ -358,7 +370,7 @@ void Model::UpdateImplicitSurface(int xRes,
             continue;
         }
 
-        m_fieldFunctions[mp].SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
+        m_fieldFunctions[mp]->SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
     }
 
     float *volumeData = new float[xRes*yRes*zRes];
@@ -442,7 +454,10 @@ void Model::UpdateImplicitSurface(int xRes,
 
 
     //clean up
-    delete volumeData;
+    if(volumeData != nullptr)
+    {
+        delete volumeData;
+    }
 }
 
 
@@ -849,6 +864,7 @@ void Model::CreateVAOs()
 
 void Model::DeleteVAOs()
 {
+
     for(unsigned int i=0; i<NUMRENDERTYPES; i++)
     {
         if(m_meshVBO[i].isCreated())

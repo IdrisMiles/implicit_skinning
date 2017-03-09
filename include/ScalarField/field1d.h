@@ -20,7 +20,10 @@ public:
 
     ~Field1D()
     {
-        delete [] m_data;
+        if(m_data != nullptr)
+        {
+            delete [] m_data;
+        }
     }
 
     unsigned int Dim() const
@@ -40,7 +43,10 @@ public:
 
     void SetData(unsigned int _dim, T *_data)
     {
-        delete [] m_data;
+        if(m_data != nullptr)
+        {
+            delete [] m_data;
+        }
 
         m_dim = _dim;
         m_data = new T[m_dim * m_dim * m_dim];

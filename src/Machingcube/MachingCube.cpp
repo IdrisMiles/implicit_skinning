@@ -12,7 +12,10 @@ MachingCube::MachingCube()
 
 MachingCube::~MachingCube()
 {
-    delete volumeData;
+    if(volumeData != nullptr)
+    {
+        delete volumeData;
+    }
 
     m_meshVerts.erase(m_meshVerts.begin(),m_meshVerts.end());
     m_meshNorms.erase(m_meshNorms.begin(),m_meshNorms.end());
@@ -78,7 +81,10 @@ bool MachingCube::LoadVolumeFromFile(std::string _vol, const int &_w, const int 
         volumeData[i]=((float)volData[i]-minVolumeData)/(float)dim;
     }
 
-    delete volData;
+    if(volData != nullptr)
+    {
+        delete volData;
+    }
     in.close();
     return true;
 }

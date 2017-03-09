@@ -8,7 +8,9 @@ ComposedField::ComposedField()
 
 ComposedField::~ComposedField()
 {
-
+    m_compositionOp = nullptr;
+    m_fieldFunctionA = nullptr;
+    m_fieldFunctionB = nullptr;
 }
 
 void ComposedField::SetFieldFuncA(std::shared_ptr<FieldFunction> _fieldFunctionA)
