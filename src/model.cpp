@@ -16,8 +16,6 @@
 #include <glm/gtx/vector_angle.hpp>
 
 
-GlobalFieldFunction Model::m_globalFieldFunction;
-
 Model::Model()
 {
     m_wireframe = false;
@@ -46,17 +44,17 @@ void Model::Load(const std::string &_file)
     ModelLoader::LoadModel(this, _file);
     //--------------------------------------------------
 
+    m_threads.resize(std::thread::hardware_concurrency()-1);
     GenerateMeshParts();
     GenerateFieldFunctions();
     GenerateGlobalFieldFunctions();
-    GenerateMeshVertIsoValue();
+//    GenerateMeshVertIsoValue();
 
     //--------------------------------------------------
     CreateShaders();
     CreateVAOs();
     UpdateVAOs();
 
-    m_threads.resize(std::thread::hardware_concurrency()-1);
 }
 
 
@@ -129,83 +127,108 @@ void Model::GenerateMeshParts()
 void Model::GenerateFieldFunctions()
 {
     m_fieldFunctions.resize(m_meshParts.size());
-
-
     unsigned int numHrbfFitPoints = 50;
-    std::vector<HRBF::Vector> verts;
-    std::vector<HRBF::Vector> norms;
 
-    // iterate through mesh parts and initalise bone field functions
-    for(unsigned int mp=0; mp<m_meshParts.size(); mp++)
+
+    auto threadFunc = [this, &numHrbfFitPoints](int startId, int endId){
+        for(int mp=startId; mp<endId; mp++)
+        {
+            // Generate HRBF centre by sampling mesh
+            Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_meshParts[mp], numHrbfFitPoints);
+
+
+            // Determine distance of closest point to bone
+            glm::vec3 jointStart = m_rigMesh.m_meshVerts[mp*2];
+            glm::vec3 jointEnd = m_rigMesh.m_meshVerts[(mp*2) + 1];
+            glm::vec3 edge = jointEnd - jointStart;
+            float minDist = FLT_MAX;
+            for(auto &&tri : m_meshParts[mp].m_meshTris)
+            {
+                glm::vec3 v0 = m_meshParts[mp].m_meshVerts[tri.x];
+                glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
+                glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
+
+                glm::vec3 e = v0 - jointStart;
+                float t = glm::dot(e, edge);
+                float dist = glm::distance(v0, jointStart + (t*edge));
+                minDist = dist < minDist ? dist : minDist;
+
+                e = v1 - jointStart;
+                t = glm::dot(e, edge);
+                dist = glm::distance(v1, jointStart + (t*edge));
+                minDist = dist < minDist ? dist : minDist;
+
+                e = v2 - jointStart;
+                t = glm::dot(e, edge);
+                dist = glm::distance(v2, jointStart + (t*edge));
+                minDist = dist < minDist ? dist : minDist;
+            }
+
+
+            // Add these points to close holes of scalar field smoothly
+            hrbfCentres.m_meshVerts.push_back(jointStart - (minDist * glm::normalize(edge)));
+            hrbfCentres.m_meshNorms.push_back(-glm::normalize(edge));
+            hrbfCentres.m_meshVerts.push_back(jointEnd + (minDist * glm::normalize(edge)));
+            hrbfCentres.m_meshNorms.push_back(glm::normalize(edge));
+
+
+            // Generate HRBF fit and thus scalar field/implicit function
+            m_fieldFunctions[mp] = std::shared_ptr<FieldFunction>(new FieldFunction());
+            m_fieldFunctions[mp]->Fit(hrbfCentres.m_meshVerts, hrbfCentres.m_meshNorms);
+
+
+            // Find maximun range of scalar field
+            float maxDist = FLT_MIN;
+            for(auto &&tri : m_meshParts[mp].m_meshTris)
+            {
+                glm::vec3 v0 = m_meshParts[mp].m_meshVerts[tri.x];
+                glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
+                glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
+
+                float f0 = m_fieldFunctions[mp]->EvalDist(v0);
+                maxDist = f0 > maxDist ? f0 : maxDist;
+                float f1 = m_fieldFunctions[mp]->EvalDist(v1);
+                maxDist = f1 > maxDist ? f1 : maxDist;
+                float f2 = m_fieldFunctions[mp]->EvalDist(v2);
+                maxDist = f2 > maxDist ? f2 : maxDist;
+            }
+
+
+            // Set R in order to make field function compactly supported
+            m_fieldFunctions[mp]->SetSupportRadius(maxDist);
+            m_fieldFunctions[mp]->PrecomputeField(64, 8.0f);
+        }
+
+    };
+
+    int numThreads = std::thread::hardware_concurrency();
+    int dataSize = m_meshParts.size();
+    int chunkSize = dataSize / numThreads;
+    int numBigChunks = dataSize % numThreads;
+    int bigChunkSize = chunkSize + (numBigChunks>0 ? 1 : 0);
+    int startChunk = 0;
+    int threadId=0;
+
+    for(threadId=0; threadId<numBigChunks; threadId++)
     {
-        verts.clear();
-        norms.clear();
+        m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+bigChunkSize);
+        startChunk+=bigChunkSize;
+    }
 
+    for(; threadId<numThreads-1; threadId++)
+    {
+        m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+chunkSize);
+        startChunk+=chunkSize;
+    }
 
-        // Generate HRBF centre by sampling mesh
-        Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_meshParts[mp], numHrbfFitPoints);
+    threadFunc(startChunk, m_meshParts.size());
 
-
-        // Determine distance of closest point to bone
-        glm::vec3 jointStart = m_rigMesh.m_meshVerts[mp*2];
-        glm::vec3 jointEnd = m_rigMesh.m_meshVerts[(mp*2) + 1];
-        glm::vec3 edge = jointEnd - jointStart;
-        float minDist = FLT_MAX;
-        for(auto &&tri : m_meshParts[mp].m_meshTris)
+    for(int i=0; i<numThreads-1; i++)
+    {
+        if(m_threads[i].joinable())
         {
-            glm::vec3 v0 = m_meshParts[mp].m_meshVerts[tri.x];
-            glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
-            glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
-
-            glm::vec3 e = v0 - jointStart;
-            float t = glm::dot(e, edge);
-            float dist = glm::distance(v0, jointStart + (t*edge));
-            minDist = dist < minDist ? dist : minDist;
-
-            e = v1 - jointStart;
-            t = glm::dot(e, edge);
-            dist = glm::distance(v1, jointStart + (t*edge));
-            minDist = dist < minDist ? dist : minDist;
-
-            e = v2 - jointStart;
-            t = glm::dot(e, edge);
-            dist = glm::distance(v2, jointStart + (t*edge));
-            minDist = dist < minDist ? dist : minDist;
+            m_threads[i].join();
         }
-
-
-        // Add these points to close holes of scalar field smoothly
-        hrbfCentres.m_meshVerts.push_back(jointStart - (minDist * glm::normalize(edge)));
-        hrbfCentres.m_meshNorms.push_back(-glm::normalize(edge));
-        hrbfCentres.m_meshVerts.push_back(jointEnd + (minDist * glm::normalize(edge)));
-        hrbfCentres.m_meshNorms.push_back(glm::normalize(edge));
-
-
-        // Generate HRBF fit and thus scalar field/implicit function
-        m_fieldFunctions[mp] = std::shared_ptr<FieldFunction>(new FieldFunction());
-        m_fieldFunctions[mp]->Fit(hrbfCentres.m_meshVerts, hrbfCentres.m_meshNorms);
-
-
-        // Find maximun range of scalar field
-        float maxDist = FLT_MIN;
-        for(auto &&tri : m_meshParts[mp].m_meshTris)
-        {
-            glm::vec3 v0 = m_meshParts[mp].m_meshVerts[tri.x];
-            glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
-            glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
-
-            float f0 = m_fieldFunctions[mp]->EvalDist(v0);
-            maxDist = f0 > maxDist ? f0 : maxDist;
-            float f1 = m_fieldFunctions[mp]->EvalDist(v1);
-            maxDist = f1 > maxDist ? f1 : maxDist;
-            float f2 = m_fieldFunctions[mp]->EvalDist(v2);
-            maxDist = f2 > maxDist ? f2 : maxDist;
-        }
-
-
-        // Set R in order to make field function compactly supported
-        m_fieldFunctions[mp]->SetR(maxDist);
-        m_fieldFunctions[mp]->PrecomputeField(64, 8.0f);
     }
 
 }
@@ -245,29 +268,17 @@ void Model::GenerateGlobalFieldFunctions()
     bulgeOp->Precompute(64);
 
 
-    // ----------------TODO---------------------------------
-    // Create and set correct unique composition operator
-    //------------------------------------------------------
     // add composed fields to global field
     for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp+=2)
     {
         int fieldId = 0;
         auto composedField = std::shared_ptr<ComposedField>(new ComposedField());
         composedField->SetCompositionOp(contactOp);
+        composedField->SetFieldFunc(m_fieldFunctions[mp], fieldId++);
 
-        if(m_meshParts[mp].m_meshTris.size() >0)
+        if(m_fieldFunctions.size() > mp+1)
         {
-//            auto fieldFunc1 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp]);
-            composedField->SetFieldFunc(m_fieldFunctions[mp], fieldId++);
-        }
-
-        if(m_fieldFunctions.size() > mp)
-        {
-            if(m_meshParts[mp+1].m_meshTris.size() > 0)
-            {
-//                auto fieldFunc2 = std::shared_ptr<FieldFunction>(&m_fieldFunctions[mp+1]);
-                composedField->SetFieldFunc(m_fieldFunctions[mp+1], fieldId);
-            }
+            composedField->SetFieldFunc(m_fieldFunctions[mp+1], fieldId);
         }
 
         m_globalFieldFunction.AddComposedField(composedField);
@@ -381,7 +392,7 @@ void Model::UpdateImplicitSurface(int xRes,
 
     for(int i=0; i<numThreads-1; i++)
     {
-        m_threads[i] = std::thread([startChunk, &chunkSize, &dim, &xRes, &yRes, zRes, &m_globalFieldFunction, &volumeData](){
+        m_threads[i] = std::thread([startChunk, &chunkSize, &dim, &xRes, &yRes, zRes, this, &volumeData](){
             for(int z=startChunk;z<startChunk+chunkSize;z++)
             {
                 for(int y=0;y<yRes;y++)

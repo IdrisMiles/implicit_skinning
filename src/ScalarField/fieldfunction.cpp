@@ -20,13 +20,13 @@ void FieldFunction::Fit(const std::vector<glm::vec3>& points,
                         const std::vector<glm::vec3>& normals,
                         const float _r)
 {
-    if(points.size() < 1 || normals.size() < 1)
+    if(points.size() < 3 || normals.size() < 3)
     {
         m_fit = false;
         return;
     }
 
-    m_r = _r;
+    m_supportRad = _r;
 
     std::vector<DistanceField::Vector> DFVpoints;
     DFVpoints.reserve(points.size());
@@ -57,6 +57,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 
     float data[_dim*_dim*_dim] = {0.0f};
     glm::vec3 grad[_dim*_dim*_dim];
+    float3 cuGrad[_dim*_dim*_dim];
 
     for(unsigned int z=0; z<_dim; ++z)
     {
@@ -76,12 +77,16 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 
                 data[z*_dim*_dim + y*_dim+ x] = d;
                 grad[z*_dim*_dim + y*_dim+ x] = glm::vec3(g(0), g(1), g(2));
+                cuGrad[z*_dim*_dim + y*_dim+ x] = make_float3(g(0), g(1), g(2));
             }
         }
     }
 
     m_field.SetData(_dim, data);
     m_grad.SetData(_dim, grad);
+
+    d_field.CreateCudaTexture(_dim, data);
+//    d_grad.CreateCudaTexture(_dim, cuGrad);
 
     auto textureSpaceTransform = [_scale](glm::vec3 x){
         return (((x/_scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
@@ -91,9 +96,9 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 
 }
 
-void FieldFunction::SetR(const float _r)
+void FieldFunction::SetSupportRadius(const float _r)
 {
-    m_r = _r;
+    m_supportRad = _r;
 }
 
 void FieldFunction::SetTransform(glm::mat4 _transform)
@@ -114,18 +119,17 @@ float FieldFunction::Eval(const glm::vec3 &_x)
         return 0.0f;
     }
 
+    glm::vec3 tx = TransformSpace(_x);
+
     // checked cached results first
     for(auto &ce : m_cachedEvals)
     {
-        if(Equiv(_x, ce.first))
+        if(Equiv(tx, ce.first))
         {
             return ce.second;
         }
     }
 
-
-    // need to evaluate
-    glm::vec3 tx = TransformSpace(_x);
 
     // texture lookup
     float f = m_field.Eval(tx);
@@ -139,7 +143,7 @@ float FieldFunction::Eval(const glm::vec3 &_x)
     {
         m_cachedEvals.erase(m_cachedEvals.begin());
     }
-    m_cachedEvals.push_back(std::make_pair(_x, f));
+    m_cachedEvals.push_back(std::make_pair(tx, f));
 
 
     return f;
@@ -163,10 +167,12 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
         return glm::vec3(0.0f, 1.0f, 0.0f);
     }
 
+    glm::vec3 tx = TransformSpace(x);
+
     // check cached values
     for(auto &cg : m_cachedGrads)
     {
-        if(Equiv(x, cg.first))
+        if(Equiv(tx, cg.first))
         {
             return cg.second;
         }
@@ -178,7 +184,6 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 //    glm::vec3 grad(g(0), g(1), g(2));
 
     // texture lookup
-    glm::vec3 tx = TransformSpace(x);
     glm::vec3 grad = m_grad.Eval(tx);
 
 
@@ -187,28 +192,34 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
     {
         m_cachedGrads.erase(m_cachedGrads.begin());
     }
-    m_cachedGrads.push_back(std::make_pair(x, grad));
+    m_cachedGrads.push_back(std::make_pair(tx, grad));
 
 
     return grad;
+}
+
+
+cudaTextureObject_t &FieldFunction::GetFieldFunc3DTexture()
+{
+    return d_field.GetCudaTextureObject();
 }
 
 float FieldFunction::Remap(float _df)
 {
     float f = 0.0f;
 
-    if(_df <= -m_r)
+    if(_df <= -m_supportRad)
     {
         f = 1.0f;
     }
-    else if(_df >= m_r)
+    else if(_df >= m_supportRad)
     {
 
         f = 0.0f;
     }
     else
     {
-        float x = _df / m_r;
+        float x = _df / m_supportRad;
         float x3 = x*x*x;
         float x5 = x*x*x*x*x;
 
@@ -223,3 +234,4 @@ glm::vec3 FieldFunction::TransformSpace(glm::vec3 _x)
 {
     return glm::vec3(m_transform * glm::vec4(_x, 1.0f));
 }
+

@@ -59,32 +59,32 @@ UI_DIR += ./ui
 # CUDA stuff
 #--------------------------------------------------------------------------
 
-#HEADERS += $$PWD/cuda_inc/*.cuh
+HEADERS += $$PWD/cuda_inc/*.cuh
 
-#INCLUDEPATH += $$PWD/cuda_inc
-#CUDA_SOURCES += $$PWD/cuda_src/*.cu
-#CUDA_PATH = /usr
-#NVCC = $$CUDA_PATH/bin/nvcc
+INCLUDEPATH += $$PWD/cuda_inc
+CUDA_SOURCES += $$PWD/cuda_src/*.cu
+CUDA_PATH = /usr
+NVCC = $$CUDA_PATH/bin/nvcc
 
-#SYSTEM_NAME = unix
-#SYSTEM_TYPE = 64
-#GENCODE_FLAGS += -arch=sm_50
-#NVCC_OPTIONS =  -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-dc
+SYSTEM_NAME = unix
+SYSTEM_TYPE = 64
+GENCODE_FLAGS += -arch=sm_50
+NVCC_OPTIONS =  -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-dc
 
-## include paths
-#INCLUDEPATH += $(CUDA_PATH)/include $(CUDA_PATH)/include/cuda
+# include paths
+INCLUDEPATH += $(CUDA_PATH)/include $(CUDA_PATH)/include/cuda
 
-## library directories
-#QMAKE_LIBDIR += $$CUDA_PATH/lib/x86_64-linux-gnu $(CUDA_PATH)/include/cuda
+# library directories
+QMAKE_LIBDIR += $$CUDA_PATH/lib/x86_64-linux-gnu $(CUDA_PATH)/include/cuda
 
-#CUDA_OBJECTS_DIR = $$PWD/cuda_obj
+CUDA_OBJECTS_DIR = $$PWD/cuda_obj
 
-## The following makes sure all path names (which often include spaces) are put between quotation marks
-#CUDA_INC = $$join(INCLUDEPATH,' -I','-I','')
-#LIBS += -lcudart -lcurand #-lcudadevrt
+# The following makes sure all path names (which often include spaces) are put between quotation marks
+CUDA_INC = $$join(INCLUDEPATH,' -I','-I','')
+LIBS += -lcudart -lcurand #-lcudadevrt
 
-#cuda.input = CUDA_SOURCES
-#cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
-#cuda.commands = $$NVCC -m$$SYSTEM_TYPE $$GENCODE_FLAGS -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME} $$NVCC_OPTIONS $$CUDA_INC
-#cuda.dependency_type = TYPE_C
-#QMAKE_EXTRA_COMPILERS += cuda
+cuda.input = CUDA_SOURCES
+cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
+cuda.commands = $$NVCC -m$$SYSTEM_TYPE $$GENCODE_FLAGS -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME} $$NVCC_OPTIONS $$CUDA_INC
+cuda.dependency_type = TYPE_C
+QMAKE_EXTRA_COMPILERS += cuda

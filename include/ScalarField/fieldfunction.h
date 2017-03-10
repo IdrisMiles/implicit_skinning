@@ -2,14 +2,16 @@
 #define FIELDFUNCTION_H
 
 #include <glm/glm.hpp>
+#include <utility>
 
 #include "Hrbf/hrbf_core.h"
 #include "Hrbf/hrbf_phi_funcs.h"
 
 #include "ScalarField/field1d.h"
 
-#include <queue>
-#include <utility>
+#include "cuda_inc/cudatexture.h"
+
+
 
 
 typedef HRBF_fit<float, 3, Rbf_pow3<float> > DistanceField;
@@ -27,14 +29,19 @@ public:
     /// @brief Method to precompute field values and store them in m_field attribute.
     void PrecomputeField(const unsigned int _dim = 32, const float _scale = 8.0f);
 
-    void SetR(const float _r);
+    /// @brief Method to set the support radius in order to remap the distance field
+    /// to a compact field function with range [0:1]
+    void SetSupportRadius(const float _r);
 
     void SetTransform(glm::mat4 _transform);
 
     float Eval(const glm::vec3& _x);
+
     float EvalDist(const glm::vec3& x);
 
     glm::vec3 Grad(const glm::vec3& x);
+
+    cudaTextureObject_t &GetFieldFunc3DTexture();
 
 
 private:
@@ -51,7 +58,7 @@ private:
     bool m_fit;
 
     /// @brief Attribute used for remapping distance field to compactly supported field function.
-    float m_r;
+    float m_supportRad;
 
     /// @brief
     glm::mat4 m_transform;
@@ -64,10 +71,14 @@ private:
     Field1D<float> m_field;
     Field1D<glm::vec3> m_grad;
 
+    CudaTexture<float> d_field;
+    CudaTexture<float3> d_grad;
+
 
     std::vector<std::pair<glm::vec3, float>> m_cachedEvals;
     std::pair<glm::vec3, float> m_cachedEval;
     std::vector<std::pair<glm::vec3, glm::vec3>> m_cachedGrads;
+
 
 };
 
