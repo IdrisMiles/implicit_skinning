@@ -32,4 +32,5 @@ private:
     std::shared_ptr<FieldFunction> m_fieldFunctionB;
 };
 
+
 #endif // COMPOSEDFIELD_H

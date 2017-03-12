@@ -6,6 +6,11 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 
+// CUDA includes
+#include <cuda_runtime.h>
+#include <cuda.h>
+#include <cuda_gl_interop.h>
+
 #include <thread>
 
 // GLM
@@ -83,25 +88,45 @@ public:
     void PerformTangentialRelaxation();
     void PerformLaplacianSmoothing();
 
+    //-------------------------------------------------------------------
+    // CUDA stuff
+
+    glm::vec3 *GetMeshDeformedPtr();
+    void ReleaseMeshDeformedPtr();
+
+    glm::vec3 *GetMeshOrigPtr();
+    glm::mat4 *GetTransformPtr();
+    unsigned int *GetBonIdPtr();
+    float *GettWeightPtr();
+
+    cudaGraphicsResource *m_meshVBO_CUDA;
+
+    glm::vec3 *d_meshOrigPtr;
+    glm::vec3 *d_meshDeformedPtr;
+    glm::mat4 *d_transformPtr;
+    unsigned int *d_boneIdPtr;
+    float *d_weightPtr;
+
+    bool m_meshDeformedMapped;
 
     //-------------------------------------------------------------------
     // Attributes
+    std::vector<std::thread> m_threads;
+
     Rig m_rig;
     Mesh m_mesh;
     Mesh m_rigMesh;
 
     std::vector<Mesh> m_meshParts;
-
     std::vector<std::shared_ptr<FieldFunction>> m_fieldFunctions;
     GlobalFieldFunction m_globalFieldFunction;
     Mesh m_meshIsoSurface;
-    std::vector<std::thread> m_threads;
+    MachingCube m_polygonizer;
 
     std::vector<float> m_meshVertIsoValues;
     std::vector<std::vector<unsigned int>> m_meshVertOneRingNeighbour;
     std::vector<std::vector<float>> m_meshVertCentroidWeights;
 
-    MachingCube m_polygonizer;
 
     bool m_wireframe;
     bool m_initGL;
@@ -120,10 +145,6 @@ public:
     QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
 
-    // VAO and BO's for iso-surface global mesh
-    std::shared_ptr<QOpenGLVertexArrayObject> m_meshIsoVAO;
-    std::shared_ptr<QOpenGLBuffer> m_meshIsoVBO;
-    std::shared_ptr<QOpenGLBuffer> m_meshIsoNBO;
 
     // Shader locations
     GLuint m_vertAttrLoc[NUMRENDERTYPES];

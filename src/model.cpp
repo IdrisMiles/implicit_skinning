@@ -15,6 +15,7 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+#include <implicitskinkernels.h>
 
 Model::Model()
 {
@@ -298,7 +299,14 @@ void Model::GenerateMeshVertIsoValue()
 
 void Model::PerformLBWSkinning()
 {
-
+    ImplicitSkinKernels::PerformLBWSkinning(GetMeshDeformedPtr(),
+                                            d_meshOrigPtr,
+                                            d_transformPtr,
+                                            d_boneIdPtr,
+                                            d_weightPtr,
+                                            m_mesh.m_meshVerts.size(),
+                                            m_rig.m_boneTransforms.size());
+    ReleaseMeshDeformedPtr();
 }
 
 void Model::PerformVertexProjection()
@@ -364,7 +372,6 @@ void Model::UpdateImplicitSurface(int xRes,
                                   float yScale,
                                   float zScale)
 {
-
 //    static double time = 0.0;
 //    static double t1 = 0.0;
 //    static double t2 = 0.0;
@@ -374,77 +381,57 @@ void Model::UpdateImplicitSurface(int xRes,
 //    t1=tim.tv_sec+(tim.tv_usec/1000000.0);
 
 
-    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
-    {
-        if(m_rig.m_boneTransforms.size() <= mp)
-        {
-            continue;
-        }
-
-        m_fieldFunctions[mp]->SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
-    }
-
     float *volumeData = new float[xRes*yRes*zRes];
 
+
     int numThreads = std::thread::hardware_concurrency();
-    int chunkSize = zRes / numThreads;
+    int dataSize = zRes;
+    int chunkSize = dataSize / numThreads;
+    int numBigChunks = dataSize % numThreads;
+    int bigChunkSize = chunkSize + (numBigChunks>0 ? 1 : 0);
     int startChunk = 0;
+    int threadId=0;
 
-    for(int i=0; i<numThreads-1; i++)
-    {
-        m_threads[i] = std::thread([startChunk, &chunkSize, &dim, &xRes, &yRes, zRes, this, &volumeData](){
-            for(int z=startChunk;z<startChunk+chunkSize;z++)
+
+    auto threadFunc = [&dim, &xRes, &yRes, zRes, this, &volumeData](int startChunk, int endChunk){
+        for(int z=startChunk;z<endChunk;z++)
+        {
+            for(int y=0;y<yRes;y++)
             {
-                for(int y=0;y<yRes;y++)
+                for(int x=0;x<xRes;x++)
                 {
-                    for(int x=0;x<xRes;x++)
+                    glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
+                                    dim*((((float)y/yRes)*2.0f)-1.0f),
+                                    dim*((((float)z/xRes)*2.0f)-1.0f));
+
+                    float d = m_globalFieldFunction.Eval(point);
+
+                    if(!std::isnan(d))
                     {
-                        glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
-                                        dim*((((float)y/yRes)*2.0f)-1.0f),
-                                        dim*((((float)z/xRes)*2.0f)-1.0f));
-
-                        float d = m_globalFieldFunction.Eval(point);
-
-                        if(!std::isnan(d))
-                        {
-                            volumeData[z*xRes*yRes + y*xRes + x] = d;
-                        }
-                        else
-                        {
-                            volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
-                        }
+                        volumeData[z*xRes*yRes + y*xRes + x] = d;
+                    }
+                    else
+                    {
+                        volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
                     }
                 }
             }
-        });
-
-        startChunk += chunkSize;
-    }
-
-
-    for(int z=startChunk;z<zRes;z++)
-    {
-        for(int y=0;y<yRes;y++)
-        {
-            for(int x=0;x<xRes;x++)
-            {
-                glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
-                                dim*((((float)y/yRes)*2.0f)-1.0f),
-                                dim*((((float)z/xRes)*2.0f)-1.0f));
-
-                float d = m_globalFieldFunction.Eval(point);
-
-                if(!std::isnan(d))
-                {
-                    volumeData[z*xRes*yRes + y*xRes + x] = d;
-                }
-                else
-                {
-                    volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
-                }
-            }
         }
+    };
+
+
+    for(threadId=0; threadId<numBigChunks; threadId++)
+    {
+        m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+bigChunkSize));
+        startChunk+=bigChunkSize;
     }
+    for(; threadId<numThreads-1; threadId++)
+    {
+        m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+chunkSize));
+        startChunk+=chunkSize;
+    }
+    threadFunc(startChunk, zRes);
+
 
     for(int i=0; i<numThreads-1; i++)
     {
@@ -527,27 +514,27 @@ void Model::DrawMesh()
         // Global IsoSurface
         // upload new verts
         glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshIsoSurface.m_colour[0]);// Setup our vertex buffer object.
-        m_meshIsoVBO->bind();
-        m_meshIsoVBO->allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
+        m_meshVBO[ISO_SURFACE].bind();
+        m_meshVBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
         glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
         glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshIsoVBO->release();
+        m_meshVBO[ISO_SURFACE].release();
 
 
         // upload new normals
-        m_meshIsoNBO->bind();
-        m_meshIsoNBO->allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
+        m_meshNBO[ISO_SURFACE].bind();
+        m_meshNBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
         glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
         glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshIsoNBO->release();
+        m_meshNBO[ISO_SURFACE].release();
 
 
         // Draw marching cube of isosurface
-        m_meshIsoVAO->bind();
+        m_meshVAO[ISO_SURFACE].bind();
         glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_FILL:GL_FILL);
         glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        m_meshIsoVAO->release();
+        m_meshVAO[ISO_SURFACE].release();
 
         m_shaderProg[ISO_SURFACE]->release();
     }
@@ -592,6 +579,17 @@ void Model::Animate(const float _animationTime)
     m_shaderProg[RIG]->bind();
     UploadBonesToShader(RIG);
     m_shaderProg[RIG]->release();
+
+    for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
+    {
+        m_fieldFunctions[mp]->SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
+    }
+
+    cudaMemcpy((void*)d_transformPtr, &m_rig.m_boneTransforms[0][0][0], m_rig.m_boneTransforms.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice);
+    cudaThreadSynchronize();
+    PerformLBWSkinning();
+    cudaThreadSynchronize();
+
 }
 
 void Model::ToggleWireframe()
@@ -825,56 +823,17 @@ void Model::CreateVAOs()
     }
 
 
-    //------------------------------------------------------------------------------------
-    // Iso surface MeshParts
-    if(m_shaderProg[ISO_SURFACE]->bind())
-    {
-        // Global IsoSurface stuff
-        m_meshIsoVAO = std::shared_ptr<QOpenGLVertexArrayObject>(new QOpenGLVertexArrayObject());
-        m_meshIsoVBO = std::shared_ptr<QOpenGLBuffer>(new QOpenGLBuffer());
-        m_meshIsoNBO = std::shared_ptr<QOpenGLBuffer>(new QOpenGLBuffer());
-
-
-        // Get shader locations
-        m_mesh.m_colour = glm::vec3(0.4f,0.4f,0.4f);
-        m_colourLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("uColour");
-        glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_mesh.m_colour[0]);
-        m_vertAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("vertex");
-        m_normAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("normal");
-
-        // Set up VAO
-        m_meshIsoVAO->create();
-        m_meshIsoVAO->bind();
-
-
-        // Setup our vertex buffer object.
-        m_meshIsoVBO->create();
-        m_meshIsoVBO->bind();
-        glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
-        glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshIsoVBO->release();
-
-
-        // Setup our normals buffer object.
-        m_meshIsoNBO->create();
-        m_meshIsoNBO->bind();
-        glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
-        glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshIsoNBO->release();
-
-
-        m_meshIsoVAO->release();
-
-        m_shaderProg[ISO_SURFACE]->release();
-
-    }
-
-
     m_initGL = true;
 }
 
 void Model::DeleteVAOs()
 {
+    cudaGraphicsUnregisterResource(m_meshVBO_CUDA);
+    cudaFree(d_meshOrigPtr);
+    cudaFree(d_transformPtr);
+    cudaFree(d_boneIdPtr);
+    cudaFree(d_weightPtr);
+
 
     for(unsigned int i=0; i<NUMRENDERTYPES; i++)
     {
@@ -1018,33 +977,81 @@ void Model::UpdateVAOs()
 
 
     //--------------------------------------------------------------------------------------
-    // ISO SURFACE MeshParts
-    if(m_shaderProg[ISO_SURFACE]->bind())
+
+    unsigned int boneIds[m_mesh.m_meshVerts.size() *4];
+    float weights[m_mesh.m_meshVerts.size() *4];
+    int i=0;
+    for(auto &bw : m_mesh.m_meshBoneWeights)
     {
-        // Global IsoSurface
-        m_meshIsoVAO->bind();
-
-        // Setup our vertex buffer object.
-        m_meshIsoVBO->bind();
-        m_meshIsoVBO->allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
-        glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
-        glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshIsoVBO->release();
-
-
-        // Setup our normals buffer object.
-        m_meshIsoNBO->bind();
-        m_meshIsoNBO->allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
-        glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
-        glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshIsoNBO->release();
-
-
-        m_meshIsoVAO->release();
-
-        m_shaderProg[ISO_SURFACE]->release();
+        for(int j=0; j<4; j++)
+        {
+            boneIds[i+j] = bw.boneID[j];
+            weights[i+j] = bw.boneWeight[j];
+        }
+        i+=4;
     }
+
+    // Register vertex buffer with CUDA
+    cudaGraphicsGLRegisterBuffer(&m_meshVBO_CUDA, m_meshVBO[SKINNED].bufferId(),cudaGraphicsMapFlagsWriteDiscard);
+
+    // Allocate cuda memory
+    cudaMalloc(&d_meshOrigPtr, m_mesh.m_meshVerts.size() * sizeof(glm::vec3));
+    cudaMalloc(&d_transformPtr, m_rig.m_boneTransforms.size() * sizeof(glm::mat4));
+    cudaMalloc(&d_boneIdPtr, m_mesh.m_meshVerts.size() * 4 * sizeof(unsigned int));
+    cudaMalloc(&d_weightPtr, m_mesh.m_meshVerts.size() * 4 * sizeof(float));
+
+    // copy memory over to cuda
+    cudaMemcpy((void*)d_meshOrigPtr, &m_mesh.m_meshVerts[0], m_mesh.m_meshVerts.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy((void*)d_transformPtr, &m_rig.m_boneTransforms[0][0][0], m_rig.m_boneTransforms.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice);
+    cudaMemcpy((void*)d_boneIdPtr, boneIds, m_mesh.m_meshBoneWeights.size() *4* sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaMemcpy((void*)d_weightPtr, weights, m_mesh.m_meshBoneWeights.size() *4* sizeof(float), cudaMemcpyHostToDevice);
+
 }
+
+glm::vec3 *Model::GetMeshDeformedPtr()
+{
+    if(!m_meshDeformedMapped)
+    {
+        size_t numBytes;
+        cudaGraphicsMapResources(1, &m_meshVBO_CUDA, 0);
+        cudaGraphicsResourceGetMappedPointer((void **)&d_meshDeformedPtr, &numBytes, m_meshVBO_CUDA);
+
+        m_meshDeformedMapped = true;
+    }
+
+    return d_meshDeformedPtr;
+}
+
+void Model::ReleaseMeshDeformedPtr()
+{
+    if(m_meshDeformedMapped)
+    {
+        cudaGraphicsUnmapResources(1, &m_meshVBO_CUDA, 0);
+        m_meshDeformedMapped = false;
+    }
+
+}
+
+glm::vec3 *Model::GetMeshOrigPtr()
+{
+    return d_meshOrigPtr;
+}
+
+glm::mat4 *Model::GetTransformPtr()
+{
+    return d_transformPtr;
+}
+
+unsigned int *Model::GetBonIdPtr()
+{
+    return d_boneIdPtr;
+}
+
+float *Model::GettWeightPtr()
+{
+    return d_weightPtr;
+}
+
 
 
 

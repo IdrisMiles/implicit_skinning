@@ -59,9 +59,10 @@ UI_DIR += ./ui
 # CUDA stuff
 #--------------------------------------------------------------------------
 
-HEADERS += $$PWD/cuda_inc/*.cuh
+HEADERS += $$PWD/cuda_inc/*.*h
 
-INCLUDEPATH += $$PWD/cuda_inc
+INCLUDEPATH +=  ./cuda_inc \
+                ./include
 CUDA_SOURCES += $$PWD/cuda_src/*.cu
 CUDA_PATH = /usr
 NVCC = $$CUDA_PATH/bin/nvcc
@@ -69,7 +70,7 @@ NVCC = $$CUDA_PATH/bin/nvcc
 SYSTEM_NAME = unix
 SYSTEM_TYPE = 64
 GENCODE_FLAGS += -arch=sm_50
-NVCC_OPTIONS =  -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-dc
+NVCC_OPTIONS =  -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-rdc=true
 
 # include paths
 INCLUDEPATH += $(CUDA_PATH)/include $(CUDA_PATH)/include/cuda

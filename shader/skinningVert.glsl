@@ -19,19 +19,21 @@ out vec3 boneColour;
 
 void main()
 {
-    mat4 BoneTransform = Bones[BoneIDs[0]] * Weights[0];
-    BoneTransform += Bones[BoneIDs[1]] * Weights[1];
-    BoneTransform += Bones[BoneIDs[2]] * Weights[2];
-    BoneTransform += Bones[BoneIDs[3]] * Weights[3];
+    mat4 BoneTransform = mat4(0.0f);
+    for(int i=0; i<4; i++)
+    {
+        int boneId = BoneIDs[i];
+        if(boneId > -1)
+        {
+            BoneTransform += Bones[boneId] * Weights[i];
+        }
+    }
 
-    boneColour = vec3(0.6, 0.6, 0.6); /*BoneColours[BoneIDs[0]] * Weights[0] +
-                 BoneColours[BoneIDs[1]] * Weights[1] +
-                 BoneColours[BoneIDs[2]] * Weights[2] +
-                 BoneColours[BoneIDs[3]] * Weights[3];*/
+    boneColour = vec3(0.6, 0.6, 0.6);
 
 
    vert = vertex.xyz;
    vertNormal = normalMatrix * normal;
-   gl_Position = projMatrix * mvMatrix * BoneTransform * vec4(vertex, 1.0);
+   gl_Position = projMatrix * mvMatrix * /*BoneTransform * */vec4(vertex, 1.0);
 
 }
