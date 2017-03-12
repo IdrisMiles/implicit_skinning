@@ -57,7 +57,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 
     float data[_dim*_dim*_dim] = {0.0f};
     glm::vec3 grad[_dim*_dim*_dim];
-    float3 cuGrad[_dim*_dim*_dim];
+    float4 cuGrad[_dim*_dim*_dim];
 
     for(unsigned int z=0; z<_dim; ++z)
     {
@@ -77,7 +77,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 
                 data[z*_dim*_dim + y*_dim+ x] = d;
                 grad[z*_dim*_dim + y*_dim+ x] = glm::vec3(g(0), g(1), g(2));
-                cuGrad[z*_dim*_dim + y*_dim+ x] = make_float3(g(0), g(1), g(2));
+//                cuGrad[z*_dim*_dim + y*_dim+ x] = make_float4(g(0), g(1), g(2), d);
             }
         }
     }
@@ -85,7 +85,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
     m_field.SetData(_dim, data);
     m_grad.SetData(_dim, grad);
 
-    d_field.CreateCudaTexture(_dim, data);
+//    d_field.CreateCudaTexture(_dim, data);
 //    d_grad.CreateCudaTexture(_dim, cuGrad);
 
     auto textureSpaceTransform = [_scale](glm::vec3 x){

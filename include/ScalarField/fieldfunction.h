@@ -9,7 +9,8 @@
 
 #include "ScalarField/field1d.h"
 
-#include "cuda_inc/cudatexture.h"
+#include <cuda.h>
+#include "cudatexture.h"
 
 
 
@@ -72,7 +73,7 @@ private:
     Field1D<glm::vec3> m_grad;
 
     CudaTexture<float> d_field;
-    CudaTexture<float3> d_grad;
+    CudaTexture<float4> d_grad;
 
 
     std::vector<std::pair<glm::vec3, float>> m_cachedEvals;

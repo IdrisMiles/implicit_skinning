@@ -11,6 +11,8 @@ TEMPLATE = app
 
 CONFIG += console c++11
 
+QMAKE_CXXFLAGS += -std=c++11
+
 
 #QMAKE_CFLAGS+=-pg
 #QMAKE_CXXFLAGS+=-pg
@@ -70,7 +72,7 @@ NVCC = $$CUDA_PATH/bin/nvcc
 SYSTEM_NAME = unix
 SYSTEM_TYPE = 64
 GENCODE_FLAGS += -arch=sm_50
-NVCC_OPTIONS =  -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-rdc=true
+NVCC_OPTIONS = -std=c++11 -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-rdc=true
 
 # include paths
 INCLUDEPATH += $(CUDA_PATH)/include $(CUDA_PATH)/include/cuda

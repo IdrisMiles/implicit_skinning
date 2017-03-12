@@ -15,7 +15,6 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-#include <implicitskinkernels.h>
 
 Model::Model()
 {
@@ -49,12 +48,12 @@ void Model::Load(const std::string &_file)
     GenerateMeshParts();
     GenerateFieldFunctions();
     GenerateGlobalFieldFunctions();
-//    GenerateMeshVertIsoValue();
 
     //--------------------------------------------------
     CreateShaders();
     CreateVAOs();
     UpdateVAOs();
+    InitImplicitSkinner();
 
 }
 
@@ -297,16 +296,9 @@ void Model::GenerateMeshVertIsoValue()
     }
 }
 
-void Model::PerformLBWSkinning()
+void Model::DeformSkin()
 {
-    ImplicitSkinKernels::PerformLBWSkinning(GetMeshDeformedPtr(),
-                                            d_meshOrigPtr,
-                                            d_transformPtr,
-                                            d_boneIdPtr,
-                                            d_weightPtr,
-                                            m_mesh.m_meshVerts.size(),
-                                            m_rig.m_boneTransforms.size());
-    ReleaseMeshDeformedPtr();
+//    m_implicitSkinner->PerformLBWSkinning(m_rig.m_boneTransforms);
 }
 
 void Model::PerformVertexProjection()
@@ -470,6 +462,7 @@ void Model::DrawMesh()
     {
         CreateVAOs();
         UpdateVAOs();
+        InitImplicitSkinner();
     }
     else
     {
@@ -547,6 +540,7 @@ void Model::DrawRig()
     {
         CreateVAOs();
         UpdateVAOs();
+        InitImplicitSkinner();
     }
     else
     {
@@ -585,11 +579,11 @@ void Model::Animate(const float _animationTime)
         m_fieldFunctions[mp]->SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
     }
 
-    cudaMemcpy((void*)d_transformPtr, &m_rig.m_boneTransforms[0][0][0], m_rig.m_boneTransforms.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice);
-    cudaThreadSynchronize();
-    PerformLBWSkinning();
-    cudaThreadSynchronize();
 
+    if(m_initGL)
+    {
+        DeformSkin();
+    }
 }
 
 void Model::ToggleWireframe()
@@ -828,12 +822,6 @@ void Model::CreateVAOs()
 
 void Model::DeleteVAOs()
 {
-    cudaGraphicsUnregisterResource(m_meshVBO_CUDA);
-    cudaFree(d_meshOrigPtr);
-    cudaFree(d_transformPtr);
-    cudaFree(d_boneIdPtr);
-    cudaFree(d_weightPtr);
-
 
     for(unsigned int i=0; i<NUMRENDERTYPES; i++)
     {
@@ -974,82 +962,12 @@ void Model::UpdateVAOs()
 
         m_shaderProg[ISO_SURFACE]->release();
     }
-
-
-    //--------------------------------------------------------------------------------------
-
-    unsigned int boneIds[m_mesh.m_meshVerts.size() *4];
-    float weights[m_mesh.m_meshVerts.size() *4];
-    int i=0;
-    for(auto &bw : m_mesh.m_meshBoneWeights)
-    {
-        for(int j=0; j<4; j++)
-        {
-            boneIds[i+j] = bw.boneID[j];
-            weights[i+j] = bw.boneWeight[j];
-        }
-        i+=4;
-    }
-
-    // Register vertex buffer with CUDA
-    cudaGraphicsGLRegisterBuffer(&m_meshVBO_CUDA, m_meshVBO[SKINNED].bufferId(),cudaGraphicsMapFlagsWriteDiscard);
-
-    // Allocate cuda memory
-    cudaMalloc(&d_meshOrigPtr, m_mesh.m_meshVerts.size() * sizeof(glm::vec3));
-    cudaMalloc(&d_transformPtr, m_rig.m_boneTransforms.size() * sizeof(glm::mat4));
-    cudaMalloc(&d_boneIdPtr, m_mesh.m_meshVerts.size() * 4 * sizeof(unsigned int));
-    cudaMalloc(&d_weightPtr, m_mesh.m_meshVerts.size() * 4 * sizeof(float));
-
-    // copy memory over to cuda
-    cudaMemcpy((void*)d_meshOrigPtr, &m_mesh.m_meshVerts[0], m_mesh.m_meshVerts.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice);
-    cudaMemcpy((void*)d_transformPtr, &m_rig.m_boneTransforms[0][0][0], m_rig.m_boneTransforms.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice);
-    cudaMemcpy((void*)d_boneIdPtr, boneIds, m_mesh.m_meshBoneWeights.size() *4* sizeof(unsigned int), cudaMemcpyHostToDevice);
-    cudaMemcpy((void*)d_weightPtr, weights, m_mesh.m_meshBoneWeights.size() *4* sizeof(float), cudaMemcpyHostToDevice);
-
 }
 
-glm::vec3 *Model::GetMeshDeformedPtr()
+
+void Model::InitImplicitSkinner()
 {
-    if(!m_meshDeformedMapped)
-    {
-        size_t numBytes;
-        cudaGraphicsMapResources(1, &m_meshVBO_CUDA, 0);
-        cudaGraphicsResourceGetMappedPointer((void **)&d_meshDeformedPtr, &numBytes, m_meshVBO_CUDA);
-
-        m_meshDeformedMapped = true;
-    }
-
-    return d_meshDeformedPtr;
-}
-
-void Model::ReleaseMeshDeformedPtr()
-{
-    if(m_meshDeformedMapped)
-    {
-        cudaGraphicsUnmapResources(1, &m_meshVBO_CUDA, 0);
-        m_meshDeformedMapped = false;
-    }
-
-}
-
-glm::vec3 *Model::GetMeshOrigPtr()
-{
-    return d_meshOrigPtr;
-}
-
-glm::mat4 *Model::GetTransformPtr()
-{
-    return d_transformPtr;
-}
-
-unsigned int *Model::GetBonIdPtr()
-{
-    return d_boneIdPtr;
-}
-
-float *Model::GettWeightPtr()
-{
-    return d_weightPtr;
+//    m_implicitSkinner = new ImplicitSkinKernels(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
 }
 
 

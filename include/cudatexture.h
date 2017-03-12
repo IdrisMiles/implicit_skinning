@@ -79,6 +79,8 @@ private:
         {
             cudaDestroyTextureObject(d_cuTex);
             cudaFreeArray(d_cuArray);
+
+            m_init = false;
         }
     }
 

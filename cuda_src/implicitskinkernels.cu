@@ -2,7 +2,7 @@
 #include "cutil_math.h"
 
 #include "ScalarField/compfield.h"
-
+#include <stdio.h>
 
 
 
@@ -73,12 +73,12 @@ __global__ void EvaluateGlobalField(float *_output,
 
 
 __global__ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
-                                      glm::vec3 *_origVert,
-                                      glm::mat4 *_transform,
-                                      uint *_boneId,
-                                      float *_weight,
-                                      uint _numVerts,
-                                      uint _numBones)
+                                      const glm::vec3 *_origVert,
+                                      const glm::mat4 *_transform,
+                                      const uint *_boneId,
+                                      const float *_weight,
+                                      const uint _numVerts,
+                                      const uint _numBones)
 {
     int tid = threadIdx.x + (blockIdx.x * blockDim.x);
 
@@ -87,23 +87,21 @@ __global__ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
         return;
     }
 
-//    __shared__ glm::mat4 transforms[50];
-//    if(tid < _numBones)
-//    {
-//        transforms[tid] = _transform[tid];
-//    }
-//    __syncthreads();
-
     glm::mat4 boneTransform = glm::mat4(0.0f);
 
+    float totalWeight = 0.0f;
     for(int i=0; i<4; i++)
     {
-        int boneId = _boneId[(tid*4) + i];
-//        if(boneId > -1)
-//        {
-            boneTransform += _transform[boneId] * _weight[(tid*4) + i];
-//        }
+        unsigned int boneId = _boneId[(tid*4) + i];
+        float w = _weight[(tid*4) + i];
+        boneTransform += (_transform[boneId] * w);
+
+        totalWeight+=w;
     }
+//    if(totalWeight < 0.8f)
+//    {
+//        printf("v: %i, w: %f\n",tid, totalWeight);
+//    }
 
 
     _deformedVert[tid] = boneTransform * glm::vec4(_origVert[tid], 1.0f);
@@ -122,30 +120,110 @@ uint iDivUp(uint a, uint b)
 
 //------------------------------------------------------------------------
 
-ImplicitSkinKernels::ImplicitSkinKernels()
+ImplicitSkinKernels::ImplicitSkinKernels(const Mesh _origMesh,
+                                         const GLuint _meshVBO,
+                                         const std::vector<glm::mat4> &_transform)
+{
+    m_numVerts = _origMesh.m_meshVerts.size();
+
+    // Get bone ID and weights per vertex
+    unsigned int boneIds[m_numVerts *4];
+    float weights[m_numVerts *4];
+    int i=0;
+    for(auto &bw : _origMesh.m_meshBoneWeights)
+    {
+        float totalW = 0.0f;
+        for(int j=0; j<4; j++)
+        {
+            boneIds[i+j] = bw.boneID[j];
+            weights[i+j] = bw.boneWeight[j];
+            totalW += bw.boneWeight[j];
+        }
+
+        // Normalize weights
+        if(totalW < 1.0f)
+        {
+            for(int j=0; j<4; j++)
+            {
+                weights[i+j] /= totalW;
+            }
+        }
+        i+=4;
+    }
+
+
+    cudaSetDevice(0);
+
+
+    // Register vertex buffer with CUDA
+    cudaGraphicsGLRegisterBuffer(&m_meshVBO_CUDA, _meshVBO, cudaGraphicsMapFlagsWriteDiscard);
+
+    // Allocate cuda memory
+    cudaMalloc(&d_meshOrigPtr, m_numVerts * sizeof(glm::vec3));
+    cudaMalloc(&d_transformPtr, _transform.size() * sizeof(glm::mat4));
+    cudaMalloc(&d_boneIdPtr, m_numVerts * 4 * sizeof(unsigned int));
+    cudaMalloc(&d_weightPtr, m_numVerts * 4 * sizeof(float));
+
+    // copy memory over to cuda
+    cudaMemcpy((void*)d_meshOrigPtr, (void*)&_origMesh.m_meshVerts[0], m_numVerts * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy((void*)d_transformPtr, (void*)&_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice);
+    cudaMemcpy((void*)d_boneIdPtr, (void*)boneIds, m_numVerts *4* sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaMemcpy((void*)d_weightPtr, (void*)weights, m_numVerts *4* sizeof(float), cudaMemcpyHostToDevice);
+
+    cudaThreadSynchronize();
+}
+
+ImplicitSkinKernels::~ImplicitSkinKernels()
 {
 
+    cudaGraphicsUnregisterResource(m_meshVBO_CUDA);
+    cudaFree(d_meshOrigPtr);
+    cudaFree(d_transformPtr);
+    cudaFree(d_boneIdPtr);
+    cudaFree(d_weightPtr);
 }
 
 
-void ImplicitSkinKernels::PerformLBWSkinning(glm::vec3 *_deformedMeshVerts,
-                                             glm::vec3 *_origMeshVerts,
-                                             glm::mat4 *_transform,
-                                             uint *_boneId,
-                                             float *_weight,
-                                             uint _numVerts,
-                                             uint _numBones)
+void ImplicitSkinKernels::PerformLBWSkinning(const std::vector<glm::mat4> &_transform)
 {
     uint numThreads = 1024u;
-    uint numBlocks = iDivUp(_numVerts, numThreads);
+    uint numBlocks = iDivUp(m_numVerts, numThreads);
 
-    LinearBlendWeightSkin<<<numBlocks, numThreads>>>(_deformedMeshVerts,
-                                                     _origMeshVerts,
-                                                     _transform,
-                                                     _boneId,
-                                                     _weight,
-                                                     _numVerts,
-                                                     _numBones);
+    cudaMemcpy((void*)d_transformPtr, &_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice);
+
+    LinearBlendWeightSkin<<<numBlocks, numThreads>>>(GetMeshDeformedPtr(),
+                                                     d_meshOrigPtr,
+                                                     d_transformPtr,
+                                                     d_boneIdPtr,
+                                                     d_weightPtr,
+                                                     m_numVerts,
+                                                     _transform.size());
 
     cudaThreadSynchronize();
+    ReleaseMeshDeformedPtr();
+}
+
+
+
+glm::vec3 *ImplicitSkinKernels::GetMeshDeformedPtr()
+{
+    if(!m_meshDeformedMapped)
+    {
+        size_t numBytes;
+        cudaGraphicsMapResources(1, &m_meshVBO_CUDA, 0);
+        cudaGraphicsResourceGetMappedPointer((void **)&d_meshDeformedPtr, &numBytes, m_meshVBO_CUDA);
+
+        m_meshDeformedMapped = true;
+    }
+
+    return d_meshDeformedPtr;
+}
+
+void ImplicitSkinKernels::ReleaseMeshDeformedPtr()
+{
+    if(m_meshDeformedMapped)
+    {
+        cudaGraphicsUnmapResources(1, &m_meshVBO_CUDA, 0);
+        m_meshDeformedMapped = false;
+    }
 }

@@ -6,11 +6,6 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 
-// CUDA includes
-#include <cuda_runtime.h>
-#include <cuda.h>
-#include <cuda_gl_interop.h>
-
 #include <thread>
 
 // GLM
@@ -26,6 +21,8 @@
 #include "ScalarField/globalfieldfunction.h"
 
 #include "Machingcube/MachingCube.h"
+
+#include <implicitskinkernels.h>
 
 
 enum RenderType { SKINNED = 0, RIG, ISO_SURFACE, NUMRENDERTYPES };
@@ -81,33 +78,22 @@ public:
     void GenerateOneRingNeighbours();
     void GenerateCentroidWeights();
 
+
     //-------------------------------------------------------------------
 
-    void PerformLBWSkinning();
+    void DeformSkin();
     void PerformVertexProjection();
     void PerformTangentialRelaxation();
     void PerformLaplacianSmoothing();
 
+
     //-------------------------------------------------------------------
-    // CUDA stuff
+    // Implicit Skinner
 
-    glm::vec3 *GetMeshDeformedPtr();
-    void ReleaseMeshDeformedPtr();
+    void InitImplicitSkinner();
 
-    glm::vec3 *GetMeshOrigPtr();
-    glm::mat4 *GetTransformPtr();
-    unsigned int *GetBonIdPtr();
-    float *GettWeightPtr();
+    ImplicitSkinKernels *m_implicitSkinner;
 
-    cudaGraphicsResource *m_meshVBO_CUDA;
-
-    glm::vec3 *d_meshOrigPtr;
-    glm::vec3 *d_meshDeformedPtr;
-    glm::mat4 *d_transformPtr;
-    unsigned int *d_boneIdPtr;
-    float *d_weightPtr;
-
-    bool m_meshDeformedMapped;
 
     //-------------------------------------------------------------------
     // Attributes

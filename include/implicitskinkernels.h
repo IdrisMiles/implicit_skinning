@@ -3,6 +3,7 @@
 
 #include <cuda_runtime.h>
 #include <cuda.h>
+#include <cuda_gl_interop.h>
 
 //#ifndef GLM_FORCE_CUDA
 #define GLM_FORCE_CUDA
@@ -10,25 +11,47 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+#include <mesh.h>
 
 
 class ImplicitSkinKernels
 {
 public:
-    ImplicitSkinKernels();
+    ImplicitSkinKernels(const Mesh _origMesh,
+                        const GLuint _meshVBO,
+                        const std::vector<glm::mat4> &_transform);
+
+    ~ImplicitSkinKernels();
 
     void Deform();
 
-    static void PerformLBWSkinning(glm::vec3 *_deformedMeshVerts,
-                                   glm::vec3 *_origMeshVerts,
-                                   glm::mat4 *_transform,
-                                   uint *_boneId,
-                                   float *_weight,
-                                   uint _numVerts,
-                                   uint _numBones);
+    void PerformLBWSkinning(const std::vector<glm::mat4> &_transform);
     void PerformVertexProjection();
     void PerformTangentialRelaxation();
     void PerformLaplacianSmoothing();
+
+private:
+
+    //---------------------------------------------------------------------
+    // Private Methods
+    glm::vec3 *GetMeshDeformedPtr();
+
+    void ReleaseMeshDeformedPtr();
+
+
+    //---------------------------------------------------------------------
+    // Private Attributes
+    cudaGraphicsResource *m_meshVBO_CUDA;
+
+    glm::vec3 *d_meshDeformedPtr;
+    glm::vec3 *d_meshOrigPtr;
+    glm::mat4 *d_transformPtr;
+    unsigned int *d_boneIdPtr;
+    float *d_weightPtr;
+
+    bool m_meshDeformedMapped;
+    int m_numVerts;
+
 };
 
 #endif // IMPLICITSKINKERNELS_H
