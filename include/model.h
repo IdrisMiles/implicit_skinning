@@ -22,7 +22,11 @@
 
 #include "Machingcube/MachingCube.h"
 
-#include <implicitskinkernels.h>
+#include "implicitskindeformer.h"
+
+
+/// @author Idris Miles
+/// @version 1.0
 
 
 enum RenderType { SKINNED = 0, RIG, ISO_SURFACE, NUMRENDERTYPES };
@@ -92,7 +96,7 @@ public:
 
     void InitImplicitSkinner();
 
-    ImplicitSkinKernels *m_implicitSkinner;
+    ImplicitSkinDeformer *m_implicitSkinner;
 
 
     //-------------------------------------------------------------------
@@ -115,6 +119,8 @@ public:
 
 
     bool m_wireframe;
+    bool m_drawSkin;
+    bool m_drawIsoSurface;
     bool m_initGL;
 
     glm::vec3 m_lightPos;

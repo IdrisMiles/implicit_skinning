@@ -298,7 +298,7 @@ void Model::GenerateMeshVertIsoValue()
 
 void Model::DeformSkin()
 {
-//    m_implicitSkinner->PerformLBWSkinning(m_rig.m_boneTransforms);
+    m_implicitSkinner->PerformLBWSkinning(m_rig.m_boneTransforms);
 }
 
 void Model::PerformVertexProjection()
@@ -454,8 +454,6 @@ void Model::UpdateImplicitSurface(int xRes,
 void Model::DrawMesh()
 {
 
-
-
     static float angle = 0.0f;
     angle+=0.1f;
     if(!m_initGL)
@@ -467,8 +465,12 @@ void Model::DrawMesh()
     else
     {
         //-------------------------------------------------------------------------------------
-        // Draw skinned mesh
+        // Skin our mesh
+        DeformSkin();
 
+
+        //-------------------------------------------------------------------------------------
+        // Draw skinned mesh
         m_shaderProg[SKINNED]->bind();
         glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
         glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_viewMat*m_modelMat)[0][0]);
@@ -477,12 +479,12 @@ void Model::DrawMesh()
         glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
         if(!m_wireframe)
         {
-        m_meshVAO[SKINNED].bind();
-        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-        glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        m_meshVAO[SKINNED].release();
-        m_shaderProg[SKINNED]->release();
+            m_meshVAO[SKINNED].bind();
+            glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+            glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            m_meshVAO[SKINNED].release();
+            m_shaderProg[SKINNED]->release();
         }
 
 
@@ -494,6 +496,7 @@ void Model::DrawMesh()
         normalMatrix =  glm::mat3(1.0f);//glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
+
         // Get Scalar field for each mesh part and polygonize
         int xRes = 32;
         int yRes = 32;
@@ -504,7 +507,7 @@ void Model::DrawMesh()
         float zScale = 1.0f* dim;
         UpdateImplicitSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
 
-        // Global IsoSurface
+
         // upload new verts
         glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshIsoSurface.m_colour[0]);// Setup our vertex buffer object.
         m_meshVBO[ISO_SURFACE].bind();
@@ -577,12 +580,6 @@ void Model::Animate(const float _animationTime)
     for(unsigned int mp=0; mp<m_fieldFunctions.size(); mp++)
     {
         m_fieldFunctions[mp]->SetTransform(glm::inverse(m_rig.m_boneTransforms[mp]));
-    }
-
-
-    if(m_initGL)
-    {
-        DeformSkin();
     }
 }
 
@@ -967,7 +964,7 @@ void Model::UpdateVAOs()
 
 void Model::InitImplicitSkinner()
 {
-//    m_implicitSkinner = new ImplicitSkinKernels(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
+    m_implicitSkinner = new ImplicitSkinDeformer(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
 }
 
 

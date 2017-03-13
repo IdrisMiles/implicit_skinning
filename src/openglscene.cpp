@@ -5,9 +5,9 @@
 
 OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
-    m_yRot(0),
+    m_yRot(M_PI),
     m_zRot(0),
-    m_zDis(200)
+    m_zDis(1500)
 {
     QSurfaceFormat format;
     format.setVersion(4, 3);
@@ -78,7 +78,7 @@ void OpenGLScene::paintGL()
 
     // update model matrix
     m_modelMat = glm::mat4(1);
-    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -1.0f*m_zDis));// m_zDis));
+    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -1.0f*m_zDis));
     m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
     m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
 
@@ -118,7 +118,7 @@ void OpenGLScene::UpdateDraw()
 
 void OpenGLScene::resizeGL(int w, int h)
 {
-    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.01f, 2000.0f);
+    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.1f, 5000.0f);
 }
 
 QSize OpenGLScene::minimumSizeHint() const

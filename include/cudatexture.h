@@ -5,22 +5,34 @@
 #include <cuda.h>
 
 
+/// @author Idris Miles
+/// @version 1.0
+
+
+/// @class Cuda3DTexture<T>
+/// @brief A templated class for creating a 3D cuda texture object.
+/// @brief Templates can only be float1, float2 and float4
 template<typename T>
-class CudaTexture
+class Cuda3DTexture
 {
 public:
-    CudaTexture()
+
+    /// @brief constructor.
+    Cuda3DTexture()
     {
         m_init = false;
     }
 
-    ~CudaTexture()
+    /// @brief Destructor.
+    ~Cuda3DTexture()
     {
         DeleteCudaTexture();
     }
 
 
     /// @brief Method to create a 3D texture cudaTextureObject from host side array
+    /// @param _dim : the dimensions of the 3D texture.
+    /// @param _data : The host side array of data to fill 3D texture with.
     void CreateCudaTexture(unsigned int _dim, T *_data)
     {
         // just in case it's already been created
@@ -62,6 +74,8 @@ public:
         m_init = true;
     }
 
+    /// @brief Methot to get the cudaTextureObject_t for use within kernels.
+    /// @return cudaTextureObject_t
     cudaTextureObject_t &GetCudaTextureObject()
     {
         if(m_init)
@@ -73,6 +87,7 @@ public:
     }
 
 private:
+    /// @brief Method to destroy cuda 3D texture.
     void DeleteCudaTexture()
     {
         if(m_init)
@@ -84,9 +99,16 @@ private:
         }
     }
 
+
+    /// @brief Attribute to determine if cuda 3D texture has been created yet.
     bool m_init;
+
+    /// @brief cudaArray attribute, host side array is copied into cudaArray before it is bound to texture object.
     cudaArray *d_cuArray;
+
+    /// @brief cudaTextureObject attribute that we can pass to CUDA kernels.
     cudaTextureObject_t d_cuTex;
+
 };
 
 #endif // CUDATEXTURE_H

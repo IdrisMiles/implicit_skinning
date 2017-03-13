@@ -7,51 +7,83 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+
+/// @author Idris Miles
+/// @version 1.0
+
+
+/// @struct PosAnim
+/// @brief Structure to hold positional animation for a single keyframe.
 struct PosAnim
 {
-    float time;
-    glm::vec3 pos;
-
+    /// @brief Default constructor
     PosAnim(){}
 
-    PosAnim(float _time, glm::vec3 _pos) : 
-    time(_time),
-    pos(_pos)
+    /// @brief Constructor
+    PosAnim(float _time, glm::vec3 _pos) :
+        time(_time),
+        pos(_pos)
     {
     }
+
+    /// @brief time stamp for this frame
+    float time;
+
+    /// @brief position as this keyframe
+    glm::vec3 pos;
 };
 
+
+/// @struct ScaleAnim
+/// @brief Structure to hold scaling animation for a single keyframe.
 struct ScaleAnim
 {
-    float time;
-    glm::vec3 scale;
-
+    /// @brief Default constructor
     ScaleAnim(){}
 
+    /// @brief Constructor
     ScaleAnim(float _time, glm::vec3 _scale) : 
-    time(_time),
-    scale(_scale)
+        time(_time),
+        scale(_scale)
     {
     }
+
+    /// @brief time stamp for this frame
+    float time;
+
+    /// @brief Scale for this keyframe
+    glm::vec3 scale;
 };
 
+
+/// @struct RotAnim
+/// @brief Structure to hold rotational animation for a single keyframe.
 struct RotAnim
 {
-    float time;
-    glm::quat rot;
-
+    /// @brief Default constructor
     RotAnim(){}
 
+    /// @brief Constructor
     RotAnim(float _time, glm::quat _rot) : 
-    time(_time),
-    rot(_rot)
+        time(_time),
+        rot(_rot)
     {
     }
+
+    /// @brief time stamp for this frame
+    float time;
+
+    /// @brief rotation for this keyframe
+    glm::quat rot;
 };
 
+
+/// @struct BoneAnim
+/// @brief Structure to hold animation for a single bone.
 class BoneAnim
 {
 public:
+    /// @brief Default constructor
     BoneAnim(){}
 
     std::string m_name;

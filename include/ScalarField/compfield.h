@@ -1,6 +1,8 @@
 #ifndef COMPFIELD_H
 #define COMPFIELD_H
 
+/// @author Idris Miles
+/// @version 1.0
 
 class CompField
 {

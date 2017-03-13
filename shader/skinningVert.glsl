@@ -14,7 +14,6 @@ uniform vec3 BoneColours[MAX_BONES];
 
 out vec3 vert;
 out vec3 vertNormal;
-out vec3 boneColour;
 
 
 void main()
@@ -29,10 +28,8 @@ void main()
         }
     }
 
-    boneColour = vec3(0.6, 0.6, 0.6);
 
-
-   vert = vertex.xyz;
+   vert = vertex;
    vertNormal = normalMatrix * normal;
    gl_Position = projMatrix * mvMatrix * /*BoneTransform * */vec4(vertex, 1.0);
 

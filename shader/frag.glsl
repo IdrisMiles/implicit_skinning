@@ -1,9 +1,11 @@
 #version 330
 in vec3 vert;
 in vec3 vertNormal;
-out vec4 fragColor;
+
 uniform vec3 lightPos;
 uniform vec3 uColour;
+
+out vec4 fragColor;
 
 
 void main()

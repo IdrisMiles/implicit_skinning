@@ -1,5 +1,5 @@
 #version 330
-in vec4 vertex;
+in vec3 vertex;
 in vec3 normal;
 out vec3 vert;
 out vec3 vertNormal;
@@ -12,5 +12,5 @@ void main()
 {
    vert = vertex.xyz;
    vertNormal = normalMatrix * normal;
-   gl_Position = projMatrix * mvMatrix * vertex;
+   gl_Position = projMatrix * mvMatrix * vec4(vertex, 1.0f);
 }
