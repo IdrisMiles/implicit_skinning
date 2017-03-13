@@ -1,4 +1,4 @@
-#include "ImplicitSkinKernels.cuh"
+#include "ImplicitSkinKernels.h"
 
 
 __global__ void EvaluateGlobalField(float *_output,
@@ -33,8 +33,8 @@ __global__ void EvaluateGlobalField(float *_output,
     int i=0;
     for(i=0; i<_numFields; i++)
     {
-        glm::vec3 transformedPoint = _rigidTransforms[i] * glm::vec4(samplePoint,1.0f);
-        glm::vec3 texturePoint = textureSpace * glm::vec4(transformedPoint, 1.0f);
+        glm::vec3 transformedPoint = glm::vec3(_rigidTransforms[i] * glm::vec4(samplePoint,1.0f));
+        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
 
         f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
 //        df[i] = tex3D<float3>(_fieldDeriv[i], texturePoint.x, texturePoint.y, texturePoint.z);
@@ -67,13 +67,13 @@ __global__ void EvaluateGlobalField(float *_output,
 
 //------------------------------------------------------------------------------------------------
 
-__global__ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
-                                      const glm::vec3 *_origVert,
-                                      const glm::mat4 *_transform,
-                                      const uint *_boneId,
-                                      const float *_weight,
-                                      const uint _numVerts,
-                                      const uint _numBones)
+__global__ void LinearBlendWeightSkin_Kernel(glm::vec3 *_deformedVert,
+                                             const glm::vec3 *_origVert,
+                                             const glm::mat4 *_transform,
+                                             const uint *_boneId,
+                                             const float *_weight,
+                                             const uint _numVerts,
+                                             const uint _numBones)
 {
     int tid = threadIdx.x + (blockIdx.x * blockDim.x);
 
@@ -94,7 +94,44 @@ __global__ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
         totalWeight+=w;
     }
 
-    _deformedVert[tid] = boneTransform * glm::vec4(_origVert[tid], 1.0f);
+    _deformedVert[tid] = glm::vec3(boneTransform * glm::vec4(_origVert[tid], 1.0f));
 
 }
 
+
+//------------------------------------------------------------------------------------------------
+
+
+uint iDivUp(uint a, uint b)
+{
+    uint c = a/b;
+    c += (a%b == 0) ? 0: 1;
+    return c;
+}
+
+
+//------------------------------------------------------------------------------------------------
+
+
+void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
+                           const glm::vec3 *_origVert,
+                           const glm::mat4 *_transform,
+                           const uint *_boneId,
+                           const float *_weight,
+                           const uint _numVerts,
+                           const uint _numBones)
+{
+    uint numThreads = 1024u;
+    uint numBlocks = iDivUp(_numVerts, numThreads);
+
+
+    LinearBlendWeightSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert,
+                                                            _origVert,
+                                                            _transform,
+                                                            _boneId,
+                                                            _weight,
+                                                            _numVerts,
+                                                            _numBones);
+
+
+}

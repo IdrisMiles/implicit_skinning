@@ -73,7 +73,7 @@ private:
     Field1D<glm::vec3> m_grad;
 
     Cuda3DTexture<float> d_field;
-    Cuda3DTexture<float4> d_grad;
+//    Cuda3DTexture<float4> d_grad;
 
 
     std::vector<std::pair<glm::vec3, float>> m_cachedEvals;

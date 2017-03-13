@@ -36,6 +36,7 @@ Model::~Model()
     if(m_initGL)
     {
         DeleteVAOs();
+        DeleteImplicitSkinner();
     }
 }
 
@@ -133,6 +134,11 @@ void Model::GenerateFieldFunctions()
     auto threadFunc = [this, &numHrbfFitPoints](int startId, int endId){
         for(int mp=startId; mp<endId; mp++)
         {
+            //--------------------------------------------------
+            // TODO
+            // Move this block into it's own function: GenerateHrbfCentres
+            // Pass HRBF centres to this function to initialize fields.
+            //--------------------------------------------------
             // Generate HRBF centre by sampling mesh
             Mesh hrbfCentres = MeshSampler::BaryCoord::SampleMesh(m_meshParts[mp], numHrbfFitPoints);
 
@@ -170,6 +176,8 @@ void Model::GenerateFieldFunctions()
             hrbfCentres.m_meshNorms.push_back(-glm::normalize(edge));
             hrbfCentres.m_meshVerts.push_back(jointEnd + (minDist * glm::normalize(edge)));
             hrbfCentres.m_meshNorms.push_back(glm::normalize(edge));
+
+            //--------------------------------------------------
 
 
             // Generate HRBF fit and thus scalar field/implicit function
@@ -209,18 +217,17 @@ void Model::GenerateFieldFunctions()
     int startChunk = 0;
     int threadId=0;
 
+    // Generate Field functions in each thread
     for(threadId=0; threadId<numBigChunks; threadId++)
     {
         m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+bigChunkSize);
         startChunk+=bigChunkSize;
     }
-
     for(; threadId<numThreads-1; threadId++)
     {
         m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+chunkSize);
         startChunk+=chunkSize;
     }
-
     threadFunc(startChunk, m_meshParts.size());
 
     for(int i=0; i<numThreads-1; i++)
@@ -364,15 +371,6 @@ void Model::UpdateImplicitSurface(int xRes,
                                   float yScale,
                                   float zScale)
 {
-//    static double time = 0.0;
-//    static double t1 = 0.0;
-//    static double t2 = 0.0;
-//    struct timeval tim;
-
-//    gettimeofday(&tim, NULL);
-//    t1=tim.tv_sec+(tim.tv_usec/1000000.0);
-
-
     float *volumeData = new float[xRes*yRes*zRes];
 
 
@@ -412,6 +410,7 @@ void Model::UpdateImplicitSurface(int xRes,
     };
 
 
+    // Evalue field in each thread
     for(threadId=0; threadId<numBigChunks; threadId++)
     {
         m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+bigChunkSize));
@@ -424,7 +423,6 @@ void Model::UpdateImplicitSurface(int xRes,
     }
     threadFunc(startChunk, zRes);
 
-
     for(int i=0; i<numThreads-1; i++)
     {
         if(m_threads[i].joinable())
@@ -433,11 +431,6 @@ void Model::UpdateImplicitSurface(int xRes,
         }
     }
 
-
-//    gettimeofday(&tim, NULL);
-//    t2=tim.tv_sec+(tim.tv_usec/1000000.0);
-//    time += 10*(t2-t1);
-//    std::cout<<"evaluate global field: "<<1.0/(t2-t1)<<"\n";
 
     // Polygonize scalar field using maching cube
     m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
@@ -965,6 +958,15 @@ void Model::UpdateVAOs()
 void Model::InitImplicitSkinner()
 {
     m_implicitSkinner = new ImplicitSkinDeformer(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
+}
+
+void Model::DeleteImplicitSkinner()
+{
+    if(m_implicitSkinner != nullptr)
+    {
+        delete m_implicitSkinner;
+        m_implicitSkinner = nullptr;
+    }
 }
 
 

@@ -23,6 +23,7 @@ public:
         if(m_data != nullptr)
         {
             delete [] m_data;
+            m_data = nullptr;
         }
     }
 
@@ -46,6 +47,7 @@ public:
         if(m_data != nullptr)
         {
             delete [] m_data;
+            m_data = nullptr;
         }
 
         m_dim = _dim;

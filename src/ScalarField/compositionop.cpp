@@ -31,7 +31,7 @@ void CompositionOp::SetCompositionOp(std::function<float(float, float, float)> _
 
 void CompositionOp::Precompute(const unsigned int _dim)
 {
-    float data[_dim*_dim*_dim] = {0.0f};
+    float data[_dim*_dim*_dim];
 
     for(unsigned int z=0; z<_dim; ++z)
     {

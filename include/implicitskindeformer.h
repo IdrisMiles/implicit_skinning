@@ -5,7 +5,8 @@
 #include <cuda.h>
 #include <cuda_gl_interop.h>
 
-#include <mesh.h>
+#include "mesh.h"
+//#include "ScalarField/globalfieldfunction.h"
 
 
 /// @author Idris Miles
@@ -77,6 +78,10 @@ private:
 
     /// @brief
     int m_numVerts;
+
+//    GlobalFieldFunction m_gf;
+
+    bool m_init;
 
 };
 

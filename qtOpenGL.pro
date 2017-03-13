@@ -11,7 +11,7 @@ TEMPLATE = app
 
 CONFIG += console c++11
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11 -g
 
 
 #QMAKE_CFLAGS+=-pg
@@ -65,7 +65,7 @@ HEADERS += $$PWD/cuda_inc/*.*h
 
 INCLUDEPATH +=  ./cuda_inc \
                 ./include
-CUDA_SOURCES += $$PWD/cuda_src/*.cu
+CUDA_SOURCES += ./cuda_src/*.cu
 CUDA_PATH = /usr
 NVCC = $$CUDA_PATH/bin/nvcc
 

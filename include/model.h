@@ -95,6 +95,7 @@ public:
     // Implicit Skinner
 
     void InitImplicitSkinner();
+    void DeleteImplicitSkinner();
 
     ImplicitSkinDeformer *m_implicitSkinner;
 

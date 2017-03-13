@@ -1,7 +1,7 @@
 #ifndef _BARYCOORDMESHSAMPLER__H_
 #define _BARYCOORDMESHSAMPLER__H_
 
-#include "include/mesh.h"
+#include "mesh.h"
 
 
 namespace MeshSampler

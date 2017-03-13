@@ -55,7 +55,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
         return;
     }
 
-    float data[_dim*_dim*_dim] = {0.0f};
+    float data[_dim*_dim*_dim];
     glm::vec3 grad[_dim*_dim*_dim];
     float4 cuGrad[_dim*_dim*_dim];
 
@@ -85,7 +85,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
     m_field.SetData(_dim, data);
     m_grad.SetData(_dim, grad);
 
-//    d_field.CreateCudaTexture(_dim, data);
+    d_field.CreateCudaTexture(_dim, data);
 //    d_grad.CreateCudaTexture(_dim, cuGrad);
 
     auto textureSpaceTransform = [_scale](glm::vec3 x){
@@ -121,29 +121,12 @@ float FieldFunction::Eval(const glm::vec3 &_x)
 
     glm::vec3 tx = TransformSpace(_x);
 
-    // checked cached results first
-    for(auto &ce : m_cachedEvals)
-    {
-        if(Equiv(tx, ce.first))
-        {
-            return ce.second;
-        }
-    }
-
 
     // texture lookup
     float f = m_field.Eval(tx);
 
     // accurate evaluation
 //    float f = Remap(m_distanceField.eval(DistanceField::Vector(tx.x, tx.y, tx.z)));
-
-
-    // cache value
-    if(m_cachedEvals.size() >= 4)
-    {
-        m_cachedEvals.erase(m_cachedEvals.begin());
-    }
-    m_cachedEvals.push_back(std::make_pair(tx, f));
 
 
     return f;
@@ -169,14 +152,7 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 
     glm::vec3 tx = TransformSpace(x);
 
-    // check cached values
-    for(auto &cg : m_cachedGrads)
-    {
-        if(Equiv(tx, cg.first))
-        {
-            return cg.second;
-        }
-    }
+
 
     // more accurate but heavy gradient computation
 //    glm::vec3 tx = TransformSpace(x);
@@ -185,14 +161,6 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 
     // texture lookup
     glm::vec3 grad = m_grad.Eval(tx);
-
-
-//    // cache value
-    if(m_cachedGrads.size() >= 4)
-    {
-        m_cachedGrads.erase(m_cachedGrads.begin());
-    }
-    m_cachedGrads.push_back(std::make_pair(tx, grad));
 
 
     return grad;

@@ -5,7 +5,7 @@
 
 OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
-    m_yRot(M_PI),
+    m_yRot(180.0f*16.0f),
     m_zRot(0),
     m_zDis(1500)
 {
@@ -54,7 +54,7 @@ void OpenGLScene::AddModel(const std::string &_modelFile)
 
 void OpenGLScene::initializeGL()
 {
-    //connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OpenGLScene::cleanup);
+    connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OpenGLScene::cleanup);
 
     glewInit();
 
@@ -68,6 +68,7 @@ void OpenGLScene::initializeGL()
     m_initGL = true;
     m_drawTimer->start(16);
     m_animTimer->start(16);
+
 }
 
 void OpenGLScene::paintGL()
@@ -199,6 +200,7 @@ void OpenGLScene::setZRotation(int angle)
 void OpenGLScene::cleanup()
 {
     makeCurrent();
+    m_models.clear();
     doneCurrent();
 }
 
