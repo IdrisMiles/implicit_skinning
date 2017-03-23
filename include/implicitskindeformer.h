@@ -6,7 +6,7 @@
 #include <cuda_gl_interop.h>
 
 #include "mesh.h"
-//#include "ScalarField/globalfieldfunction.h"
+#include "ScalarField/globalfieldfunction.h"
 
 
 /// @author Idris Miles
@@ -33,6 +33,9 @@ public:
     /// @param _transform : a vector of joint transform matrices.
     void PerformLBWSkinning(const std::vector<glm::mat4> &_transform);
 
+    /// @brief Method
+    void PerformImplicitSkinning(const std::vector<glm::mat4> &_transform);
+
     /// @brief
     void PerformVertexProjection();
 
@@ -42,15 +45,27 @@ public:
     /// @brief
     void PerformLaplacianSmoothing();
 
+
+    //--------------------------------------------------------------------
+
+    void AddComposedField(std::shared_ptr<ComposedField> _composedField);
+
+    void AddFieldFunction(std::shared_ptr<FieldFunction> _fieldFunc);
+
+    void AddCompositionOp(std::shared_ptr<CompositionOp> _compOp);
+
+    //--------------------------------------------------------------------
+
+
 private:
 
     //---------------------------------------------------------------------
     // Private Methods
     /// @brief Method to get the device side pointer to deformed mesh vertices for use in CUDA kernels
-    glm::vec3 *GetMeshDeformedPtr();
+    glm::vec3 *GetMeshDeformedDevicePtr();
 
     /// @brief Method to release the device side pointer so OpenGL can use the VBO holding the deformed mesh vertices.
-    void ReleaseMeshDeformedPtr();
+    void ReleaseMeshDeformedDevicePtr();
 
 
     //---------------------------------------------------------------------
@@ -79,7 +94,7 @@ private:
     /// @brief
     int m_numVerts;
 
-//    GlobalFieldFunction m_gf;
+    GlobalFieldFunction m_globalFieldFunction;
 
     bool m_init;
 

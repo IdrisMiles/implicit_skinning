@@ -1,5 +1,77 @@
 #include "ImplicitSkinKernels.h"
 
+//------------------------------------------------------------------------------------------------
+// CUDA Device Functions
+//------------------------------------------------------------------------------------------------
+
+__device__ void VertexProjection(glm::vec3 &_deformedVert,
+                                 const float &_origIso,
+                                 const float &_newIso,
+                                 const glm::vec3 &_newIsoGrad,
+                                 glm::vec3 &_prevIsoGrad,
+                                 float &_gradAngle,
+                                 const float &_sigma,
+                                 const float &_contactAngle)
+{
+    float angle = _gradAngle = glm::angle(_newIsoGrad, _prevIsoGrad);
+    if(angle < _contactAngle)
+    {
+        _deformedVert = _deformedVert + ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
+        _prevIsoGrad = _newIsoGrad;
+    }
+}
+
+//------------------------------------------------------------------------------------------------
+
+__device__ void TangentialRelaxation(glm::vec3 &_deformedVert,
+                                     const glm::vec3 &_normal,
+                                     const float &_origIso,
+                                     const float &_newIso,
+                                     const int *_oneRingNeigh,
+                                     const float *_centroidWeights,
+                                     const int _numNeighs,
+                                     const glm::vec3 *_verts)
+{
+    float mu = 1.0f - (float)pow(fabs(_newIso- _origIso) - 1.0f, 4.0f);
+    mu = mu < 0.0f ? 0.0f : mu;
+
+    glm::vec3 sumWeightedCentroid(0.0f);
+
+    for(int i=0; i<_numNeighs; i++)
+    {
+        glm::vec3 neighVert = _verts[_oneRingNeigh[i]];
+        glm::vec3 projNeighVert = neighVert; // TODO project vert onto tangential plane using _normal
+        float barycentricCoord = _centroidWeights[i];
+        sumWeightedCentroid += barycentricCoord * projNeighVert;
+    }
+
+    _deformedVert = ((1.0f - mu) * _deformedVert) + (mu * sumWeightedCentroid);
+}
+
+//------------------------------------------------------------------------------------------------
+
+__device__ void LaplacianSmoothing(glm::vec3 &_deformedVert,
+                                   const glm::vec3 &_normal,
+                                   const int *_oneRingNeigh,
+                                   const float *_centroidWeights,
+                                   const int _numNeighs,
+                                   const glm::vec3 *_verts,
+                                   const float _beta)
+{
+    glm::vec3 centroid(0.0f, 0.0f, 0.0f);
+
+    for(int i=0; i<_numNeighs; i++)
+    {
+        centroid += (_centroidWeights[i] * _verts[_oneRingNeigh[i]]);
+    }
+
+    _deformedVert = ((1.0f - _beta) * _deformedVert) + (_beta * centroid);
+}
+
+
+//------------------------------------------------------------------------------------------------
+// CUDA Global Kernels
+//------------------------------------------------------------------------------------------------
 
 __global__ void EvaluateGlobalField(float *_output,
                                     glm::vec3 *_samplePoint,
@@ -98,9 +170,17 @@ __global__ void LinearBlendWeightSkin_Kernel(glm::vec3 *_deformedVert,
 
 }
 
-
 //------------------------------------------------------------------------------------------------
 
+__global__ void ImplicitSkin_Kernel()
+{
+
+}
+
+
+//------------------------------------------------------------------------------------------------
+// Helper CPP Functions
+//------------------------------------------------------------------------------------------------
 
 uint iDivUp(uint a, uint b)
 {
@@ -110,8 +190,10 @@ uint iDivUp(uint a, uint b)
 }
 
 
-//------------------------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------------------------
+// CPP functions
+//------------------------------------------------------------------------------------------------
 
 void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const glm::vec3 *_origVert,

@@ -92,7 +92,7 @@ void ImplicitSkinDeformer::PerformLBWSkinning(const std::vector<glm::mat4> &_tra
 
     checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
 
-    LinearBlendWeightSkin(GetMeshDeformedPtr(),
+    LinearBlendWeightSkin(GetMeshDeformedDevicePtr(),
                            d_meshOrigPtr,
                            d_transformPtr,
                            d_boneIdPtr,
@@ -103,12 +103,37 @@ void ImplicitSkinDeformer::PerformLBWSkinning(const std::vector<glm::mat4> &_tra
     getLastCudaError("LinearBlendWeightSkin Failed");
 
     checkCudaErrors(cudaThreadSynchronize());
-    ReleaseMeshDeformedPtr();
+    ReleaseMeshDeformedDevicePtr();
+}
+
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::AddComposedField(std::shared_ptr<ComposedField> _composedField)
+{
+    m_globalFieldFunction.AddComposedField(_composedField);
 }
 
 //------------------------------------------------------------------------------------------------
 
-glm::vec3 *ImplicitSkinDeformer::GetMeshDeformedPtr()
+void ImplicitSkinDeformer::AddFieldFunction(std::shared_ptr<FieldFunction> _fieldFunc)
+{
+    m_globalFieldFunction.AddFieldFunction(_fieldFunc);
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::AddCompositionOp(std::shared_ptr<CompositionOp> _compOp)
+{
+    m_globalFieldFunction.AddCompositionOp(_compOp);
+}
+
+//------------------------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------------------------
+
+glm::vec3 *ImplicitSkinDeformer::GetMeshDeformedDevicePtr()
 {
     if(!m_meshDeformedMapped)
     {
@@ -124,7 +149,7 @@ glm::vec3 *ImplicitSkinDeformer::GetMeshDeformedPtr()
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::ReleaseMeshDeformedPtr()
+void ImplicitSkinDeformer::ReleaseMeshDeformedDevicePtr()
 {
     if(m_meshDeformedMapped)
     {

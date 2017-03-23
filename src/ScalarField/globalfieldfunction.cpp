@@ -6,12 +6,14 @@ GlobalFieldFunction::GlobalFieldFunction()
 
 }
 
+//----------------------------------------------------------------------------------------------------
+
 GlobalFieldFunction::~GlobalFieldFunction()
 {
     m_composedFields.clear();
 }
 
-
+//----------------------------------------------------------------------------------------------------
 
 float GlobalFieldFunction::Eval(const glm::vec3 &_x)
 {
@@ -25,6 +27,8 @@ float GlobalFieldFunction::Eval(const glm::vec3 &_x)
     return *std::max_element(composedFieldValues.begin(), composedFieldValues.end());
 }
 
+//----------------------------------------------------------------------------------------------------
+
 glm::vec3 GlobalFieldFunction::Grad(const glm::vec3 &_x)
 {
     float h= 0.01f;
@@ -37,6 +41,22 @@ glm::vec3 GlobalFieldFunction::Grad(const glm::vec3 &_x)
     return glm::vec3(dx, dy, dz);
 }
 
+//----------------------------------------------------------------------------------------------------
+
+void GlobalFieldFunction::Fit(const int _numMeshParts)
+{
+    m_fieldFuncs.resize(_numMeshParts);
+
+//    for each meshPart
+//    {
+//        GenerateHRBFCentres();
+//        GenerateFieldFuncs();
+//    }
+//    GenerateGlobalFieldFunc();
+
+}
+
+//----------------------------------------------------------------------------------------------------
 
 void GlobalFieldFunction::GenerateHRBFCentres(const Mesh &_meshPart,
                                               const glm::vec3 &_startJoint,
@@ -81,7 +101,9 @@ void GlobalFieldFunction::GenerateHRBFCentres(const Mesh &_meshPart,
     _hrbfCentres.m_meshNorms.push_back(glm::normalize(edge));
 }
 
-void GlobalFieldFunction::GenerateFieldFuncs(const Mesh &_hrbfCentres)
+//----------------------------------------------------------------------------------------------------
+
+void GlobalFieldFunction::GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mesh &_meshPart, const int _id)
 {
     // Generate HRBF fit and thus scalar field/implicit function
     auto fieldFunc = std::shared_ptr<FieldFunction>(new FieldFunction());
@@ -90,11 +112,11 @@ void GlobalFieldFunction::GenerateFieldFuncs(const Mesh &_hrbfCentres)
 
     // Find maximun range of scalar field
     float maxDist = FLT_MIN;
-    for(auto &&tri : _hrbfCentres.m_meshTris)
+    for(auto &&tri : _meshPart.m_meshTris)
     {
-        glm::vec3 v0 = _hrbfCentres.m_meshVerts[tri.x];
-        glm::vec3 v1 = _hrbfCentres.m_meshVerts[tri.y];
-        glm::vec3 v2 = _hrbfCentres.m_meshVerts[tri.z];
+        glm::vec3 v0 = _meshPart.m_meshVerts[tri.x];
+        glm::vec3 v1 = _meshPart.m_meshVerts[tri.y];
+        glm::vec3 v2 = _meshPart.m_meshVerts[tri.z];
 
         float f0 = fieldFunc->EvalDist(v0);
         maxDist = f0 > maxDist ? f0 : maxDist;
@@ -112,9 +134,11 @@ void GlobalFieldFunction::GenerateFieldFuncs(const Mesh &_hrbfCentres)
     float scale = 8.0f; // scale of 3D space we sample 8*8*8 volume
     fieldFunc->PrecomputeField(dim, scale);
 
-
-    AddFieldFunction(fieldFunc);
+    m_fieldFuncs[_id] = fieldFunc;
+//    AddFieldFunction(fieldFunc);
 }
+
+//----------------------------------------------------------------------------------------------------
 
 void GlobalFieldFunction::GenerateGlobalFieldFunc()
 {
@@ -156,37 +180,67 @@ void GlobalFieldFunction::GenerateGlobalFieldFunc()
         int fieldId = 0;
         auto composedField = std::shared_ptr<ComposedField>(new ComposedField());
         composedField->SetCompositionOp(contactOp);
+        composedField->SetFieldFunc(m_fieldFuncs[mp], fieldId++);
 
-//        if(m_meshParts[mp].m_meshTris.size() >0)
-        {
-            composedField->SetFieldFunc(m_fieldFuncs[mp], fieldId++);
-        }
 
-        if(m_fieldFuncs.size() > mp)
+        if(m_fieldFuncs.size() > mp+1)
         {
-//            if(m_meshParts[mp+1].m_meshTris.size() > 0)
-            {
-                composedField->SetFieldFunc(m_fieldFuncs[mp+1], fieldId);
-            }
+            composedField->SetFieldFunc(m_fieldFuncs[mp+1], fieldId);
         }
 
         AddComposedField(composedField);
     }
 }
 
+//----------------------------------------------------------------------------------------------------
 
 void GlobalFieldFunction::AddComposedField(std::shared_ptr<ComposedField> _composedField)
 {
     m_composedFields.push_back(_composedField);
 }
 
+//----------------------------------------------------------------------------------------------------
 
 void GlobalFieldFunction::AddFieldFunction(std::shared_ptr<FieldFunction> _fieldFunc)
 {
     m_fieldFuncs.push_back(_fieldFunc);
 }
 
+//----------------------------------------------------------------------------------------------------
+
 void GlobalFieldFunction::AddCompositionOp(std::shared_ptr<CompositionOp> _compOp)
 {
     m_compOps.push_back(_compOp);
 }
+
+//----------------------------------------------------------------------------------------------------
+
+void GlobalFieldFunction::SetRigidTransforms(const std::vector<glm::mat4> &_transforms)
+{
+    for(unsigned int mp=0; mp<_transforms.size(); mp++)
+    {
+        m_fieldFuncs[mp]->SetTransform(glm::inverse(_transforms[mp]));
+    }
+}
+
+//----------------------------------------------------------------------------------------------------
+
+std::vector<std::shared_ptr<FieldFunction> > &GlobalFieldFunction::GetFieldFuncs()
+{
+    return m_fieldFuncs;
+}
+
+//----------------------------------------------------------------------------------------------------
+
+std::vector<cudaTextureObject_t> GlobalFieldFunction::GetFieldFunc3DTextures()
+{
+    std::vector<cudaTextureObject_t> textures;
+    for(auto f : m_fieldFuncs)
+    {
+        textures.push_back(f->GetFieldFunc3DTexture());
+    }
+
+    return textures;
+}
+
+//----------------------------------------------------------------------------------------------------

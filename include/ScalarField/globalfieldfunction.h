@@ -23,6 +23,7 @@ public:
 
     glm::vec3 Grad(const glm::vec3 &_x);
 
+    void Fit(const int _numMeshParts);
 
     void GenerateHRBFCentres(const Mesh &_meshPart,
                              const glm::vec3 &_startJoint,
@@ -30,7 +31,7 @@ public:
                              const int _numPoints,
                              Mesh &_hrbfCentres);
 
-    void GenerateFieldFuncs(const Mesh &_hrbfCentres);
+    void GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mesh &_meshPart, const int _id);
 
     void GenerateGlobalFieldFunc();
 
@@ -40,6 +41,16 @@ public:
     void AddFieldFunction(std::shared_ptr<FieldFunction> _fieldFunc);
 
     void AddCompositionOp(std::shared_ptr<CompositionOp> _compOp);
+
+    //--------------------------------------------------------------------
+
+    void SetRigidTransforms(const std::vector<glm::mat4> &_transforms);
+
+    //--------------------------------------------------------------------
+
+    std::vector<std::shared_ptr<FieldFunction>> &GetFieldFuncs();
+
+    std::vector<cudaTextureObject_t> GetFieldFunc3DTextures();
 
 private:
 

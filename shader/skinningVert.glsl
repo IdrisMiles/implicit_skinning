@@ -28,8 +28,7 @@ void main()
         }
     }
 
-
-   vert = vertex;
+   vert = vertex; // (inverse(BoneTransform)*vec4(vertex, 1.0f)).xyz;
    vertNormal = normalMatrix * normal;
    gl_Position = projMatrix * mvMatrix * /*BoneTransform * */vec4(vertex, 1.0);
 

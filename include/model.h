@@ -109,7 +109,6 @@ public:
     Mesh m_rigMesh;
 
     std::vector<Mesh> m_meshParts;
-    std::vector<std::shared_ptr<FieldFunction>> m_fieldFunctions;
     GlobalFieldFunction m_globalFieldFunction;
     Mesh m_meshIsoSurface;
     MachingCube m_polygonizer;
