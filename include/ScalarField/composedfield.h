@@ -1,6 +1,7 @@
 #ifndef COMPOSEDFIELD_H
 #define COMPOSEDFIELD_H
 
+#include <memory>
 
 #include <ScalarField/compositionop.h>
 #include <ScalarField/fieldfunction.h>

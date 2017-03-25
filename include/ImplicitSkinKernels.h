@@ -18,11 +18,10 @@
 /// @author Idris Miles
 /// @version 1.0
 
+namespace kernels {
 
 /// @brief Function
 uint iDivUp(uint a, uint b);
-
-void InitCUDAMemory();
 
 
 /// @brief Function to launch CUDA Kernel to perform linear blend weight skinning
@@ -34,4 +33,13 @@ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const uint _numVerts,
                            const uint _numBones);
 
+void SimpleEval(float *_output,
+                glm::vec3 *_samplePoint,
+                uint _numSamples,
+                glm::mat4 *_textureSpace,
+                glm::mat4 *_rigidTransforms,
+                cudaTextureObject_t *_fieldFuncs,
+                uint _numFields);
+
+}
 #endif //IMPLICITSKINKERNELS_H

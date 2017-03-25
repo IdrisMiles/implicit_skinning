@@ -76,9 +76,6 @@ private:
 //    Cuda3DTexture<float4> d_grad;
 
 
-    std::vector<std::pair<glm::vec3, float>> m_cachedEvals;
-    std::pair<glm::vec3, float> m_cachedEval;
-    std::vector<std::pair<glm::vec3, glm::vec3>> m_cachedGrads;
 
 
 };

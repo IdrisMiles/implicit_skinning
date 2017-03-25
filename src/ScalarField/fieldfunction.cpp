@@ -7,7 +7,6 @@ FieldFunction::FieldFunction(glm::mat4 _transform) :
     m_transform(_transform),
     m_fit(false)
 {
-    m_cachedEvals.reserve(4);
 }
 
 

@@ -76,8 +76,6 @@ public:
 
     void GenerateMeshParts();
     void GenerateFieldFunctions();
-    void GenerateGlobalFieldFunctions();
-    void GenerateMeshVertIsoValue();
 
     void GenerateOneRingNeighbours();
     void GenerateCentroidWeights();
@@ -86,9 +84,6 @@ public:
     //-------------------------------------------------------------------
 
     void DeformSkin();
-    void PerformVertexProjection();
-    void PerformTangentialRelaxation();
-    void PerformLaplacianSmoothing();
 
 
     //-------------------------------------------------------------------
@@ -109,7 +104,6 @@ public:
     Mesh m_rigMesh;
 
     std::vector<Mesh> m_meshParts;
-    GlobalFieldFunction m_globalFieldFunction;
     Mesh m_meshIsoSurface;
     MachingCube m_polygonizer;
 

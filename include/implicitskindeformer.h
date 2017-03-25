@@ -1,6 +1,8 @@
 #ifndef IMPLICITSKINDEFORMER_H
 #define IMPLICITSKINDEFORMER_H
 
+#include <thread>
+
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <cuda_gl_interop.h>
@@ -26,6 +28,8 @@ public:
     /// @brief Destructor.
     ~ImplicitSkinDeformer();
 
+    //--------------------------------------------------------------------
+
     /// @brief Method to deform mesh.
     void Deform();
 
@@ -35,16 +39,6 @@ public:
 
     /// @brief Method
     void PerformImplicitSkinning(const std::vector<glm::mat4> &_transform);
-
-    /// @brief
-    void PerformVertexProjection();
-
-    /// @brief
-    void PerformTangentialRelaxation();
-
-    /// @brief
-    void PerformLaplacianSmoothing();
-
 
     //--------------------------------------------------------------------
 
@@ -56,6 +50,23 @@ public:
 
     //--------------------------------------------------------------------
 
+    void GenerateGlobalFieldFunction(const std::vector<Mesh> &_meshParts,
+                                     const std::vector<glm::vec3> &_boneStarts,
+                                     const std::vector<glm::vec3> &_boneEnds,
+                                     const int _numHrbfCentres);
+
+    //--------------------------------------------------------------------
+
+    void SetRigidTransforms(const std::vector<glm::mat4> &_transforms);
+
+    //--------------------------------------------------------------------
+
+
+    void SimpleEval(std::vector<float> &_output,
+                    const std::vector<glm::vec3> &_samplePoints,
+                    const std::vector<glm::mat4> &_transform);
+
+    GlobalFieldFunction &GetGlocalFieldFunc();
 
 private:
 
@@ -70,6 +81,10 @@ private:
 
     //---------------------------------------------------------------------
     // Private Attributes
+
+    /// @brief
+    std::vector<std::thread> m_threads;
+
     /// @brief
     cudaGraphicsResource *m_meshVBO_CUDA;
 

@@ -139,6 +139,44 @@ __global__ void EvaluateGlobalField(float *_output,
 
 //------------------------------------------------------------------------------------------------
 
+__global__ void SimpleEvaluateGlobalField(float *_output,
+                                          glm::vec3 *_samplePoint,
+                                          uint _numSamples,
+                                          glm::mat4 *_textureSpace,
+                                          glm::mat4 *_rigidTransforms,
+                                          cudaTextureObject_t *_fieldFuncs,
+                                          uint _numFields)
+{
+    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
+
+    if(tid >= _numSamples)
+    {
+        return;
+    }
+
+
+    glm::vec3 samplePoint = _samplePoint[tid];
+
+
+    float maxF = FLT_MIN;
+    float f[100];
+    int i=0;
+    for(i=0; i<_numFields; i++)
+    {
+        glm::mat4 textureSpace = _textureSpace[i];
+        glm::vec3 transformedPoint = glm::vec3(_rigidTransforms[i] * glm::vec4(samplePoint,1.0f));
+        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
+
+        f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
+
+        maxF = (f[i]>maxF) ? f[i] : maxF;
+    }
+
+    _output[tid] = maxF;
+}
+
+//------------------------------------------------------------------------------------------------
+
 __global__ void LinearBlendWeightSkin_Kernel(glm::vec3 *_deformedVert,
                                              const glm::vec3 *_origVert,
                                              const glm::mat4 *_transform,
@@ -182,7 +220,7 @@ __global__ void ImplicitSkin_Kernel()
 // Helper CPP Functions
 //------------------------------------------------------------------------------------------------
 
-uint iDivUp(uint a, uint b)
+uint kernels::iDivUp(uint a, uint b)
 {
     uint c = a/b;
     c += (a%b == 0) ? 0: 1;
@@ -195,7 +233,7 @@ uint iDivUp(uint a, uint b)
 // CPP functions
 //------------------------------------------------------------------------------------------------
 
-void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
+void kernels::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const glm::vec3 *_origVert,
                            const glm::mat4 *_transform,
                            const uint *_boneId,
@@ -204,7 +242,7 @@ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const uint _numBones)
 {
     uint numThreads = 1024u;
-    uint numBlocks = iDivUp(_numVerts, numThreads);
+    uint numBlocks = kernels::iDivUp(_numVerts, numThreads);
 
 
     LinearBlendWeightSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert,
@@ -214,6 +252,28 @@ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                                                             _weight,
                                                             _numVerts,
                                                             _numBones);
+    cudaThreadSynchronize();
+}
 
+//------------------------------------------------------------------------------------------------
 
+void kernels::SimpleEval(float *_output,
+                        glm::vec3 *_samplePoint,
+                        uint _numSamples,
+                        glm::mat4* _textureSpace,
+                        glm::mat4 *_rigidTransforms,
+                        cudaTextureObject_t *_fieldFuncs,
+                        uint _numFields)
+{
+    uint numThreads = 1024u;
+    uint numBlocks = kernels::iDivUp(_numSamples, numThreads);
+
+    SimpleEvaluateGlobalField<<<numBlocks, numThreads>>>(_output,
+                                                         _samplePoint,
+                                                         _numSamples,
+                                                         _textureSpace,
+                                                         _rigidTransforms,
+                                                         _fieldFuncs,
+                                                         _numFields);
+    cudaThreadSynchronize();
 }

@@ -12,6 +12,7 @@ ImplicitSkinDeformer::ImplicitSkinDeformer(const Mesh _origMesh,
     m_init(false),
     m_meshDeformedMapped(false)
 {
+    m_threads.resize(std::thread::hardware_concurrency()-1);
     m_numVerts = _origMesh.m_meshVerts.size();
 
     // Get bone ID and weights per vertex
@@ -68,6 +69,13 @@ ImplicitSkinDeformer::ImplicitSkinDeformer(const Mesh _origMesh,
 
 ImplicitSkinDeformer::~ImplicitSkinDeformer()
 {
+    for(int i=0; i<m_threads.size(); i++)
+    {
+        if(m_threads[i].joinable())
+        {
+            m_threads[i].join();
+        }
+    }
 
     if(m_init)
     {
@@ -92,7 +100,7 @@ void ImplicitSkinDeformer::PerformLBWSkinning(const std::vector<glm::mat4> &_tra
 
     checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
 
-    LinearBlendWeightSkin(GetMeshDeformedDevicePtr(),
+    kernels::LinearBlendWeightSkin(GetMeshDeformedDevicePtr(),
                            d_meshOrigPtr,
                            d_transformPtr,
                            d_boneIdPtr,
@@ -106,6 +114,12 @@ void ImplicitSkinDeformer::PerformLBWSkinning(const std::vector<glm::mat4> &_tra
     ReleaseMeshDeformedDevicePtr();
 }
 
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::PerformImplicitSkinning(const std::vector<glm::mat4> &_transform)
+{
+
+}
 
 //------------------------------------------------------------------------------------------------
 
@@ -129,6 +143,97 @@ void ImplicitSkinDeformer::AddCompositionOp(std::shared_ptr<CompositionOp> _comp
 }
 
 //------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &_meshParts,
+                                                       const std::vector<glm::vec3> &_boneStarts,
+                                                       const std::vector<glm::vec3> &_boneEnds,
+                                                       const int _numHrbfCentres)
+{
+    m_globalFieldFunction.Fit(_meshParts.size());
+
+    auto threadFunc = [&, this](int startId, int endId){
+        for(int mp=startId; mp<endId; mp++)
+        {
+            Mesh hrbfCentres;
+            m_globalFieldFunction.GenerateHRBFCentres(_meshParts[mp], _boneStarts[mp], _boneEnds[mp], _numHrbfCentres, hrbfCentres);
+            m_globalFieldFunction.GenerateFieldFuncs(hrbfCentres, _meshParts[mp], mp);
+
+        }
+    };
+
+    int numThreads = m_threads.size() + 1;// std::thread::hardware_concurrency();
+    int dataSize = _meshParts.size();
+    int chunkSize = dataSize / numThreads;
+    int numBigChunks = dataSize % numThreads;
+    int bigChunkSize = chunkSize + (numBigChunks>0 ? 1 : 0);
+    int startChunk = 0;
+    int threadId=0;
+
+    // Generate Field functions in each thread
+    for(threadId=0; threadId<numBigChunks; threadId++)
+    {
+        m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+bigChunkSize);
+        startChunk+=bigChunkSize;
+    }
+    for(; threadId<numThreads-1; threadId++)
+    {
+        m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+chunkSize);
+        startChunk+=chunkSize;
+    }
+    threadFunc(startChunk, _meshParts.size());
+
+    for(int i=0; i<numThreads-1; i++)
+    {
+        if(m_threads[i].joinable())
+        {
+            m_threads[i].join();
+        }
+    }
+
+
+    m_globalFieldFunction.GenerateGlobalFieldFunc();
+}
+
+//------------------------------------------------------------------------------------------------
+void ImplicitSkinDeformer::SetRigidTransforms(const std::vector<glm::mat4> &_transforms)
+{
+    m_globalFieldFunction.SetRigidTransforms(_transforms);
+    checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transforms[0][0][0], _transforms.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::SimpleEval(std::vector<float> &_output,
+                                      const std::vector<glm::vec3> &_samplePoints,
+                                      const std::vector<glm::mat4> &_transform)
+{
+    // create device memory here
+    float *d_output;
+    glm::vec3 *d_samplePoints;
+    glm::mat4 *d_textureSpace;
+    cudaTextureObject_t *d_fields;
+    uint numFields;
+    checkCudaErrors(cudaMalloc(&d_output, _samplePoints.size() * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&d_samplePoints, _samplePoints.size() * sizeof(glm::vec3)));
+    checkCudaErrors(cudaMemcpy((void*)d_samplePoints, &_samplePoints[0], _samplePoints.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
+
+
+    // run kernel
+    kernels::SimpleEval(d_output, d_samplePoints, _samplePoints.size(), d_textureSpace, d_transformPtr, d_fields, numFields);
+
+    // copy results to host memory
+    _output.clear();
+    _output.resize(_samplePoints.size());
+    checkCudaErrors(cudaMemcpy(&_output[0], d_output, _samplePoints.size() * sizeof(float), cudaMemcpyDeviceToHost));
+}
+
+//------------------------------------------------------------------------------------------------
+
+GlobalFieldFunction &ImplicitSkinDeformer::GetGlocalFieldFunc()
+{
+    return m_globalFieldFunction;
+}
 
 
 //------------------------------------------------------------------------------------------------

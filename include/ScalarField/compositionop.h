@@ -1,7 +1,6 @@
 #ifndef COMPOSITIONOP_H
 #define COMPOSITIONOP_H
 
-#include <memory>
 #include <functional>
 
 #include <glm/glm.hpp>

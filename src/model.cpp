@@ -43,19 +43,21 @@ Model::~Model()
 void Model::Load(const std::string &_file)
 {
     ModelLoader::LoadModel(this, _file);
-    //--------------------------------------------------
 
-    m_threads.resize(std::thread::hardware_concurrency()-1);
-    GenerateMeshParts();
-    GenerateFieldFunctions();
-    GenerateGlobalFieldFunctions();
 
     //--------------------------------------------------
+
     CreateShaders();
     CreateVAOs();
     UpdateVAOs();
-    InitImplicitSkinner();
 
+
+    //--------------------------------------------------
+
+    m_threads.resize(std::thread::hardware_concurrency()-1);
+    InitImplicitSkinner();
+    GenerateMeshParts();
+    GenerateFieldFunctions();
 }
 
 
@@ -126,159 +128,22 @@ void Model::GenerateMeshParts()
 
 void Model::GenerateFieldFunctions()
 {
-    m_globalFieldFunction.Fit(m_meshParts.size());
-    unsigned int numHrbfFitPoints = 50;
-
-
-    auto threadFunc = [this, &numHrbfFitPoints](int startId, int endId){
-        for(int mp=startId; mp<endId; mp++)
-        {
-            // Determine distance of closest point to bone
-            glm::vec3 jointStart = m_rigMesh.m_meshVerts[mp*2];
-            glm::vec3 jointEnd = m_rigMesh.m_meshVerts[(mp*2) + 1];
-            glm::vec3 edge = jointEnd - jointStart;
-            float minDist = FLT_MAX;
-            for(auto &&tri : m_meshParts[mp].m_meshTris)
-            {
-                glm::vec3 v0 = m_meshParts[mp].m_meshVerts[tri.x];
-                glm::vec3 v1 = m_meshParts[mp].m_meshVerts[tri.y];
-                glm::vec3 v2 = m_meshParts[mp].m_meshVerts[tri.z];
-
-                glm::vec3 e = v0 - jointStart;
-                float t = glm::dot(e, edge);
-                float dist = glm::distance(v0, jointStart + (t*edge));
-                minDist = dist < minDist ? dist : minDist;
-
-                e = v1 - jointStart;
-                t = glm::dot(e, edge);
-                dist = glm::distance(v1, jointStart + (t*edge));
-                minDist = dist < minDist ? dist : minDist;
-
-                e = v2 - jointStart;
-                t = glm::dot(e, edge);
-                dist = glm::distance(v2, jointStart + (t*edge));
-                minDist = dist < minDist ? dist : minDist;
-            }
-
-
-            //--------------------------------------------------
-            // Generate HRBF
-            Mesh hrbfCentres;
-            m_globalFieldFunction.GenerateHRBFCentres(m_meshParts[mp],
-                                                      jointStart,
-                                                      jointEnd,
-                                                      numHrbfFitPoints,
-                                                      hrbfCentres);
-
-            m_globalFieldFunction.GenerateFieldFuncs(hrbfCentres, m_meshParts[mp], mp);
-
-        }        
-    };
-
-    int numThreads = std::thread::hardware_concurrency();
-    int dataSize = m_meshParts.size();
-    int chunkSize = dataSize / numThreads;
-    int numBigChunks = dataSize % numThreads;
-    int bigChunkSize = chunkSize + (numBigChunks>0 ? 1 : 0);
-    int startChunk = 0;
-    int threadId=0;
-
-    // Generate Field functions in each thread
-    for(threadId=0; threadId<numBigChunks; threadId++)
+    std::vector<glm::vec3> boneStarts;
+    std::vector<glm::vec3> boneEnds;
+    for(int i=0; i<m_meshParts.size(); i++)
     {
-        m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+bigChunkSize);
-        startChunk+=bigChunkSize;
+        boneStarts.push_back(m_rigMesh.m_meshVerts[i*2]);
+        boneEnds.push_back(m_rigMesh.m_meshVerts[(i*2) + 1]);
     }
-    for(; threadId<numThreads-1; threadId++)
-    {
-        m_threads[threadId] = std::thread(threadFunc, startChunk, startChunk+chunkSize);
-        startChunk+=chunkSize;
-    }
-    threadFunc(startChunk, m_meshParts.size());
-
-    for(int i=0; i<numThreads-1; i++)
-    {
-        if(m_threads[i].joinable())
-        {
-            m_threads[i].join();
-        }
-    }
-
+    m_implicitSkinner->GenerateGlobalFieldFunction(m_meshParts, boneStarts, boneEnds, 50);
 }
 
-
-void Model::GenerateGlobalFieldFunctions()
-{
-    m_globalFieldFunction.GenerateGlobalFieldFunc();
-}
 
 //---------------------------------------------------------------------------------
-
-void Model::GenerateMeshVertIsoValue()
-{
-    m_meshVertIsoValues.clear();
-    for(auto &v : m_mesh.m_meshVerts)
-    {
-        m_meshVertIsoValues.push_back(m_globalFieldFunction.Eval(v));
-    }
-}
 
 void Model::DeformSkin()
 {
     m_implicitSkinner->PerformLBWSkinning(m_rig.m_boneTransforms);
-}
-
-void Model::PerformVertexProjection()
-{
-    std::vector<glm::vec3> newVert(m_mesh.m_meshVerts.size());
-    std::vector<glm::vec3> previousGrad(m_mesh.m_meshVerts.size());
-    std::vector<float> gradAngle(m_mesh.m_meshVerts.size());
-    float sigma = 0.35f;
-    float contactAngle = 55.0f;
-
-    // TODO
-    // Replace m_mesh.m_meshVerts[i] with LBW Skinned Tranformed Vert
-
-    for(int i =0; i<m_mesh.m_meshVerts.size(); i++)
-    {
-        glm::vec3 grad = m_globalFieldFunction.Grad(m_mesh.m_meshVerts[i]);
-        float angle = gradAngle[i] = glm::angle(grad, previousGrad[i]);
-        if(angle < contactAngle)
-        {
-            newVert[i] = m_mesh.m_meshVerts[i] + ( sigma * (m_globalFieldFunction.Eval(m_mesh.m_meshVerts[i]) - m_meshVertIsoValues[i]) * (grad / glm::length2(grad)));
-            previousGrad[i] = grad;
-        }
-    }
-}
-
-void Model::PerformTangentialRelaxation()
-{
-    std::vector<glm::vec3> newVert(m_mesh.m_meshVerts.size());
-
-    for(int i =0; i<m_mesh.m_meshVerts.size(); i++)
-    {
-        glm::vec3 origVert = m_mesh.m_meshVerts[i];
-        float newIsoValue = m_globalFieldFunction.Eval(m_mesh.m_meshVerts[i]);
-        float mu = std::max(0.0f, 1.0f - (float)pow(fabs(newIsoValue - m_meshVertIsoValues[i]) - 1.0f, 4.0f));
-
-        glm::vec3 sumWeightedCentroid(0.0f);
-        int j=0;
-        for(auto &n : m_meshVertOneRingNeighbour[i])
-        {
-            glm::vec3 neighVert = m_mesh.m_meshVerts[n];
-            glm::vec3 projNeighVert = neighVert;
-            float barycentricCoord = m_meshVertCentroidWeights[i][j];
-            sumWeightedCentroid += barycentricCoord * projNeighVert;
-
-            j++;
-        }
-
-        newVert[i] = ((1.0f - mu) * origVert) + (mu * sumWeightedCentroid);
-    }
-}
-
-void Model::PerformLaplacianSmoothing()
-{
 }
 
 //---------------------------------------------------------------------------------
@@ -291,7 +156,7 @@ void Model::UpdateImplicitSurface(int xRes,
                                   float yScale,
                                   float zScale)
 {
-    float *volumeData = new float[xRes*yRes*zRes];
+    float volumeData[xRes*yRes*zRes];
 
 
     int numThreads = std::thread::hardware_concurrency();
@@ -304,6 +169,7 @@ void Model::UpdateImplicitSurface(int xRes,
 
 
     auto threadFunc = [&dim, &xRes, &yRes, zRes, this, &volumeData](int startChunk, int endChunk){
+        auto gf = m_implicitSkinner->GetGlocalFieldFunc();
         for(int z=startChunk;z<endChunk;z++)
         {
             for(int y=0;y<yRes;y++)
@@ -314,7 +180,8 @@ void Model::UpdateImplicitSurface(int xRes,
                                     dim*((((float)y/yRes)*2.0f)-1.0f),
                                     dim*((((float)z/xRes)*2.0f)-1.0f));
 
-                    float d = m_globalFieldFunction.Eval(point);
+                    float d = gf.Eval(point);
+
 
                     if(!std::isnan(d))
                     {
@@ -352,15 +219,27 @@ void Model::UpdateImplicitSurface(int xRes,
     }
 
 
+//    std::vector<glm::vec3> samplePoints(xRes*yRes*zRes);
+//    std::vector<float> f;
+//    for(int z=0;z<zRes;z++)
+//    {
+//        for(int y=0;y<yRes;y++)
+//        {
+//            for(int x=0;x<xRes;x++)
+//            {
+//                samplePoints[(z*yRes*xRes) + (y*xRes) + x] = glm::vec3(dim*((((float)x/zRes)*2.0f)-1.0f),
+//                                                                       dim*((((float)y/yRes)*2.0f)-1.0f),
+//                                                                       dim*((((float)z/xRes)*2.0f)-1.0f));
+//            }
+//        }
+//    }
+
+//    m_implicitSkinner->SimpleEval(f, samplePoints, m_rig.m_boneTransforms);
+
+
+
     // Polygonize scalar field using maching cube
     m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
-
-
-    //clean up
-    if(volumeData != nullptr)
-    {
-        delete volumeData;
-    }
 }
 
 
@@ -490,8 +369,7 @@ void Model::Animate(const float _animationTime)
     UploadBonesToShader(RIG);
     m_shaderProg[RIG]->release();
 
-
-    m_globalFieldFunction.SetRigidTransforms(m_rig.m_boneTransforms);
+    m_implicitSkinner->SetRigidTransforms(m_rig.m_boneTransforms);
 }
 
 void Model::ToggleWireframe()
