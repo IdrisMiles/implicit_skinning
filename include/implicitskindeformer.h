@@ -62,9 +62,7 @@ public:
     //--------------------------------------------------------------------
 
 
-    void SimpleEval(std::vector<float> &_output,
-                    const std::vector<glm::vec3> &_samplePoints,
-                    const std::vector<glm::mat4> &_transform);
+    void EvalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
 
     GlobalFieldFunction &GetGlocalFieldFunc();
 
@@ -72,6 +70,12 @@ private:
 
     //---------------------------------------------------------------------
     // Private Methods
+    /// @brief
+    void EvalFieldCPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
+
+    /// @brief
+    void EvalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
+
     /// @brief Method to get the device side pointer to deformed mesh vertices for use in CUDA kernels
     glm::vec3 *GetMeshDeformedDevicePtr();
 
@@ -111,7 +115,8 @@ private:
 
     GlobalFieldFunction m_globalFieldFunction;
 
-    bool m_init;
+    bool m_initCudaMem;
+    bool m_initGobalFieldFunc;
 
 };
 

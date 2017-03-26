@@ -6,8 +6,6 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 
-#include <thread>
-
 // GLM
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -97,7 +95,6 @@ public:
 
     //-------------------------------------------------------------------
     // Attributes
-    std::vector<std::thread> m_threads;
 
     Rig m_rig;
     Mesh m_mesh;

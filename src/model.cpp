@@ -25,14 +25,6 @@ Model::Model()
 Model::~Model()
 {
 
-    for(int i=0; i<std::thread::hardware_concurrency()-1; i++)
-    {
-        if(m_threads[i].joinable())
-        {
-            m_threads[i].join();
-        }
-    }
-
     if(m_initGL)
     {
         DeleteVAOs();
@@ -54,7 +46,6 @@ void Model::Load(const std::string &_file)
 
     //--------------------------------------------------
 
-    m_threads.resize(std::thread::hardware_concurrency()-1);
     InitImplicitSkinner();
     GenerateMeshParts();
     GenerateFieldFunctions();
@@ -156,90 +147,29 @@ void Model::UpdateImplicitSurface(int xRes,
                                   float yScale,
                                   float zScale)
 {
-    float volumeData[xRes*yRes*zRes];
-
-
-    int numThreads = std::thread::hardware_concurrency();
-    int dataSize = zRes;
-    int chunkSize = dataSize / numThreads;
-    int numBigChunks = dataSize % numThreads;
-    int bigChunkSize = chunkSize + (numBigChunks>0 ? 1 : 0);
-    int startChunk = 0;
-    int threadId=0;
-
-
-    auto threadFunc = [&dim, &xRes, &yRes, zRes, this, &volumeData](int startChunk, int endChunk){
-        auto gf = m_implicitSkinner->GetGlocalFieldFunc();
-        for(int z=startChunk;z<endChunk;z++)
+    // Generate sample points
+    std::vector<glm::vec3> samplePoints(xRes*yRes*zRes);
+    for(int z=0;z<zRes;z++)
+    {
+        for(int y=0;y<yRes;y++)
         {
-            for(int y=0;y<yRes;y++)
+            for(int x=0;x<xRes;x++)
             {
-                for(int x=0;x<xRes;x++)
-                {
-                    glm::vec3 point(dim*((((float)x/zRes)*2.0f)-1.0f),
-                                    dim*((((float)y/yRes)*2.0f)-1.0f),
-                                    dim*((((float)z/xRes)*2.0f)-1.0f));
-
-                    float d = gf.Eval(point);
-
-
-                    if(!std::isnan(d))
-                    {
-                        volumeData[z*xRes*yRes + y*xRes + x] = d;
-                    }
-                    else
-                    {
-                        volumeData[z*xRes*yRes + y*xRes + x] = 0.0f;
-                    }
-                }
+                samplePoints[(z*yRes*xRes) + (y*xRes) + x] = glm::vec3(dim*((((float)x/zRes)*2.0f)-1.0f),
+                                                                       dim*((((float)y/yRes)*2.0f)-1.0f),
+                                                                       dim*((((float)z/xRes)*2.0f)-1.0f));
             }
         }
-    };
-
-
-    // Evalue field in each thread
-    for(threadId=0; threadId<numBigChunks; threadId++)
-    {
-        m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+bigChunkSize));
-        startChunk+=bigChunkSize;
-    }
-    for(; threadId<numThreads-1; threadId++)
-    {
-        m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+chunkSize));
-        startChunk+=chunkSize;
-    }
-    threadFunc(startChunk, zRes);
-
-    for(int i=0; i<numThreads-1; i++)
-    {
-        if(m_threads[i].joinable())
-        {
-            m_threads[i].join();
-        }
     }
 
 
-//    std::vector<glm::vec3> samplePoints(xRes*yRes*zRes);
-//    std::vector<float> f;
-//    for(int z=0;z<zRes;z++)
-//    {
-//        for(int y=0;y<yRes;y++)
-//        {
-//            for(int x=0;x<xRes;x++)
-//            {
-//                samplePoints[(z*yRes*xRes) + (y*xRes) + x] = glm::vec3(dim*((((float)x/zRes)*2.0f)-1.0f),
-//                                                                       dim*((((float)y/yRes)*2.0f)-1.0f),
-//                                                                       dim*((((float)z/xRes)*2.0f)-1.0f));
-//            }
-//        }
-//    }
-
-//    m_implicitSkinner->SimpleEval(f, samplePoints, m_rig.m_boneTransforms);
-
+    // Evaluate field
+    std::vector<float> f;
+    m_implicitSkinner->EvalField(f, samplePoints);
 
 
     // Polygonize scalar field using maching cube
-    m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, volumeData, 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
+    m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, &f[0], 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
 }
 
 

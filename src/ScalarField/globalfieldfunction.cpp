@@ -134,8 +134,14 @@ void GlobalFieldFunction::GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mes
     float scale = 8.0f; // scale of 3D space we sample 8*8*8 volume
     fieldFunc->PrecomputeField(dim, scale);
 
-    m_fieldFuncs[_id] = fieldFunc;
-//    AddFieldFunction(fieldFunc);
+    if(_id < m_fieldFuncs.size())
+    {
+        m_fieldFuncs[_id] = fieldFunc;
+    }
+    else
+    {
+        AddFieldFunction(fieldFunc);
+    }
 }
 
 //----------------------------------------------------------------------------------------------------

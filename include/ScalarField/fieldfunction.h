@@ -36,6 +36,10 @@ public:
 
     void SetTransform(glm::mat4 _transform);
 
+    glm::mat4 GetTransform() const;
+
+    glm::mat4 GetTextureSpaceTransform() const;
+
     float Eval(const glm::vec3& _x);
 
     float EvalDist(const glm::vec3& x);
@@ -43,6 +47,7 @@ public:
     glm::vec3 Grad(const glm::vec3& x);
 
     cudaTextureObject_t &GetFieldFunc3DTexture();
+
 
 
 private:
@@ -63,6 +68,9 @@ private:
 
     /// @brief
     glm::mat4 m_transform;
+
+    /// @brief
+    glm::mat4 m_textureSpaceTransform;
 
     /// @brief an HRBF distance field generator
     DistanceField m_distanceField;

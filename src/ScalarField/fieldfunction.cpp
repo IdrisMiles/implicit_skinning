@@ -1,7 +1,9 @@
 #include "ScalarField/fieldfunction.h"
-#include <glm/gtx/string_cast.hpp>
+
 #include <float.h>
 
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/transform.hpp>
 
 FieldFunction::FieldFunction(glm::mat4 _transform) :
     m_transform(_transform),
@@ -83,9 +85,9 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 
     m_field.SetData(_dim, data);
     m_grad.SetData(_dim, grad);
-
     d_field.CreateCudaTexture(_dim, data);
 //    d_grad.CreateCudaTexture(_dim, cuGrad);
+
 
     auto textureSpaceTransform = [_scale](glm::vec3 x){
         return (((x/_scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
@@ -93,6 +95,10 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
     m_field.SetTextureSpaceTransform(textureSpaceTransform);
     m_grad.SetTextureSpaceTransform(textureSpaceTransform);
 
+    m_textureSpaceTransform = glm::mat4(1.0f/_scale);
+//    m_textureSpaceTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f/_scale));
+    m_textureSpaceTransform = glm::translate(m_textureSpaceTransform, glm::vec3(1.0f, 1.0f, 1.0f));
+    m_textureSpaceTransform = glm::scale(m_textureSpaceTransform, glm::vec3(0.5f));
 }
 
 void FieldFunction::SetSupportRadius(const float _r)
@@ -103,6 +109,16 @@ void FieldFunction::SetSupportRadius(const float _r)
 void FieldFunction::SetTransform(glm::mat4 _transform)
 {
     m_transform = _transform;
+}
+
+glm::mat4 FieldFunction::GetTransform() const
+{
+    return m_transform;
+}
+
+glm::mat4 FieldFunction::GetTextureSpaceTransform() const
+{
+    return m_textureSpaceTransform;
 }
 
 bool FieldFunction::Equiv(glm::vec3 _a, glm::vec3 _b)
