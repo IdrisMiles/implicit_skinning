@@ -19,87 +19,28 @@ class Cuda3DTexture
 public:
 
     /// @brief constructor.
-    Cuda3DTexture()
-    {
-        m_init = false;
-    }
+    Cuda3DTexture();
 
     /// @brief Destructor.
-    ~Cuda3DTexture()
-    {
-        DeleteCudaTexture();
-    }
-
+    ~Cuda3DTexture();
 
     /// @brief Method to create a 3D texture cudaTextureObject from host side array
     /// @param _dim : the dimensions of the 3D texture.
     /// @param _data : The host side array of data to fill 3D texture with.
-    void CreateCudaTexture(unsigned int _dim, T *_data)
-    {
-        // just in case it's already been created
-        DeleteCudaTexture();
-
-
-        // Initialise cuda array
-        cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-        checkCudaErrors(cudaMalloc3DArray(&d_cuArray, &channelDesc, make_cudaExtent(_dim*sizeof(T), _dim, _dim)));
-
-
-        // Upload host data to device array
-        cudaMemcpy3DParms copy3DParams = {0};
-        copy3DParams.srcPtr = make_cudaPitchedPtr((void*)_data, _dim*sizeof(T), _dim, _dim);
-        copy3DParams.dstArray = d_cuArray;
-        copy3DParams.extent = make_cudaExtent(_dim, _dim, _dim);
-        copy3DParams.kind = cudaMemcpyHostToDevice;
-        checkCudaErrors(cudaMemcpy3D(&copy3DParams));
-
-
-        // Initalise cuda texture
-        struct cudaResourceDesc resDesc;
-        memset(&resDesc, 0, sizeof(resDesc));
-        resDesc.resType = cudaResourceTypeArray;
-        resDesc.res.array.array = d_cuArray;
-
-        struct cudaTextureDesc texDesc;
-        memset(&texDesc, 0, sizeof(texDesc));
-        texDesc.addressMode[0] = cudaAddressModeClamp;
-        texDesc.addressMode[1] = cudaAddressModeClamp;
-        texDesc.addressMode[2] = cudaAddressModeClamp;
-        texDesc.filterMode = cudaFilterModeLinear;
-        texDesc.readMode = cudaReadModeElementType; //cudaReadModeNormalizedFloat
-        texDesc.normalizedCoords = 1;
-
-        d_cuTex = 0;
-        checkCudaErrors(cudaCreateTextureObject(&d_cuTex, &resDesc, &texDesc, NULL));
-
-        m_init = true;
-    }
+    void CreateCudaTexture(unsigned int _dim, T *_data);
 
     /// @brief Methot to get the cudaTextureObject_t for use within kernels.
     /// @return cudaTextureObject_t
-    cudaTextureObject_t &GetCudaTextureObject()
-    {
-        if(m_init)
-        {
-            return d_cuTex;
-        }
+    cudaTextureObject_t &GetCudaTextureObject();
 
-        return d_cuTex;
-    }
 
 private:
+
+    //------------------------------------------------------------------------------------------------
     /// @brief Method to destroy cuda 3D texture.
-    void DeleteCudaTexture()
-    {
-        if(m_init)
-        {
-            cudaDestroyTextureObject(d_cuTex);
-            cudaFreeArray(d_cuArray);
+    void DeleteCudaTexture();
 
-            m_init = false;
-        }
-    }
-
+    //------------------------------------------------------------------------------------------------
 
     /// @brief Attribute to determine if cuda 3D texture has been created yet.
     bool m_init;
@@ -111,5 +52,97 @@ private:
     cudaTextureObject_t d_cuTex;
 
 };
+
+
+
+
+//------------------------------------------------------------------------------------------------
+// Implementation
+//------------------------------------------------------------------------------------------------
+
+template<typename T>
+Cuda3DTexture<T>::Cuda3DTexture()
+{
+    m_init = false;
+}
+
+//------------------------------------------------------------------------------------------------
+
+template<typename T>
+Cuda3DTexture<T>::~Cuda3DTexture()
+{
+    DeleteCudaTexture();
+}
+
+//------------------------------------------------------------------------------------------------
+
+template<typename T>
+void Cuda3DTexture<T>::CreateCudaTexture(unsigned int _dim, T *_data)
+{
+    // just in case it's already been created
+    DeleteCudaTexture();
+
+
+    // Initialise cuda array
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
+    checkCudaErrors(cudaMalloc3DArray(&d_cuArray, &channelDesc, make_cudaExtent(_dim*sizeof(T), _dim, _dim)));
+
+
+    // Upload host data to device array
+    cudaMemcpy3DParms copy3DParams = {0};
+    copy3DParams.srcPtr = make_cudaPitchedPtr((void*)_data, _dim*sizeof(T), _dim, _dim);
+    copy3DParams.dstArray = d_cuArray;
+    copy3DParams.extent = make_cudaExtent(_dim, _dim, _dim);
+    copy3DParams.kind = cudaMemcpyHostToDevice;
+    checkCudaErrors(cudaMemcpy3D(&copy3DParams));
+
+
+    // Initalise cuda texture
+    struct cudaResourceDesc resDesc;
+    memset(&resDesc, 0, sizeof(resDesc));
+    resDesc.resType = cudaResourceTypeArray;
+    resDesc.res.array.array = d_cuArray;
+
+    struct cudaTextureDesc texDesc;
+    memset(&texDesc, 0, sizeof(texDesc));
+    texDesc.addressMode[0] = cudaAddressModeClamp;
+    texDesc.addressMode[1] = cudaAddressModeClamp;
+    texDesc.addressMode[2] = cudaAddressModeClamp;
+    texDesc.filterMode = cudaFilterModeLinear;
+    texDesc.readMode = cudaReadModeElementType;
+    texDesc.normalizedCoords = 1;
+
+    d_cuTex = 0;
+    checkCudaErrors(cudaCreateTextureObject(&d_cuTex, &resDesc, &texDesc, NULL));
+
+    m_init = true;
+}
+
+//------------------------------------------------------------------------------------------------
+
+template<typename T>
+cudaTextureObject_t &Cuda3DTexture<T>::GetCudaTextureObject()
+{
+    if(m_init)
+    {
+        return d_cuTex;
+    }
+
+    return d_cuTex;
+}
+
+//------------------------------------------------------------------------------------------------
+
+template<typename T>
+void Cuda3DTexture<T>::DeleteCudaTexture()
+{
+    if(m_init)
+    {
+        cudaDestroyTextureObject(d_cuTex);
+        cudaFreeArray(d_cuArray);
+
+        m_init = false;
+    }
+}
 
 #endif // CUDATEXTURE_H

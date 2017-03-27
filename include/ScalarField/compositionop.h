@@ -32,7 +32,7 @@ private:
     std::function<float(float, float, float)> m_compositionOp;
 
 
-    Field1D<float> m_field;
+    Field3D<float> m_field;
     bool m_precomputed;
 
 };

@@ -40,7 +40,8 @@ ImplicitSkinDeformer::~ImplicitSkinDeformer()
 
     if(m_initFieldCudaMem)
     {
-
+        checkCudaErrors(cudaFree(d_textureSpacePtr));
+        checkCudaErrors(cudaFree(d_fieldsPtr));
     }
 }
 
@@ -257,8 +258,7 @@ void ImplicitSkinDeformer::EvalFieldCPU(std::vector<float> &_output, const std::
 
 void ImplicitSkinDeformer::EvalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
 {
-    auto fieldFuncs = m_globalFieldFunction.GetFieldFuncs();
-    uint numFields = fieldFuncs.size();
+    uint numFields = m_globalFieldFunction.GetFieldFuncs().size();
 
     // allocate device memory
     float *d_output;

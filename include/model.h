@@ -1,6 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include <thread>
+
 #include <GL/glew.h>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
@@ -61,8 +63,6 @@ public:
     void UploadBoneColoursToShader(RenderType _rt);
     void UploadBonesToShader(RenderType _rt);
 
-
-    //-------------------------------------------------------------------
     void UpdateImplicitSurface(int xRes = 32,
                                int yRes = 32,
                                int zRes = 32,
@@ -79,22 +79,19 @@ public:
     void GenerateCentroidWeights();
 
 
-    //-------------------------------------------------------------------
-
     void DeformSkin();
 
-
-    //-------------------------------------------------------------------
-    // Implicit Skinner
 
     void InitImplicitSkinner();
     void DeleteImplicitSkinner();
 
-    ImplicitSkinDeformer *m_implicitSkinner;
-
 
     //-------------------------------------------------------------------
     // Attributes
+
+    ImplicitSkinDeformer *m_implicitSkinner;
+
+    std::vector<std::thread> m_threads;
 
     Rig m_rig;
     Mesh m_mesh;

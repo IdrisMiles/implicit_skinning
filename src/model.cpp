@@ -20,6 +20,8 @@ Model::Model()
 {
     m_wireframe = false;
     m_initGL = false;
+
+    m_threads.resize(std::thread::hardware_concurrency() - 1);
 }
 
 Model::~Model()
@@ -147,20 +149,69 @@ void Model::UpdateImplicitSurface(int xRes,
                                   float yScale,
                                   float zScale)
 {
+
     // Generate sample points
     std::vector<glm::vec3> samplePoints(xRes*yRes*zRes);
-    for(int z=0;z<zRes;z++)
-    {
-        for(int y=0;y<yRes;y++)
+//    for(int z=0;z<zRes;z++)
+//    {
+//        for(int y=0;y<yRes;y++)
+//        {
+//            for(int x=0;x<xRes;x++)
+//            {
+//                samplePoints[(z*yRes*xRes) + (y*xRes) + x] = glm::vec3(dim*((((float)x/zRes)*2.0f)-1.0f),
+//                                                                       dim*((((float)y/yRes)*2.0f)-1.0f),
+//                                                                       dim*((((float)z/xRes)*2.0f)-1.0f));
+//            }
+//        }
+//    }
+
+
+    //-------------------------------------------------------
+    int numThreads = m_threads.size() + 1;
+    int chunkSize = zRes / numThreads;
+    int numBigChunks = zRes % numThreads;
+    int bigChunkSize = chunkSize + (numBigChunks>0 ? 1 : 0);
+    int startChunk = 0;
+    int threadId=0;
+
+
+    auto threadFunc = [&, this](int startChunk, int endChunk){
+        for(int z=startChunk;z<endChunk;z++)
         {
-            for(int x=0;x<xRes;x++)
+            for(int y=0;y<yRes;y++)
             {
-                samplePoints[(z*yRes*xRes) + (y*xRes) + x] = glm::vec3(dim*((((float)x/zRes)*2.0f)-1.0f),
-                                                                       dim*((((float)y/yRes)*2.0f)-1.0f),
-                                                                       dim*((((float)z/xRes)*2.0f)-1.0f));
+                for(int x=0;x<xRes;x++)
+                {
+                    samplePoints[(z*yRes*xRes) + (y*xRes) + x] = glm::vec3(dim*((((float)x/xRes)*2.0f)-1.0f),
+                                                                           dim*((((float)y/yRes)*2.0f)-1.0f),
+                                                                           dim*((((float)z/zRes)*2.0f)-1.0f));
+                }
             }
         }
+    };
+
+
+    // Evalue field in each thread
+    for(threadId=0; threadId<numBigChunks; threadId++)
+    {
+        m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+bigChunkSize));
+        startChunk+=bigChunkSize;
     }
+    for(; threadId<numThreads-1; threadId++)
+    {
+        m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+chunkSize));
+        startChunk+=chunkSize;
+    }
+    threadFunc(startChunk, zRes);
+
+    for(int i=0; i<numThreads-1; i++)
+    {
+        if(m_threads[i].joinable())
+        {
+            m_threads[i].join();
+        }
+    }
+    //-------------------------------------------------------
 
 
     // Evaluate field
@@ -183,6 +234,7 @@ void Model::DrawMesh()
         CreateVAOs();
         UpdateVAOs();
         InitImplicitSkinner();
+        std::cout<<"Tryinig to draw before initialised\n";
     }
     else
     {
@@ -220,9 +272,9 @@ void Model::DrawMesh()
 
 
         // Get Scalar field for each mesh part and polygonize
-        int xRes = 32;
-        int yRes = 32;
-        int zRes = 32;
+        int xRes = 64;
+        int yRes = 64;
+        int zRes = 64;
         float dim = 800.0f; // dimension of sample range e.g. dim x dim x dim
         float xScale = 1.0f* dim;
         float yScale = 1.0f* dim;

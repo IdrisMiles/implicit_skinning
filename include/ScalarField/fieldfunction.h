@@ -63,13 +63,18 @@ private:
 
     bool m_fit;
 
+    bool m_precomputedGPU;
+
+    bool m_precomputedCPU;
+
     /// @brief Attribute used for remapping distance field to compactly supported field function.
     float m_supportRad;
 
     /// @brief
     glm::mat4 m_transform;
 
-    /// @brief
+    /// @brief A matrix to transform from world space to texture space.
+    /// Used for texture lookup.
     glm::mat4 m_textureSpaceTransform;
 
     /// @brief an HRBF distance field generator
@@ -77,8 +82,8 @@ private:
 
     /// @brief A field object to store precomputed field value,
     /// improves performance to interpolate values than compute them.
-    Field1D<float> m_field;
-    Field1D<glm::vec3> m_grad;
+    Field3D<float> m_field;
+    Field3D<glm::vec3> m_grad;
 
     Cuda3DTexture<float> d_field;
 //    Cuda3DTexture<float4> d_grad;

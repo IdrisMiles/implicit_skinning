@@ -1,5 +1,6 @@
 #include "ImplicitSkinKernels.h"
 
+
 //------------------------------------------------------------------------------------------------
 // CUDA Device Functions
 //------------------------------------------------------------------------------------------------
@@ -160,17 +161,21 @@ __global__ void SimpleEvaluateGlobalField(float *_output,
 
     float maxF = FLT_MIN;
     float f[100];
-    int i=0;
-    for(i=0; i<_numFields; i++)
-    {
-        glm::mat4 textureSpace = _textureSpace[i];
-        glm::vec3 transformedPoint = glm::vec3(_rigidTransforms[i] * glm::vec4(samplePoint,1.0f));
-        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
 
-        f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
+    for(int i=0; i<_numFields; i++)
+    {
+        glm::mat4 rigidTrans = _rigidTransforms[i];
+        glm::mat4 textureSpace = _textureSpace[i];
+//        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(glm::vec3(glm::inverse(rigidTrans) * glm::vec4(samplePoint, 1.0f)), 1.0f));
+        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::inverse(rigidTrans) * glm::vec4(samplePoint, 1.0f));
+//        texturePoint = ((((samplePoint / 800.0f)+glm::vec3(1.0f,1.0f,1.0f))*0.5f));
+
+        f[i] = tex3D<float>(_fieldFuncs[i], (texturePoint.x*0.25f), texturePoint.y, texturePoint.z);
 
         maxF = (f[i]>maxF) ? f[i] : maxF;
     }
+
+//    printf("%f\n", maxF);
 
     _output[tid] = maxF;
 }
