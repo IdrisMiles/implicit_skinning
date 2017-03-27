@@ -86,7 +86,7 @@ private:
     Field3D<glm::vec3> m_grad;
 
     Cuda3DTexture<float> d_field;
-//    Cuda3DTexture<float4> d_grad;
+    Cuda3DTexture<uchar4> d_grad;
 
 
 

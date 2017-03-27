@@ -7,14 +7,14 @@
 struct AcceptSample
 {
     AcceptSample(const glm::vec3 &_samplePoint, const float _sampleDist) :
-        accept(false),
+        accept(true),
         samplePoint(_samplePoint),
         sampleDist(_sampleDist)
     {}
 
     void operator()(const glm::vec3 &activePoint)
     {
-        accept |= (glm::distance(activePoint, samplePoint) >= sampleDist);
+        accept &= (glm::distance(activePoint, samplePoint) >= sampleDist);
     }
 
     glm::vec3 samplePoint;
@@ -76,7 +76,8 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
     // figure out our sampling criteria
     float totalArea = std::accumulate(triAreas.begin(), triAreas.end(), 0);
     float sampleArea = totalArea / _numSamples;
-    float sampleDist = (sqrt(sampleArea));
+    float sampleDist = (sqrt(sampleArea));// * 0.5f;
+//    sampleDist = sampleDist < sampleArea ? sampleDist : sampleArea;
 
 
     // initiliase random number generator
@@ -93,8 +94,6 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
     {
         unsigned int sampleTriProbabilityIndex = randDistTriIndex(prg);
         triIndex = sampleTriProbability[sampleTriProbabilityIndex];
-//        std::cout<<"sampleTriProb size "<<sampleTriProbability.size()<<"\n";
-//        std::cout<<"sampleTriProbIndex "<<sampleTriProbabilityIndex<<"\n";
 
         glm::vec3 v1 = _mesh.m_meshVerts[_mesh.m_meshTris[triIndex][0]];
         glm::vec3 v2 = _mesh.m_meshVerts[_mesh.m_meshTris[triIndex][1]];

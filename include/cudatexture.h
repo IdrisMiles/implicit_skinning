@@ -27,7 +27,7 @@ public:
     /// @brief Method to create a 3D texture cudaTextureObject from host side array
     /// @param _dim : the dimensions of the 3D texture.
     /// @param _data : The host side array of data to fill 3D texture with.
-    void CreateCudaTexture(unsigned int _dim, T *_data);
+    void CreateCudaTexture(unsigned int _dim, T *_data, cudaTextureFilterMode _filterMode = cudaFilterModePoint);
 
     /// @brief Methot to get the cudaTextureObject_t for use within kernels.
     /// @return cudaTextureObject_t
@@ -77,7 +77,7 @@ Cuda3DTexture<T>::~Cuda3DTexture()
 //------------------------------------------------------------------------------------------------
 
 template<typename T>
-void Cuda3DTexture<T>::CreateCudaTexture(unsigned int _dim, T *_data)
+void Cuda3DTexture<T>::CreateCudaTexture(unsigned int _dim, T *_data, cudaTextureFilterMode _filterMode)
 {
     // just in case it's already been created
     DeleteCudaTexture();
@@ -108,7 +108,7 @@ void Cuda3DTexture<T>::CreateCudaTexture(unsigned int _dim, T *_data)
     texDesc.addressMode[0] = cudaAddressModeClamp;
     texDesc.addressMode[1] = cudaAddressModeClamp;
     texDesc.addressMode[2] = cudaAddressModeClamp;
-    texDesc.filterMode = cudaFilterModeLinear;
+    texDesc.filterMode = _filterMode;// cudaFilterModePoint;// cudaFilterModeLinear;
     texDesc.readMode = cudaReadModeElementType;
     texDesc.normalizedCoords = 1;
 
