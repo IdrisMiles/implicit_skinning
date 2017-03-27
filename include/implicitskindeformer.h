@@ -21,12 +21,21 @@ class ImplicitSkinDeformer
 {
 public:
     /// @brief Constructor.
-    ImplicitSkinDeformer(const Mesh _origMesh,
-                        const GLuint _meshVBO,
-                        const std::vector<glm::mat4> &_transform);
+    ImplicitSkinDeformer();
 
     /// @brief Destructor.
     ~ImplicitSkinDeformer();
+
+    //--------------------------------------------------------------------
+
+    void AttachMesh(const Mesh _origMesh,
+                    const GLuint _meshVBO,
+                    const std::vector<glm::mat4> &_transform);
+
+    void GenerateGlobalFieldFunction(const std::vector<Mesh> &_meshParts,
+                                     const std::vector<glm::vec3> &_boneStarts,
+                                     const std::vector<glm::vec3> &_boneEnds,
+                                     const int _numHrbfCentres);
 
     //--------------------------------------------------------------------
 
@@ -50,13 +59,6 @@ public:
 
     //--------------------------------------------------------------------
 
-    void GenerateGlobalFieldFunction(const std::vector<Mesh> &_meshParts,
-                                     const std::vector<glm::vec3> &_boneStarts,
-                                     const std::vector<glm::vec3> &_boneEnds,
-                                     const int _numHrbfCentres);
-
-    //--------------------------------------------------------------------
-
     void SetRigidTransforms(const std::vector<glm::mat4> &_transforms);
 
     //--------------------------------------------------------------------
@@ -76,6 +78,15 @@ private:
     /// @brief
     void EvalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
 
+
+    //--------------------------------------------------------------------
+
+    void InitMeshCudaMem(const Mesh _origMesh, const GLuint _meshVBO, const std::vector<glm::mat4> &_transform);
+
+    void InitFieldCudaMem();
+
+    //--------------------------------------------------------------------
+
     /// @brief Method to get the device side pointer to deformed mesh vertices for use in CUDA kernels
     glm::vec3 *GetMeshDeformedDevicePtr();
 
@@ -83,15 +94,37 @@ private:
     void ReleaseMeshDeformedDevicePtr();
 
 
+
     //---------------------------------------------------------------------
     // Private Attributes
+
+    // CPU data
+    /// @brief
+    cudaGraphicsResource *m_meshVBO_CUDA;
 
     /// @brief
     std::vector<std::thread> m_threads;
 
     /// @brief
-    cudaGraphicsResource *m_meshVBO_CUDA;
+    bool m_meshDeformedMapped;
 
+    /// @brief
+    int m_numVerts;
+
+    /// @brief
+    GlobalFieldFunction m_globalFieldFunction;
+
+    /// @brief
+    bool m_initMeshCudaMem;
+
+    /// @brief
+    bool m_initFieldCudaMem;
+
+    /// @brief
+    bool m_initGobalFieldFunc;
+
+
+    // GPU data
     /// @brief
     glm::vec3 *d_meshDeformedPtr;
 
@@ -102,21 +135,17 @@ private:
     glm::mat4 *d_transformPtr;
 
     /// @brief
+    glm::mat4 *d_textureSpacePtr;
+
+    /// @brief
+    cudaTextureObject_t *d_fieldsPtr;
+
+    /// @brief
     unsigned int *d_boneIdPtr;
 
     /// @brief
     float *d_weightPtr;
 
-    /// @brief
-    bool m_meshDeformedMapped;
-
-    /// @brief
-    int m_numVerts;
-
-    GlobalFieldFunction m_globalFieldFunction;
-
-    bool m_initCudaMem;
-    bool m_initGobalFieldFunc;
 
 };
 

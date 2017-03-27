@@ -238,6 +238,20 @@ std::vector<std::shared_ptr<FieldFunction> > &GlobalFieldFunction::GetFieldFuncs
 
 //----------------------------------------------------------------------------------------------------
 
+std::vector<std::shared_ptr<CompositionOp>> &GlobalFieldFunction::GetCompOps()
+{
+    return m_compOps;
+}
+
+//----------------------------------------------------------------------------------------------------
+
+std::vector<std::shared_ptr<ComposedField>> &GlobalFieldFunction::GetCompFields()
+{
+    return m_composedFields;
+}
+
+//----------------------------------------------------------------------------------------------------
+
 std::vector<cudaTextureObject_t> GlobalFieldFunction::GetFieldFunc3DTextures()
 {
     std::vector<cudaTextureObject_t> textures;

@@ -1,9 +1,10 @@
 #ifndef CUDATEXTURE_H
 #define CUDATEXTURE_H
 
+#include <iostream>
 #include <cuda_runtime.h>
 #include <cuda.h>
-
+#include "helper_cuda.h"
 
 /// @author Idris Miles
 /// @version 1.0
@@ -41,7 +42,7 @@ public:
 
         // Initialise cuda array
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-        cudaMalloc3DArray(&d_cuArray, &channelDesc, make_cudaExtent(_dim*sizeof(T), _dim, _dim));
+        checkCudaErrors(cudaMalloc3DArray(&d_cuArray, &channelDesc, make_cudaExtent(_dim*sizeof(T), _dim, _dim)));
 
 
         // Upload host data to device array
@@ -50,7 +51,7 @@ public:
         copy3DParams.dstArray = d_cuArray;
         copy3DParams.extent = make_cudaExtent(_dim, _dim, _dim);
         copy3DParams.kind = cudaMemcpyHostToDevice;
-        cudaMemcpy3D(&copy3DParams);
+        checkCudaErrors(cudaMemcpy3D(&copy3DParams));
 
 
         // Initalise cuda texture
@@ -65,11 +66,11 @@ public:
         texDesc.addressMode[1] = cudaAddressModeClamp;
         texDesc.addressMode[2] = cudaAddressModeClamp;
         texDesc.filterMode = cudaFilterModeLinear;
-        texDesc.readMode = cudaReadModeElementType;
+        texDesc.readMode = cudaReadModeElementType; //cudaReadModeNormalizedFloat
         texDesc.normalizedCoords = 1;
 
         d_cuTex = 0;
-        cudaCreateTextureObject(&d_cuTex, &resDesc, &texDesc, NULL);
+        checkCudaErrors(cudaCreateTextureObject(&d_cuTex, &resDesc, &texDesc, NULL));
 
         m_init = true;
     }

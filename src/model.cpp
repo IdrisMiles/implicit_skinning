@@ -683,7 +683,8 @@ void Model::UpdateVAOs()
 
 void Model::InitImplicitSkinner()
 {
-    m_implicitSkinner = new ImplicitSkinDeformer(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
+    m_implicitSkinner = new ImplicitSkinDeformer();
+    m_implicitSkinner->AttachMesh(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
 }
 
 void Model::DeleteImplicitSkinner()

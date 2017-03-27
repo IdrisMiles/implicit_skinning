@@ -20,7 +20,7 @@ typedef HRBF_fit<float, 3, Rbf_pow3<float> > DistanceField;
 class FieldFunction
 {
 public:
-    FieldFunction(glm::mat4 _transform = glm::mat4(1.0f));
+    FieldFunction();
     ~FieldFunction();
 
     void Fit(const std::vector<glm::vec3>& points,

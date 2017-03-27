@@ -5,9 +5,10 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 
-FieldFunction::FieldFunction(glm::mat4 _transform) :
-    m_transform(_transform),
-    m_fit(false)
+FieldFunction::FieldFunction() :
+    m_fit(false),
+    m_transform(glm::mat4(1.0f)),
+    m_textureSpaceTransform(glm::mat4(1.0f))
 {
 }
 
@@ -51,10 +52,10 @@ void FieldFunction::Fit(const std::vector<glm::vec3>& points,
 
 void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 {
-    if(!m_fit)
-    {
-        return;
-    }
+//    if(!m_fit)
+//    {
+//        return;
+//    }
 
     float data[_dim*_dim*_dim];
     glm::vec3 grad[_dim*_dim*_dim];
@@ -73,8 +74,13 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
                 glm::vec3 tx = TransformSpace(point);
                 auto samplePoint = DistanceField::Vector(tx.x, tx.y, tx.z);
 
-                float d = Remap(m_distanceField.eval(samplePoint));
-                auto g = m_distanceField.grad(samplePoint);
+                float d = 1.0f;
+                DistanceField::Vector g;
+                if(m_fit)
+                {
+                    d = Remap(m_distanceField.eval(samplePoint));
+                    g = m_distanceField.grad(samplePoint);
+                }
 
                 data[z*_dim*_dim + y*_dim+ x] = d;
                 grad[z*_dim*_dim + y*_dim+ x] = glm::vec3(g(0), g(1), g(2));
@@ -83,22 +89,27 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
         }
     }
 
-    m_field.SetData(_dim, data);
-    m_grad.SetData(_dim, grad);
+    if(m_fit)
+    {
+        m_field.SetData(_dim, data);
+        m_grad.SetData(_dim, grad);
+    }
     d_field.CreateCudaTexture(_dim, data);
 //    d_grad.CreateCudaTexture(_dim, cuGrad);
 
 
-    auto textureSpaceTransform = [_scale](glm::vec3 x){
-        return (((x/_scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
+
+    m_textureSpaceTransform = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+    m_textureSpaceTransform = glm::translate(m_textureSpaceTransform, glm::vec3(1.0f, 1.0f, 1.0f));
+    m_textureSpaceTransform = glm::scale(m_textureSpaceTransform, glm::vec3(1.0f/_scale));
+
+    auto textureSpaceTransform = [_scale, this](glm::vec3 x){
+        //return (((x/_scale)+glm::vec3(1.0f,1.0f,1.0f))*0.5f);
+        return glm::vec3(m_textureSpaceTransform*glm::vec4(x, 1.0f));
     };
     m_field.SetTextureSpaceTransform(textureSpaceTransform);
     m_grad.SetTextureSpaceTransform(textureSpaceTransform);
 
-    m_textureSpaceTransform = glm::mat4(1.0f/_scale);
-//    m_textureSpaceTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f/_scale));
-    m_textureSpaceTransform = glm::translate(m_textureSpaceTransform, glm::vec3(1.0f, 1.0f, 1.0f));
-    m_textureSpaceTransform = glm::scale(m_textureSpaceTransform, glm::vec3(0.5f));
 }
 
 void FieldFunction::SetSupportRadius(const float _r)
@@ -184,6 +195,12 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 
 cudaTextureObject_t &FieldFunction::GetFieldFunc3DTexture()
 {
+//    if(!m_fit)
+//    {
+//        cudaTextureObject_t tmp;
+//        return tmp;
+//    }
+
     return d_field.GetCudaTextureObject();
 }
 
