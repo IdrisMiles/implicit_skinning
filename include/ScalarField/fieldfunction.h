@@ -47,6 +47,7 @@ public:
     glm::vec3 Grad(const glm::vec3& x);
 
     cudaTextureObject_t &GetFieldFunc3DTexture();
+    cudaTextureObject_t &GetFieldGrad3DTexture();
 
 
 
@@ -86,9 +87,7 @@ private:
     Field3D<glm::vec3> m_grad;
 
     Cuda3DTexture<float> d_field;
-    Cuda3DTexture<uchar4> d_grad;
-
-
+    Cuda3DTexture<float4> d_grad;
 
 
 };

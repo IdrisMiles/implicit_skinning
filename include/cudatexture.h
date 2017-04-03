@@ -85,7 +85,7 @@ void Cuda3DTexture<T>::CreateCudaTexture(unsigned int _dim, T *_data, cudaTextur
 
     // Initialise cuda array
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-    checkCudaErrors(cudaMalloc3DArray(&d_cuArray, &channelDesc, make_cudaExtent(_dim*sizeof(T), _dim, _dim)));
+    checkCudaErrors(cudaMalloc3DArray(&d_cuArray, &channelDesc, make_cudaExtent(_dim, _dim, _dim)));
 
 
     // Upload host data to device array

@@ -6,10 +6,10 @@
 /// @author Idris Miles
 /// @version 1.0
 
-class CompField
+class ComposedFieldCuda
 {
 public:
-    __host__ __device__ CompField(int _fieldFuncA = -1, int _fieldFuncB = -1, int _compOp = -1) :
+    __host__ __device__ ComposedFieldCuda(int _fieldFuncA = -1, int _fieldFuncB = -1, int _compOp = -1) :
         fieldFuncA(_fieldFuncA),
         fieldFuncB(_fieldFuncB),
         compOp(_compOp)

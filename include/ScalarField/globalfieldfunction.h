@@ -4,6 +4,7 @@
 #include <ScalarField/compositionop.h>
 #include <ScalarField/fieldfunction.h>
 #include <ScalarField/composedfield.h>
+#include <ScalarField/compfield.h>
 
 #include <mesh.h>
 #include <MeshSampler/meshsampler.h>
@@ -81,12 +82,18 @@ public:
     std::vector<std::shared_ptr<ComposedField>> &GetCompFields();
 
     /// @brief
+    std::vector<ComposedFieldCuda> &GetCompFieldsCuda();
+
+    /// @brief
     std::vector<cudaTextureObject_t> GetFieldFunc3DTextures();
 
 private:
 
     /// @brief
     std::vector<std::shared_ptr<ComposedField>> m_composedFields;
+
+    /// @brief
+    std::vector<ComposedFieldCuda> m_composedFieldsCuda;
 
     /// @brief
     std::vector<std::shared_ptr<FieldFunction>> m_fieldFuncs;

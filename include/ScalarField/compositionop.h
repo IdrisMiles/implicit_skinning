@@ -7,6 +7,11 @@
 
 #include "ScalarField/field1d.h"
 
+#include <cuda.h>
+#include "cudatexture.h"
+
+
+
 class CompositionOp
 {
 public:
@@ -26,6 +31,8 @@ public:
     float Theta(const float _angleRadians);
 
 
+    cudaTextureObject_t &GetFieldFunc3DTexture();
+
 private:
     std::function<float(float)> m_theta;
 
@@ -33,6 +40,9 @@ private:
 
 
     Field3D<float> m_field;
+
+    Cuda3DTexture<float> d_field;
+
     bool m_precomputed;
 
 };

@@ -61,7 +61,7 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
 {
     float data[_dim*_dim*_dim];
     glm::vec3 grad[_dim*_dim*_dim];
-    uchar4 cuGrad[_dim*_dim*_dim];
+    float4 *cuGrad = new float4[_dim*_dim*_dim];
 
     for(unsigned int z=0; z<_dim; ++z)
     {
@@ -84,9 +84,9 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
                     g = m_distanceField.grad(samplePoint);
                 }
 
-                data[z*_dim*_dim + y*_dim+ x] = d;
-                grad[z*_dim*_dim + y*_dim+ x] = glm::vec3(g(0), g(1), g(2));
-                cuGrad[z*_dim*_dim + y*_dim+ x] = make_uchar4(g(0), g(1), g(2), d);
+                data[(z*_dim*_dim) + (y*_dim)+ x] = d;
+                grad[(z*_dim*_dim) + (y*_dim)+ x] = glm::vec3(g(0), g(1), g(2));
+                cuGrad[(z*_dim*_dim) + (y*_dim)+ x] = make_float4(g(0), g(1), g(2), d);
             }
         }
     }
@@ -98,7 +98,8 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
         m_precomputedCPU = true;
     }
     d_field.CreateCudaTexture(_dim, data, cudaFilterModeLinear);
-    d_grad.CreateCudaTexture(_dim, cuGrad);
+    d_grad.CreateCudaTexture(_dim, cuGrad, cudaFilterModeLinear);
+    delete [] cuGrad;
     m_precomputedGPU = true;
 
 
@@ -214,6 +215,13 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 cudaTextureObject_t &FieldFunction::GetFieldFunc3DTexture()
 {
     return d_field.GetCudaTextureObject();
+}
+
+//------------------------------------------------------------------------------------------------
+
+cudaTextureObject_t &FieldFunction::GetFieldGrad3DTexture()
+{
+    return d_grad.GetCudaTextureObject();
 }
 
 //------------------------------------------------------------------------------------------------

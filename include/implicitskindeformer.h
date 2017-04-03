@@ -66,6 +66,8 @@ public:
 
     void EvalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
 
+    void EvalFieldInCube(std::vector<float> &_output, const int dim, const float scale);
+
     GlobalFieldFunction &GetGlocalFieldFunc();
 
 private:
@@ -77,6 +79,13 @@ private:
 
     /// @brief
     void EvalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
+
+
+    /// @brief
+    void EvalFieldInCubeCPU(std::vector<float> &_output, const int dim, const float scale);
+
+    /// @brief
+    void EvalFieldInCubeGPU(std::vector<float> &_output, const int dim, const float scale);
 
 
     //--------------------------------------------------------------------
@@ -139,6 +148,15 @@ private:
 
     /// @brief
     cudaTextureObject_t *d_fieldsPtr;
+
+    /// @brief
+    cudaTextureObject_t *d_gradPtr;
+
+    /// @brief
+    cudaTextureObject_t *d_compOpPtr;
+
+    /// @brief
+    ComposedFieldCuda *d_compFieldPtr;
 
     /// @brief
     unsigned int *d_boneIdPtr;

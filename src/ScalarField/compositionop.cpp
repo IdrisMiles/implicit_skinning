@@ -32,6 +32,7 @@ void CompositionOp::SetCompositionOp(std::function<float(float, float, float)> _
 void CompositionOp::Precompute(const unsigned int _dim)
 {
     float data[_dim*_dim*_dim];
+//    float4 *cuGrad = new float4[_dim*_dim*_dim];
 
     for(unsigned int z=0; z<_dim; ++z)
     {
@@ -51,6 +52,9 @@ void CompositionOp::Precompute(const unsigned int _dim)
     }
 
     m_field.SetData(_dim, data);
+    d_field.CreateCudaTexture(_dim, data, cudaFilterModeLinear);
+//    d_grad.CreateCudaTexture(_dim, cuGrad, cudaFilterModeLinear);
+//    delete [] cuGrad;
 
     m_precomputed = true;
 }
@@ -73,3 +77,7 @@ float CompositionOp::Theta(const float _angleRadians)
 }
 
 
+cudaTextureObject_t &CompositionOp::GetFieldFunc3DTexture()
+{
+    return d_field.GetCudaTextureObject();
+}

@@ -211,6 +211,28 @@ void ImplicitSkinDeformer::EvalField(std::vector<float> &_output, const std::vec
 
 //------------------------------------------------------------------------------------------------
 
+void ImplicitSkinDeformer::EvalFieldInCube(std::vector<float> &_output, const int dim, const float scale)
+{
+    _output.clear();
+    if(!m_initGobalFieldFunc)
+    {
+        return;
+    }
+
+    _output.resize(dim *dim *dim);
+
+    if(!m_initMeshCudaMem || !m_initFieldCudaMem)
+    {
+        EvalFieldInCubeCPU(_output, dim, scale);
+    }
+    else
+    {
+        EvalFieldInCubeGPU(_output, dim, scale);
+    }
+}
+
+//------------------------------------------------------------------------------------------------
+
 void ImplicitSkinDeformer::EvalFieldCPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
 {
     unsigned int numSamples = _samplePoints.size();
@@ -283,6 +305,20 @@ void ImplicitSkinDeformer::EvalFieldGPU(std::vector<float> &_output, const std::
 
 //------------------------------------------------------------------------------------------------
 
+void ImplicitSkinDeformer::EvalFieldInCubeCPU(std::vector<float> &_output, const int dim, const float scale)
+{
+
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::EvalFieldInCubeGPU(std::vector<float> &_output, const int dim, const float scale)
+{
+
+}
+
+//------------------------------------------------------------------------------------------------
+
 void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
                                            const GLuint _meshVBO,
                                            const std::vector<glm::mat4> &_transform)
@@ -343,21 +379,37 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
 
 
     auto fieldFuncs = m_globalFieldFunction.GetFieldFuncs();
+    auto compOps = m_globalFieldFunction.GetCompOps();
+    auto compFields = m_globalFieldFunction.GetCompFields();
 
     // create device memory here
     uint numFields = fieldFuncs.size();
+    uint numCompOps = compOps.size();
+    uint numCompFields = compFields.size();
 
     // allocate memory
     checkCudaErrors(cudaMalloc(&d_textureSpacePtr, numFields * sizeof(glm::mat4)));
     checkCudaErrors(cudaMalloc(&d_fieldsPtr, numFields * sizeof(cudaTextureObject_t)));
+    checkCudaErrors(cudaMalloc(&d_compOpPtr, numCompOps * sizeof(cudaTextureObject_t)));
+    checkCudaErrors(cudaMalloc(&d_compFieldPtr, numCompFields * sizeof(ComposedFieldCuda)));
 
     // upload data
     std::vector<glm::mat4> texSpaceTrans(numFields);
     for(int i=0; i<numFields; ++i)
     {
         texSpaceTrans[i] = fieldFuncs[i]->GetTextureSpaceTransform();
-        auto tex = fieldFuncs[i]->GetFieldFunc3DTexture();
-        cudaMemcpy(d_fieldsPtr+i, &tex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
+        auto fieldTex = fieldFuncs[i]->GetFieldFunc3DTexture();
+        cudaMemcpy(d_fieldsPtr+i, &fieldTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
+    }
+    for(int i=0; i<numCompOps; ++i)
+    {
+        auto compOpTex = compOps[i]->GetFieldFunc3DTexture();
+        cudaMemcpy(d_compOpPtr+i, &compOpTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
+    }
+    for(int i=0; i<numCompFields; ++i)
+    {
+        auto cf = compFields[i];
+        cudaMemcpy(d_compFieldPtr+i, &cf, 1*sizeof(ComposedFieldCuda), cudaMemcpyHostToDevice);
     }
     checkCudaErrors(cudaMemcpy((void*)d_textureSpacePtr, &texSpaceTrans[0][0][0], texSpaceTrans.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
 

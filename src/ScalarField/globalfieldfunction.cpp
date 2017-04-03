@@ -178,6 +178,8 @@ void GlobalFieldFunction::GenerateGlobalFieldFunc()
 
     contactOp->Precompute(64);
     bulgeOp->Precompute(64);
+    m_compOps.push_back(contactOp);
+    m_compOps.push_back(bulgeOp);
 
 
     // add composed fields to global field
@@ -191,10 +193,11 @@ void GlobalFieldFunction::GenerateGlobalFieldFunc()
 
         if(m_fieldFuncs.size() > mp+1)
         {
-            composedField->SetFieldFunc(m_fieldFuncs[mp+1], fieldId);
+            composedField->SetFieldFunc(m_fieldFuncs[mp+1], fieldId++);
         }
 
         AddComposedField(composedField);
+        m_composedFieldsCuda.push_back(ComposedFieldCuda(mp, (fieldId<2)?-1:mp+1, 0));
     }
 }
 
@@ -248,6 +251,13 @@ std::vector<std::shared_ptr<CompositionOp>> &GlobalFieldFunction::GetCompOps()
 std::vector<std::shared_ptr<ComposedField>> &GlobalFieldFunction::GetCompFields()
 {
     return m_composedFields;
+}
+
+//----------------------------------------------------------------------------------------------------
+
+std::vector<ComposedFieldCuda> &GlobalFieldFunction::GetCompFieldsCuda()
+{
+    return m_composedFieldsCuda;
 }
 
 //----------------------------------------------------------------------------------------------------

@@ -77,7 +77,7 @@ __device__ void LaplacianSmoothing(glm::vec3 &_deformedVert,
 __global__ void EvaluateGlobalField(float *_output,
                                     glm::vec3 *_samplePoint,
                                     uint _numSamples,
-                                    glm::mat4 _textureSpace,
+                                    glm::mat4 *_textureSpace,
                                     glm::mat4 *_rigidTransforms,
                                     cudaTextureObject_t *_fieldFuncs,
                                     cudaTextureObject_t *_fieldDeriv,
@@ -85,7 +85,7 @@ __global__ void EvaluateGlobalField(float *_output,
                                     cudaTextureObject_t *_compOps,
                                     cudaTextureObject_t *_theta, // opening function
                                     uint _numOps,
-                                    CompField *_compFields,
+                                    ComposedFieldCuda *_compFields,
                                     uint _numCompFields)
 {
     int tid = threadIdx.x + (blockIdx.x * blockDim.x);
@@ -97,42 +97,40 @@ __global__ void EvaluateGlobalField(float *_output,
 
 
     glm::vec3 samplePoint = _samplePoint[tid];
-    glm::mat4 textureSpace = _textureSpace;
 
 
-    float maxF = FLT_MIN;
     float f[100];
-//    float3 df[100];
+    float4 df[100];
     int i=0;
     for(i=0; i<_numFields; i++)
     {
-        glm::vec3 transformedPoint = glm::vec3(_rigidTransforms[i] * glm::vec4(samplePoint,1.0f));
-        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
+        glm::mat4 rigidTrans = _rigidTransforms[i];
+        glm::mat4 textureSpace = _textureSpace[i];
+        glm::vec4 transformedPoint = glm::inverse(rigidTrans) * glm::vec4(samplePoint, 1.0f);
+        glm::vec3 texturePoint = glm::vec3(textureSpace * transformedPoint);
 
         f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
-//        df[i] = tex3D<float3>(_fieldDeriv[i], texturePoint.x, texturePoint.y, texturePoint.z);
-
-        maxF = (f[i]>maxF) ? f[i] : maxF;
+        df[i] = tex3D<float4>(_fieldDeriv[i], texturePoint.x, texturePoint.y, texturePoint.z);
     }
 
 
-//    float cf[100];
-//    float maxF = FLT_MIN;
-//    for(i=0; i<_numCompFields; i++)
-//    {
-//        int f1Id = _compFields[i].fieldFuncA;
-//        int f2Id = _compFields[i].fieldFuncB;
-//        int coId = _compFields[i].compOp;
+    float cf[100];
+    float maxF = FLT_MIN;
+    for(i=0; i<_numCompFields; i++)
+    {
+        int f1Id = _compFields[i].fieldFuncA;
+        int f2Id = _compFields[i].fieldFuncB;
+        int coId = _compFields[i].compOp;
 
-//        glm::vec3 df1(df[f1Id].x, df[f1Id].y, df[f1Id].z);
-//        glm::vec3 df2(df[f2Id].x, df[f2Id].y, df[f2Id].z);
-//        float angle = glm::angle(df1, df2);
-//        float theta = tex1D<float>(_theta, angle*0.5f*M_1_PI);
+        glm::vec3 df1(df[f1Id].x, df[f1Id].y, df[f1Id].z);
+        glm::vec3 df2(df[f2Id].x, df[f2Id].y, df[f2Id].z);
+        float angle = glm::angle(df1, df2);
+        float theta = tex1D<float>(_theta[coId], (angle*0.5f*M_1_PI));
 
-//        cf[i] = tex3D<float>(_compOps[coId], f[f1Id], f[f2Id], theta);
+        cf[i] = (f2Id < 0) ? f[f1Id] : tex3D<float>(_compOps[coId], f[f1Id], f[f2Id], theta);
 
-//        maxF = (cf[i]>maxF) ? cf[i] : maxF;
-//    }
+        maxF = (cf[i]>maxF) ? cf[i] : maxF;
+    }
 
 
     _output[tid] = maxF;
@@ -166,16 +164,13 @@ __global__ void SimpleEvaluateGlobalField(float *_output,
     {
         glm::mat4 rigidTrans = _rigidTransforms[i];
         glm::mat4 textureSpace = _textureSpace[i];
-//        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(glm::vec3(glm::inverse(rigidTrans) * glm::vec4(samplePoint, 1.0f)), 1.0f));
-        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::inverse(rigidTrans) * glm::vec4(samplePoint, 1.0f));
-//        texturePoint = ((((samplePoint / 800.0f)+glm::vec3(1.0f,1.0f,1.0f))*0.5f));
+        glm::vec4 transformedPoint = glm::inverse(rigidTrans) * glm::vec4(samplePoint, 1.0f);
+        glm::vec3 texturePoint = glm::vec3(textureSpace * transformedPoint);
 
-        f[i] = tex3D<float>(_fieldFuncs[i], (texturePoint.x*0.25f), texturePoint.y, texturePoint.z);
+        f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
 
         maxF = (f[i]>maxF) ? f[i] : maxF;
     }
-
-//    printf("%f\n", maxF);
 
     _output[tid] = maxF;
 }
