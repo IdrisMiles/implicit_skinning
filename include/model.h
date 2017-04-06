@@ -73,17 +73,9 @@ public:
 
 
     void GenerateMeshParts();
-    void GenerateFieldFunctions();
-
-    void GenerateOneRingNeighbours();
-    void GenerateCentroidWeights();
-
-
-    void DeformSkin();
-
-
     void InitImplicitSkinner();
     void DeleteImplicitSkinner();
+    void DeformSkin();
 
 
     //-------------------------------------------------------------------

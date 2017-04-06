@@ -2,6 +2,7 @@
 #define MESH_H
 
 #include <vector>
+#include <algorithm>
 #include <glm/glm.hpp>
 
 /// @author Idris Miles
@@ -28,8 +29,50 @@ struct VertexBoneData
 /// @class Mesh
 /// @brief Mesh data structure, holds vertices, triangle indices, normals,
 /// vertex colours, mesh colour, vertex UVs, vertex bone weights (for skinning).
-struct Mesh
+class Mesh
 {
+public :
+    //------------------------------------------------------------------------------------
+
+    Mesh()
+    {
+
+    }
+
+    //------------------------------------------------------------------------------------
+
+    void GetOneRinigNeighours(std::vector<std::vector<int>> &_oneRing) const
+    {
+        _oneRing.clear();
+        _oneRing.resize(m_meshVerts.size());
+
+        auto addNeighbour = [](std::vector<int> vertNeighs, int vert){
+            if(std::find(vertNeighs.begin(), vertNeighs.end(), vert) == vertNeighs.end())
+            {
+                vertNeighs.push_back(vert);
+            }
+        };
+
+        for(int f=0; f<m_meshTris.size(); ++f)
+        {
+            int v0 = m_meshTris[f].x;
+            int v1 = m_meshTris[f].y;
+            int v2 = m_meshTris[f].z;
+
+            addNeighbour(_oneRing[v0], v1);
+            addNeighbour(_oneRing[v0], v2);
+
+            addNeighbour(_oneRing[v1], v0);
+            addNeighbour(_oneRing[v1], v2);
+
+            addNeighbour(_oneRing[v2], v0);
+            addNeighbour(_oneRing[v2], v1);
+        }
+    }
+
+    //------------------------------------------------------------------------------------
+
+
     /// @brief m_meshVerts, a vector containing all vertices of the mesh.
     std::vector<glm::vec3> m_meshVerts;
 

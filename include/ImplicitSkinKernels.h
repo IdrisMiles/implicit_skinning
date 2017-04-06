@@ -5,6 +5,9 @@
 #include <cuda.h>
 #include <cuda_gl_interop.h>
 
+#include <thrust/device_vector.h>
+#include <thrust/scan.h>
+
 #define GLM_FORCE_CUDA
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -33,13 +36,52 @@ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const uint _numVerts,
                            const uint _numBones);
 
-void SimpleEval(float *_output,
-                glm::vec3 *_samplePoint,
-                uint _numSamples,
-                glm::mat4 *_textureSpace,
-                glm::mat4 *_rigidTransforms,
-                cudaTextureObject_t *_fieldFuncs,
-                uint _numFields);
+void SimpleEvalGlobalField(float *_output,
+                            const glm::vec3 *_samplePoint,
+                            const uint _numSamples,
+                            const glm::mat4 *_textureSpace,
+                            const glm::mat4 *_rigidTransforms,
+                            const cudaTextureObject_t *_fieldFuncs,
+                            const uint _numFields);
+
+void EvalGlobalField(float *_output,
+                      const glm::vec3 *_samplePoint,
+                      const uint _numSamples,
+                      const glm::mat4 *_textureSpace,
+                      const glm::mat4 *_rigidTransforms,
+                      const cudaTextureObject_t *_fieldFuncs,
+                      const cudaTextureObject_t *_fieldDeriv,
+                      const uint _numFields,
+                      const cudaTextureObject_t *_compOps,
+                      const cudaTextureObject_t *_theta,
+                      const uint _numOps,
+                      const ComposedFieldCuda *_compFields,
+                      const uint _numCompFields);
+
+void SimpleImplicitSkin(glm::vec3 *_deformedVert,
+                          const glm::vec3 *_normal,
+                          const float *_origIsoValue,
+                          const uint _numVerts,
+                          const glm::mat4 *_textureSpace,
+                          const glm::mat4 *_rigidTransforms,
+                          const cudaTextureObject_t *_fieldFuncs,
+                          const cudaTextureObject_t *_fieldDeriv,
+                          const uint _numFields,
+                          const int *_oneRingNeigh,
+                          const float *_centroidWeights,
+                          const int *_numNeighs,
+                          const int *_neighScatterAddr);
+
+void GenerateScatterAddress(int *begin,
+                            int *end,
+                            int *scatteredAddr);
+
+void GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
+                                    const uint _numVerts,
+                                    float *_centroidWeights,
+                                    const int *_oneRingIds,
+                                    const int *_numNeighsPerVert,
+                                    const int *_oneRingScatterAddr);
 
 }
 #endif //IMPLICITSKINKERNELS_H

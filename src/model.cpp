@@ -49,8 +49,6 @@ void Model::Load(const std::string &_file)
     //--------------------------------------------------
 
     InitImplicitSkinner();
-    GenerateMeshParts();
-    GenerateFieldFunctions();
 }
 
 
@@ -119,24 +117,12 @@ void Model::GenerateMeshParts()
 
 }
 
-void Model::GenerateFieldFunctions()
-{
-    std::vector<glm::vec3> boneStarts;
-    std::vector<glm::vec3> boneEnds;
-    for(int i=0; i<m_meshParts.size(); i++)
-    {
-        boneStarts.push_back(m_rigMesh.m_meshVerts[i*2]);
-        boneEnds.push_back(m_rigMesh.m_meshVerts[(i*2) + 1]);
-    }
-    m_implicitSkinner->GenerateGlobalFieldFunction(m_meshParts, boneStarts, boneEnds, 50);
-}
-
-
 //---------------------------------------------------------------------------------
 
 void Model::DeformSkin()
 {
-    m_implicitSkinner->PerformLBWSkinning(m_rig.m_boneTransforms);
+    m_implicitSkinner->PerformLBWSkinning();
+    m_implicitSkinner->PerformImplicitSkinning();
 }
 
 //---------------------------------------------------------------------------------
@@ -175,7 +161,7 @@ void Model::UpdateImplicitSurface(int xRes,
     int threadId=0;
 
 
-    auto threadFunc = [&, this](int startChunk, int endChunk){
+    auto threadFunc = [&](int startChunk, int endChunk){
         for(int z=startChunk;z<endChunk;z++)
         {
             for(int y=0;y<yRes;y++)
@@ -191,7 +177,7 @@ void Model::UpdateImplicitSurface(int xRes,
     };
 
 
-    // Evalue field in each thread
+    // Generate sample points
     for(threadId=0; threadId<numBigChunks; threadId++)
     {
         m_threads[threadId] = std::thread(threadFunc, startChunk, (startChunk+bigChunkSize));
@@ -216,7 +202,7 @@ void Model::UpdateImplicitSurface(int xRes,
 
     // Evaluate field
     std::vector<float> f;
-    m_implicitSkinner->EvalField(f, samplePoints);
+    m_implicitSkinner->EvalGlobalField(f, samplePoints);
 
 
     // Polygonize scalar field using maching cube
@@ -732,12 +718,26 @@ void Model::UpdateVAOs()
     }
 }
 
+//---------------------------------------------------------------------------------
 
 void Model::InitImplicitSkinner()
 {
     m_implicitSkinner = new ImplicitSkinDeformer();
     m_implicitSkinner->AttachMesh(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
+
+    GenerateMeshParts();
+
+    std::vector<glm::vec3> boneStarts;
+    std::vector<glm::vec3> boneEnds;
+    for(int i=0; i<m_meshParts.size(); i++)
+    {
+        boneStarts.push_back(m_rigMesh.m_meshVerts[i*2]);
+        boneEnds.push_back(m_rigMesh.m_meshVerts[(i*2) + 1]);
+    }
+    m_implicitSkinner->GenerateGlobalFieldFunction(m_meshParts, boneStarts, boneEnds, 50);
 }
+
+//---------------------------------------------------------------------------------
 
 void Model::DeleteImplicitSkinner()
 {
@@ -748,33 +748,42 @@ void Model::DeleteImplicitSkinner()
     }
 }
 
-
-
+//---------------------------------------------------------------------------------
 
 void Model::SetLightPos(const glm::vec3 &_lightPos)
 {
     m_lightPos = _lightPos;
 }
 
+//---------------------------------------------------------------------------------
+
 void Model::SetModelMatrix(const glm::mat4 &_modelMat)
 {
     m_modelMat = _modelMat;
 }
+
+//---------------------------------------------------------------------------------
 
 void Model::SetNormalMatrix(const glm::mat3 &_normMat)
 {
     m_normMat = _normMat;
 }
 
+//---------------------------------------------------------------------------------
+
 void Model::SetViewMatrix(const glm::mat4 &_viewMat)
 {
     m_viewMat = _viewMat;
 }
 
+//---------------------------------------------------------------------------------
+
 void Model::SetProjectionMatrix(const glm::mat4 &_projMat)
 {
     m_projMat = _projMat;
 }
+
+//---------------------------------------------------------------------------------
 
 void Model::UploadBoneColoursToShader(RenderType _rt)
 {
@@ -786,6 +795,8 @@ void Model::UploadBoneColoursToShader(RenderType _rt)
     }
 
 }
+
+//---------------------------------------------------------------------------------
 
 void Model::UploadBonesToShader(RenderType _rt)
 {

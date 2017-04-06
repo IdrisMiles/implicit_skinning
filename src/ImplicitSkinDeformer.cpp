@@ -3,7 +3,6 @@
 #include "helper_cuda.h"
 
 
-
 //------------------------------------------------------------------------
 
 ImplicitSkinDeformer::ImplicitSkinDeformer():
@@ -35,6 +34,11 @@ ImplicitSkinDeformer::~ImplicitSkinDeformer()
         checkCudaErrors(cudaFree(d_transformPtr));
         checkCudaErrors(cudaFree(d_boneIdPtr));
         checkCudaErrors(cudaFree(d_weightPtr));
+        checkCudaErrors(cudaFree(d_oneRingIdPtr));
+        checkCudaErrors(cudaFree(d_oneRingVertPtr));
+        checkCudaErrors(cudaFree(d_numNeighsPerVertPtr));
+        checkCudaErrors(cudaFree(d_oneRingScatterAddrPtr));
+
         m_initMeshCudaMem = false;
     }
 
@@ -42,6 +46,10 @@ ImplicitSkinDeformer::~ImplicitSkinDeformer()
     {
         checkCudaErrors(cudaFree(d_textureSpacePtr));
         checkCudaErrors(cudaFree(d_fieldsPtr));
+        checkCudaErrors(cudaFree(d_compOpPtr));
+        checkCudaErrors(cudaFree(d_compFieldPtr));
+
+        m_initFieldCudaMem = false;
     }
 }
 
@@ -51,7 +59,6 @@ void ImplicitSkinDeformer::AttachMesh(const Mesh _origMesh,
                                       const GLuint _meshVBO,
                                       const std::vector<glm::mat4> &_transform)
 {
-    m_numVerts = _origMesh.m_meshVerts.size();
     InitMeshCudaMem(_origMesh, _meshVBO, _transform);
 }
 
@@ -64,6 +71,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
 {
     m_globalFieldFunction.Fit(_meshParts.size());
 
+    // Generate individual field functions per mesh part
     auto threadFunc = [&, this](int startId, int endId){
         for(int mp=startId; mp<endId; mp++)
         {
@@ -103,26 +111,27 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
         }
     }
 
-
+    // Generate global field function
     m_globalFieldFunction.GenerateGlobalFieldFunc();
-
     m_initGobalFieldFunc = true;
 
     InitFieldCudaMem();
+
+    //---------------------------------------
+    // TODO
+    // Initialise iso values for verts here
+
 }
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::PerformLBWSkinning(const std::vector<glm::mat4> &_transform)
+void ImplicitSkinDeformer::PerformLBWSkinning()
 {
 
     if(!m_initMeshCudaMem)
     {
         return;
     }
-
-    // upload data
-    checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
 
 
     kernels::LinearBlendWeightSkin(GetMeshDeformedDevicePtr(),
@@ -131,7 +140,7 @@ void ImplicitSkinDeformer::PerformLBWSkinning(const std::vector<glm::mat4> &_tra
                                    d_boneIdPtr,
                                    d_weightPtr,
                                    m_numVerts,
-                                   _transform.size());
+                                   m_numTransforms);
 
 
     cudaThreadSynchronize();
@@ -144,12 +153,37 @@ void ImplicitSkinDeformer::PerformLBWSkinning(const std::vector<glm::mat4> &_tra
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::PerformImplicitSkinning(const std::vector<glm::mat4> &_transform)
+void ImplicitSkinDeformer::PerformImplicitSkinning()
 {
     if(!m_initMeshCudaMem || !m_initFieldCudaMem)
     {
         return;
     }
+
+
+    glm::vec3 *d_normals;
+    kernels::SimpleImplicitSkin(GetMeshDeformedDevicePtr(),
+                                d_normals,
+                                d_origVertIsoPtr,
+                                m_numVerts,
+                                d_textureSpacePtr,
+                                d_transformPtr,
+                                d_fieldsPtr,
+                                d_gradPtr,
+                                m_numFields,
+                                d_oneRingIdPtr,
+                                d_centroidWeights,
+                                d_numNeighsPerVertPtr,
+                                d_oneRingScatterAddrPtr);
+
+
+
+    cudaThreadSynchronize();
+    getLastCudaError("Implicit Skinning Failed");
+
+
+    // release cuda resources so openGL can render
+    ReleaseMeshDeformedDevicePtr();
 }
 
 //------------------------------------------------------------------------------------------------
@@ -183,13 +217,14 @@ void ImplicitSkinDeformer::SetRigidTransforms(const std::vector<glm::mat4> &_tra
 
     if(m_initMeshCudaMem)
     {
-        checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transforms[0][0][0], _transforms.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
+        m_numTransforms = _transforms.size();
+        checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transforms[0][0][0], m_numTransforms * sizeof(glm::mat4), cudaMemcpyHostToDevice));
     }
 }
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::EvalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
+void ImplicitSkinDeformer::EvalGlobalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
 {
     _output.clear();
     if(!m_initGobalFieldFunc)
@@ -201,17 +236,17 @@ void ImplicitSkinDeformer::EvalField(std::vector<float> &_output, const std::vec
 
     if(!m_initMeshCudaMem || !m_initFieldCudaMem)
     {
-        EvalFieldCPU(_output, _samplePoints);
+        EvalGlobalFieldCPU(_output, _samplePoints);
     }
     else
     {
-        EvalFieldGPU(_output, _samplePoints);
+        EvalGlobalFieldGPU(_output, _samplePoints);
     }
 }
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::EvalFieldInCube(std::vector<float> &_output, const int dim, const float scale)
+void ImplicitSkinDeformer::EvalGlobalFieldInCube(std::vector<float> &_output, const int dim, const float scale)
 {
     _output.clear();
     if(!m_initGobalFieldFunc)
@@ -233,7 +268,7 @@ void ImplicitSkinDeformer::EvalFieldInCube(std::vector<float> &_output, const in
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::EvalFieldCPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
+void ImplicitSkinDeformer::EvalGlobalFieldCPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
 {
     unsigned int numSamples = _samplePoints.size();
 
@@ -278,7 +313,7 @@ void ImplicitSkinDeformer::EvalFieldCPU(std::vector<float> &_output, const std::
 //------------------------------------------------------------------------------------------------
 
 
-void ImplicitSkinDeformer::EvalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
+void ImplicitSkinDeformer::EvalGlobalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
 {
     uint numFields = m_globalFieldFunction.GetFieldFuncs().size();
 
@@ -292,7 +327,7 @@ void ImplicitSkinDeformer::EvalFieldGPU(std::vector<float> &_output, const std::
     checkCudaErrors(cudaMemcpy((void*)d_samplePoints, &_samplePoints[0], _samplePoints.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
 
     // run kernel
-    kernels::SimpleEval(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, numFields);
+    kernels::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, numFields);
     getLastCudaError("Kernel::SimpleEval");
 
     // download data to host
@@ -326,6 +361,8 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
 
     if(m_initMeshCudaMem) { return; }
 
+    m_numVerts = _origMesh.m_meshVerts.size();
+
     // Get bone ID and weights per vertex
     unsigned int boneIds[m_numVerts *4];
     float weights[m_numVerts *4];
@@ -351,20 +388,54 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
         i+=4;
     }
 
+    // Get one ring neighbourhood
+    std::vector<std::vector<int>> oneRing;
+    std::vector<int> oneRingIdFlat;
+    std::vector<glm::vec3> oneRingVertFlat;
+    std::vector<int>numNeighsPerVertex;
+    _origMesh.GetOneRinigNeighours(oneRing);
+
+    for(auto &neighList : oneRing)
+    {
+        numNeighsPerVertex.push_back(neighList.size());
+
+        oneRingIdFlat.insert(oneRingIdFlat.begin(), neighList.begin(), neighList.end());
+
+        for(auto &neighId : neighList)
+        {
+            oneRingVertFlat.push_back(_origMesh.m_meshVerts[neighId]);
+        }
+    }
+
+
     // Register vertex buffer with CUDA
     checkCudaErrors(cudaGraphicsGLRegisterBuffer(&m_meshVBO_CUDA, _meshVBO, cudaGraphicsMapFlagsWriteDiscard));
 
+
     // Allocate cuda memory
-    checkCudaErrorsMsg(cudaMalloc(&d_meshOrigPtr, m_numVerts * sizeof(glm::vec3)), "Allocate memory for original mesh");
-    checkCudaErrorsMsg(cudaMalloc(&d_transformPtr, _transform.size() * sizeof(glm::mat4)), "Allocate memory for transforms");
-    checkCudaErrorsMsg(cudaMalloc(&d_boneIdPtr, m_numVerts * 4 * sizeof(unsigned int)), "Allocate memory for bone Ids");
-    checkCudaErrorsMsg(cudaMalloc(&d_weightPtr, m_numVerts * 4 * sizeof(float)), "Allocate memory for bone weights");
+    checkCudaErrorsMsg(cudaMalloc(&d_meshOrigPtr, m_numVerts * sizeof(glm::vec3)),          "Allocate memory for original mesh");
+    checkCudaErrorsMsg(cudaMalloc(&d_transformPtr, _transform.size() * sizeof(glm::mat4)),  "Allocate memory for transforms");
+    checkCudaErrorsMsg(cudaMalloc(&d_boneIdPtr, m_numVerts * 4 * sizeof(unsigned int)),     "Allocate memory for bone Ids");
+    checkCudaErrorsMsg(cudaMalloc(&d_weightPtr, m_numVerts * 4 * sizeof(float)),            "Allocate memory for bone weights");
+    checkCudaErrorsMsg(cudaMalloc(&d_oneRingIdPtr, oneRingIdFlat.size() * sizeof(int)),     "Allocate memory for one ring ids");
+    checkCudaErrorsMsg(cudaMalloc(&d_oneRingVertPtr, oneRingVertFlat.size() * sizeof(glm::vec3)), "Allocate memory for one ring verts");
+    checkCudaErrorsMsg(cudaMalloc(&d_centroidWeights, oneRingVertFlat.size() * sizeof(float)), "Allocate memory for one ring centroid weights");
+    checkCudaErrorsMsg(cudaMalloc(&d_numNeighsPerVertPtr, m_numVerts * sizeof(int)),        "Allocate memory for num neighs per vertex");
+    checkCudaErrorsMsg(cudaMalloc(&d_oneRingScatterAddrPtr, m_numVerts * sizeof(int)),      "Allocate memory for one ring scatter address");
+
 
     // copy memory over to cuda
     checkCudaErrors(cudaMemcpy((void*)d_meshOrigPtr, (void*)&_origMesh.m_meshVerts[0], m_numVerts * sizeof(glm::vec3), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_transformPtr, (void*)&_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_boneIdPtr, (void*)boneIds, m_numVerts *4* sizeof(unsigned int), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_weightPtr, (void*)weights, m_numVerts *4* sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy((void*)d_oneRingIdPtr, (void*)&oneRingIdFlat[0], oneRingIdFlat.size() * sizeof(int), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy((void*)d_oneRingVertPtr, (void*)&oneRingVertFlat[0], oneRingVertFlat.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy((void*)d_numNeighsPerVertPtr, (void*)&numNeighsPerVertex[0], m_numVerts * sizeof(int), cudaMemcpyHostToDevice));
+    kernels::GenerateScatterAddress(d_numNeighsPerVertPtr, (d_numNeighsPerVertPtr+m_numVerts), d_oneRingScatterAddrPtr);
+
+
+
 
     checkCudaErrors(cudaThreadSynchronize());
 
@@ -383,30 +454,30 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
     auto compFields = m_globalFieldFunction.GetCompFields();
 
     // create device memory here
-    uint numFields = fieldFuncs.size();
-    uint numCompOps = compOps.size();
-    uint numCompFields = compFields.size();
+    m_numFields = fieldFuncs.size();
+    m_numCompOps = compOps.size();
+    m_numCompFields = compFields.size();
 
     // allocate memory
-    checkCudaErrors(cudaMalloc(&d_textureSpacePtr, numFields * sizeof(glm::mat4)));
-    checkCudaErrors(cudaMalloc(&d_fieldsPtr, numFields * sizeof(cudaTextureObject_t)));
-    checkCudaErrors(cudaMalloc(&d_compOpPtr, numCompOps * sizeof(cudaTextureObject_t)));
-    checkCudaErrors(cudaMalloc(&d_compFieldPtr, numCompFields * sizeof(ComposedFieldCuda)));
+    checkCudaErrors(cudaMalloc(&d_textureSpacePtr, m_numFields * sizeof(glm::mat4)));
+    checkCudaErrors(cudaMalloc(&d_fieldsPtr, m_numFields * sizeof(cudaTextureObject_t)));
+    checkCudaErrors(cudaMalloc(&d_compOpPtr, m_numCompOps * sizeof(cudaTextureObject_t)));
+    checkCudaErrors(cudaMalloc(&d_compFieldPtr, m_numCompFields * sizeof(ComposedFieldCuda)));
 
     // upload data
-    std::vector<glm::mat4> texSpaceTrans(numFields);
-    for(int i=0; i<numFields; ++i)
+    std::vector<glm::mat4> texSpaceTrans(m_numFields);
+    for(int i=0; i<m_numFields; ++i)
     {
         texSpaceTrans[i] = fieldFuncs[i]->GetTextureSpaceTransform();
         auto fieldTex = fieldFuncs[i]->GetFieldFunc3DTexture();
         cudaMemcpy(d_fieldsPtr+i, &fieldTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
     }
-    for(int i=0; i<numCompOps; ++i)
+    for(int i=0; i<m_numCompOps; ++i)
     {
         auto compOpTex = compOps[i]->GetFieldFunc3DTexture();
         cudaMemcpy(d_compOpPtr+i, &compOpTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
     }
-    for(int i=0; i<numCompFields; ++i)
+    for(int i=0; i<m_numCompFields; ++i)
     {
         auto cf = compFields[i];
         cudaMemcpy(d_compFieldPtr+i, &cf, 1*sizeof(ComposedFieldCuda), cudaMemcpyHostToDevice);

@@ -44,10 +44,10 @@ public:
 
     /// @brief Method to perform LBW skinning
     /// @param _transform : a vector of joint transform matrices.
-    void PerformLBWSkinning(const std::vector<glm::mat4> &_transform);
+    void PerformLBWSkinning();
 
     /// @brief Method
-    void PerformImplicitSkinning(const std::vector<glm::mat4> &_transform);
+    void PerformImplicitSkinning();
 
     //--------------------------------------------------------------------
 
@@ -64,9 +64,9 @@ public:
     //--------------------------------------------------------------------
 
 
-    void EvalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
+    void EvalGlobalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
 
-    void EvalFieldInCube(std::vector<float> &_output, const int dim, const float scale);
+    void EvalGlobalFieldInCube(std::vector<float> &_output, const int dim, const float scale);
 
     GlobalFieldFunction &GetGlocalFieldFunc();
 
@@ -75,10 +75,10 @@ private:
     //---------------------------------------------------------------------
     // Private Methods
     /// @brief
-    void EvalFieldCPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
+    void EvalGlobalFieldCPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
 
     /// @brief
-    void EvalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
+    void EvalGlobalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
 
 
     /// @brief
@@ -105,8 +105,10 @@ private:
 
 
     //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
     // Private Attributes
 
+    //---------------------------------------------------------------------
     // CPU data
     /// @brief
     cudaGraphicsResource *m_meshVBO_CUDA;
@@ -119,6 +121,9 @@ private:
 
     /// @brief
     int m_numVerts;
+    uint m_numFields;
+    uint m_numCompOps;
+    uint m_numCompFields;
 
     /// @brief
     GlobalFieldFunction m_globalFieldFunction;
@@ -133,6 +138,7 @@ private:
     bool m_initGobalFieldFunc;
 
 
+    //---------------------------------------------------------------------
     // GPU data
     /// @brief
     glm::vec3 *d_meshDeformedPtr;
@@ -141,7 +147,28 @@ private:
     glm::vec3 *d_meshOrigPtr;
 
     /// @brief
+    int *d_oneRingIdPtr;
+
+    /// @brief
+    int *d_numNeighsPerVertPtr;
+
+    /// @brief
+    int *d_oneRingScatterAddrPtr;
+
+    float *d_centroidWeights;
+
+    /// @brief
+    glm::vec3 *d_oneRingVertPtr;
+
+    /// @brief
+    float *d_origVertIsoPtr;
+
+    /// @brief
+    float *d_newVertIsoPtr;
+
+    /// @brief
     glm::mat4 *d_transformPtr;
+    int m_numTransforms;
 
     /// @brief
     glm::mat4 *d_textureSpacePtr;
