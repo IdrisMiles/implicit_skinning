@@ -30,12 +30,15 @@ public:
 
     void AttachMesh(const Mesh _origMesh,
                     const GLuint _meshVBO,
+                    const GLuint _meshNBO,
                     const std::vector<glm::mat4> &_transform);
 
     void GenerateGlobalFieldFunction(const std::vector<Mesh> &_meshParts,
                                      const std::vector<glm::vec3> &_boneStarts,
                                      const std::vector<glm::vec3> &_boneEnds,
                                      const int _numHrbfCentres);
+
+
 
     //--------------------------------------------------------------------
 
@@ -90,17 +93,27 @@ private:
 
     //--------------------------------------------------------------------
 
-    void InitMeshCudaMem(const Mesh _origMesh, const GLuint _meshVBO, const std::vector<glm::mat4> &_transform);
+    void InitMeshCudaMem(const Mesh _origMesh, const GLuint _meshVBO, const GLuint _meshNBO, const std::vector<glm::mat4> &_transform);
 
     void InitFieldCudaMem();
+
+    void DestroyMeshCudaMem();
+
+    void DestroyFieldCudaMem();
 
     //--------------------------------------------------------------------
 
     /// @brief Method to get the device side pointer to deformed mesh vertices for use in CUDA kernels
-    glm::vec3 *GetMeshDeformedDevicePtr();
+    glm::vec3 *GetDeformedMeshVertsDevicePtr();
 
     /// @brief Method to release the device side pointer so OpenGL can use the VBO holding the deformed mesh vertices.
-    void ReleaseMeshDeformedDevicePtr();
+    void ReleaseDeformedMeshVertsDevicePtr();
+
+    /// @brief Method to get the device side pointer to deformed mesh normals for use in CUDA kernels
+    glm::vec3 *GetDeformedMeshNormsDevicePtr();
+
+    /// @brief Method to release the device side pointer so OpenGL can use the NBO holding the deformed mesh normals.
+    void ReleaseDeformedMeshNormsDevicePtr();
 
 
 
@@ -114,10 +127,16 @@ private:
     cudaGraphicsResource *m_meshVBO_CUDA;
 
     /// @brief
+    cudaGraphicsResource *m_meshNBO_CUDA;
+
+    /// @brief
     std::vector<std::thread> m_threads;
 
     /// @brief
-    bool m_meshDeformedMapped;
+    bool m_deformedMeshVertsMapped;
+
+    /// @brief
+    bool m_deformedMeshNormsMapped;
 
     /// @brief
     int m_numVerts;
@@ -141,10 +160,16 @@ private:
     //---------------------------------------------------------------------
     // GPU data
     /// @brief
-    glm::vec3 *d_meshDeformedPtr;
+    glm::vec3 *d_deformedMeshVertsPtr;
 
     /// @brief
-    glm::vec3 *d_meshOrigPtr;
+    glm::vec3 *d_origMeshVertsPtr;
+
+    /// @brief
+    glm::vec3 *d_deformedMeshNormsPtr;
+
+    /// @brief
+    glm::vec3 *d_origMeshNormsPtr;
 
     /// @brief
     int *d_oneRingIdPtr;
@@ -155,7 +180,7 @@ private:
     /// @brief
     int *d_oneRingScatterAddrPtr;
 
-    float *d_centroidWeights;
+    float *d_centroidWeightsPtr;
 
     /// @brief
     glm::vec3 *d_oneRingVertPtr;

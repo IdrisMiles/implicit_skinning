@@ -15,14 +15,10 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
     Assimp::Importer m_importer;
 
     // Load mesh with ASSIMP
-    scene = m_importer.ReadFile(    _file,
-                                    aiProcess_GenSmoothNormals |
-                                    aiProcess_Triangulate |
-                                    aiProcess_JoinIdenticalVertices |
-                                    aiProcess_SortByPType   );
+    scene = m_importer.ReadFile(    _file, aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType   );
     if(!scene)
     {
-//        std::cout<<"Error loading "<<_file<<" with assimp\n";
+        std::cout<<"Error loading "<<_file<<" with assimp\n";
         return;
     }
 
@@ -30,16 +26,10 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
     glm::mat4 globalInverseTransform = ConvertToGlmMat(scene->mRootNode->mTransformation);
     _model->m_rig.m_globalInverseTransform  = glm::inverse(globalInverseTransform);
 
-    if(!scene)
-    {
-//        std::cout<<"No valid AIScene\n";
-    }
-    else
-    {
-        InitModelMesh(_model, scene);
-        InitRigMesh(_model, scene);
-        InitRig(_model, scene);
-    }
+    InitModelMesh(_model, scene);
+    InitRigMesh(_model, scene);
+    InitRig(_model, scene);
+
 
 }
 
@@ -124,6 +114,9 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
             indexOffset = _model->m_mesh.m_meshVerts.size();
 
         } // end for numMeshes
+
+
+        _model->m_mesh.ComputeOneRing();
 
     }// end if has mesh
 

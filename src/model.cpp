@@ -15,6 +15,7 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+int numNeighsGlobal;
 
 Model::Model()
 {
@@ -121,8 +122,7 @@ void Model::GenerateMeshParts()
 
 void Model::DeformSkin()
 {
-    m_implicitSkinner->PerformLBWSkinning();
-    m_implicitSkinner->PerformImplicitSkinning();
+    m_implicitSkinner->Deform();
 }
 
 //---------------------------------------------------------------------------------
@@ -138,19 +138,6 @@ void Model::UpdateImplicitSurface(int xRes,
 
     // Generate sample points
     std::vector<glm::vec3> samplePoints(xRes*yRes*zRes);
-//    for(int z=0;z<zRes;z++)
-//    {
-//        for(int y=0;y<yRes;y++)
-//        {
-//            for(int x=0;x<xRes;x++)
-//            {
-//                samplePoints[(z*yRes*xRes) + (y*xRes) + x] = glm::vec3(dim*((((float)x/zRes)*2.0f)-1.0f),
-//                                                                       dim*((((float)y/yRes)*2.0f)-1.0f),
-//                                                                       dim*((((float)z/xRes)*2.0f)-1.0f));
-//            }
-//        }
-//    }
-
 
     //-------------------------------------------------------
     int numThreads = m_threads.size() + 1;
@@ -240,12 +227,19 @@ void Model::DrawMesh()
         if(!m_wireframe)
         {
             m_meshVAO[SKINNED].bind();
-            glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+            glPolygonMode(GL_FRONT_AND_BACK, !m_wireframe?GL_LINE:GL_FILL);
             glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             m_meshVAO[SKINNED].release();
             m_shaderProg[SKINNED]->release();
         }
+
+        m_shaderProg[ISO_SURFACE]->bind();
+        glPointSize(5);
+        m_oneRingVAO.bind();
+        glDrawArrays(GL_POINTS, 0, numNeighsGlobal);
+        m_oneRingVAO.release();
+        m_shaderProg[ISO_SURFACE]->release();
 
 
         //-------------------------------------------------------------------------------------
@@ -288,7 +282,7 @@ void Model::DrawMesh()
         // Draw marching cube of isosurface
         m_meshVAO[ISO_SURFACE].bind();
         glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_FILL:GL_FILL);
-        glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
+//        glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         m_meshVAO[ISO_SURFACE].release();
 
@@ -366,7 +360,7 @@ void Model::CreateShaders()
     m_lightPosLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("lightPos");
 
     // Light position is fixed.
-    m_lightPos = glm::vec3(0, 0, 70);
+    m_lightPos = glm::vec3(0, 600, 700);
     glUniform3fv(m_lightPosLoc[SKINNED], 1, &m_lightPos[0]);
     m_shaderProg[SKINNED]->release();
 
@@ -408,7 +402,7 @@ void Model::CreateShaders()
     m_normalMatrixLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("normalMatrix");
     m_lightPosLoc[SKINNED] = m_shaderProg[ISO_SURFACE]->uniformLocation("lightPos");
     // Light position is fixed.
-    m_lightPos = glm::vec3(0, 0, 70);
+    m_lightPos = glm::vec3(0, 600, 700);
     glUniform3fv(m_lightPosLoc[ISO_SURFACE], 1, &m_lightPos[0]);
     m_shaderProg[ISO_SURFACE]->release();
 
@@ -436,7 +430,7 @@ void Model::CreateVAOs()
     if(m_shaderProg[SKINNED]->bind())
     {
         // Get shader locations
-        m_mesh.m_colour = glm::vec3(0.4f,0.4f,0.4f);
+        m_mesh.m_colour = glm::vec3(0.6f,0.6f,0.6f);
         m_colourLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("uColour");
         glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
         m_vertAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("vertex");
@@ -485,6 +479,28 @@ void Model::CreateVAOs()
 
         m_shaderProg[SKINNED]->release();
 
+
+
+        m_shaderProg[ISO_SURFACE]->bind();
+        m_oneRingVAO.create();
+        m_oneRingVAO.bind();
+        // Setup our vertex buffer object.
+        m_oneRingVBO.create();
+        m_oneRingVBO.bind();
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_oneRingVBO.release();
+        // Setup our normals buffer object.
+        m_oneRingNBO.create();
+        m_oneRingNBO.bind();
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_oneRingNBO.release();
+
+        m_oneRingVAO.release();
+        m_shaderProg[ISO_SURFACE]->release();
+
+
     }
 
 
@@ -493,7 +509,7 @@ void Model::CreateVAOs()
     if(m_shaderProg[RIG]->bind())
     {
         // Get shader locations
-        m_mesh.m_colour = glm::vec3(0.4f,0.4f,0.4f);
+        m_mesh.m_colour = glm::vec3(0.6f,0.6f,0.6f);
         m_vertAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("vertex");
         m_boneIDAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("BoneIDs");
         m_boneWeightAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("Weights");
@@ -537,7 +553,7 @@ void Model::CreateVAOs()
     if(m_shaderProg[ISO_SURFACE]->bind())
     {
         // Get shader locations
-        m_mesh.m_colour = glm::vec3(0.4f,0.4f,0.4f);
+        m_mesh.m_colour = glm::vec3(0.6f,0.6f,0.6f);
         m_colourLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->uniformLocation("uColour");
         glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_mesh.m_colour[0]);
         m_vertAttrLoc[ISO_SURFACE] = m_shaderProg[ISO_SURFACE]->attributeLocation("vertex");
@@ -603,6 +619,11 @@ void Model::DeleteVAOs()
         {
             m_meshVAO[i].destroy();
         }
+
+        if(m_oneRingVAO.isCreated())
+        {
+            m_oneRingVAO.destroy();
+        }
     }
 }
 
@@ -649,7 +670,54 @@ void Model::UpdateVAOs()
         m_meshBWBO[SKINNED].release();
 
         m_meshVAO[SKINNED].release();
+
         m_shaderProg[SKINNED]->release();
+
+
+
+
+
+
+
+
+
+
+        m_shaderProg[ISO_SURFACE]->bind();
+        m_oneRingVAO.bind();
+        std::vector<std::vector<int>> oneRing;
+        m_mesh.GetOneRingNeighours(oneRing);
+        std::vector<glm::vec3> oneRingVerts;
+        std::vector<glm::vec3> oneRingNorms;
+
+        int vert = 3238;
+//        oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[vert]);
+//        oneRingNorms.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
+        for(int i=0; i<oneRing[vert].size()-3; i++)
+        {
+            std::cout<<oneRing[vert][i]<<",";
+            oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[oneRing[vert][i]]);
+            oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+        std::cout<<"\n";
+
+        numNeighsGlobal = oneRingVerts.size();
+        std::cout<<"oneRingVerts: "<<numNeighsGlobal<<"\n";
+
+        // Setup our vertex buffer object.
+        m_oneRingVBO.bind();
+        m_oneRingVBO.allocate(&oneRingVerts[0], oneRingVerts.size() * sizeof(glm::vec3));
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_oneRingVBO.release();
+        // Setup our normals buffer object.
+        m_oneRingNBO.bind();
+        m_oneRingNBO.allocate(&oneRingVerts[0], oneRingVerts.size() * sizeof(glm::vec3));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+        m_oneRingNBO.release();
+
+        m_oneRingVAO.release();
+        m_shaderProg[ISO_SURFACE]->release();
     }
 
 
@@ -723,7 +791,7 @@ void Model::UpdateVAOs()
 void Model::InitImplicitSkinner()
 {
     m_implicitSkinner = new ImplicitSkinDeformer();
-    m_implicitSkinner->AttachMesh(m_mesh, m_meshVBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
+    m_implicitSkinner->AttachMesh(m_mesh, m_meshVBO[SKINNED].bufferId(), m_meshNBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
 
     GenerateMeshParts();
 

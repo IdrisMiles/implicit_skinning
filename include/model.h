@@ -117,6 +117,10 @@ public:
     QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
 
+    QOpenGLVertexArrayObject m_oneRingVAO;
+    QOpenGLBuffer m_oneRingVBO;
+    QOpenGLBuffer m_oneRingNBO;
+
 
     // Shader locations
     GLuint m_vertAttrLoc[NUMRENDERTYPES];

@@ -30,6 +30,8 @@ uint iDivUp(uint a, uint b);
 /// @brief Function to launch CUDA Kernel to perform linear blend weight skinning
 void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const glm::vec3 *_origVert,
+                           glm::vec3 *_deformedNorms,
+                           const glm::vec3 *_origNorms,
                            const glm::mat4 *_transform,
                            const uint *_boneId,
                            const float *_weight,
@@ -76,10 +78,11 @@ void GenerateScatterAddress(int *begin,
                             int *end,
                             int *scatteredAddr);
 
-void GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
+void GenerateOneRingCentroidWeights(glm::vec3 *d_verts, const glm::vec3 *d_normals,
                                     const uint _numVerts,
                                     float *_centroidWeights,
                                     const int *_oneRingIds,
+                                    const glm::vec3 *_oneRingVerts,
                                     const int *_numNeighsPerVert,
                                     const int *_oneRingScatterAddr);
 

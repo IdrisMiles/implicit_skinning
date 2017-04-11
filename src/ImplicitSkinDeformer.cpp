@@ -9,7 +9,8 @@ ImplicitSkinDeformer::ImplicitSkinDeformer():
     m_initMeshCudaMem(false),
     m_initFieldCudaMem(false),
     m_initGobalFieldFunc(false),
-    m_meshDeformedMapped(false)
+    m_deformedMeshVertsMapped(false),
+    m_deformedMeshNormsMapped(false)
 {
     m_threads.resize(std::thread::hardware_concurrency()-1);
     checkCudaErrors(cudaSetDevice(0));
@@ -27,39 +28,19 @@ ImplicitSkinDeformer::~ImplicitSkinDeformer()
         }
     }
 
-    if(m_initMeshCudaMem)
-    {
-        checkCudaErrors(cudaGraphicsUnregisterResource(m_meshVBO_CUDA));
-        checkCudaErrors(cudaFree(d_meshOrigPtr));
-        checkCudaErrors(cudaFree(d_transformPtr));
-        checkCudaErrors(cudaFree(d_boneIdPtr));
-        checkCudaErrors(cudaFree(d_weightPtr));
-        checkCudaErrors(cudaFree(d_oneRingIdPtr));
-        checkCudaErrors(cudaFree(d_oneRingVertPtr));
-        checkCudaErrors(cudaFree(d_numNeighsPerVertPtr));
-        checkCudaErrors(cudaFree(d_oneRingScatterAddrPtr));
+    DestroyMeshCudaMem();
 
-        m_initMeshCudaMem = false;
-    }
-
-    if(m_initFieldCudaMem)
-    {
-        checkCudaErrors(cudaFree(d_textureSpacePtr));
-        checkCudaErrors(cudaFree(d_fieldsPtr));
-        checkCudaErrors(cudaFree(d_compOpPtr));
-        checkCudaErrors(cudaFree(d_compFieldPtr));
-
-        m_initFieldCudaMem = false;
-    }
+    DestroyFieldCudaMem();
 }
 
 //------------------------------------------------------------------------------------------------
 
 void ImplicitSkinDeformer::AttachMesh(const Mesh _origMesh,
                                       const GLuint _meshVBO,
+                                      const GLuint _meshNBO,
                                       const std::vector<glm::mat4> &_transform)
 {
-    InitMeshCudaMem(_origMesh, _meshVBO, _transform);
+    InitMeshCudaMem(_origMesh, _meshVBO, _meshNBO, _transform);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -125,6 +106,14 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
 
 //------------------------------------------------------------------------------------------------
 
+void ImplicitSkinDeformer::Deform()
+{
+    PerformLBWSkinning();
+//    PerformImplicitSkinning();
+}
+
+//------------------------------------------------------------------------------------------------
+
 void ImplicitSkinDeformer::PerformLBWSkinning()
 {
 
@@ -134,8 +123,10 @@ void ImplicitSkinDeformer::PerformLBWSkinning()
     }
 
 
-    kernels::LinearBlendWeightSkin(GetMeshDeformedDevicePtr(),
-                                   d_meshOrigPtr,
+    kernels::LinearBlendWeightSkin(GetDeformedMeshVertsDevicePtr(),
+                                   d_origMeshVertsPtr,
+                                   GetDeformedMeshNormsDevicePtr(),
+                                   d_origMeshNormsPtr,
                                    d_transformPtr,
                                    d_boneIdPtr,
                                    d_weightPtr,
@@ -148,7 +139,8 @@ void ImplicitSkinDeformer::PerformLBWSkinning()
 
 
     // release cuda resources so openGL can render
-    ReleaseMeshDeformedDevicePtr();
+    ReleaseDeformedMeshVertsDevicePtr();
+    ReleaseDeformedMeshNormsDevicePtr();
 }
 
 //------------------------------------------------------------------------------------------------
@@ -161,9 +153,8 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
     }
 
 
-    glm::vec3 *d_normals;
-    kernels::SimpleImplicitSkin(GetMeshDeformedDevicePtr(),
-                                d_normals,
+    kernels::SimpleImplicitSkin(GetDeformedMeshVertsDevicePtr(),
+                                GetDeformedMeshNormsDevicePtr(),
                                 d_origVertIsoPtr,
                                 m_numVerts,
                                 d_textureSpacePtr,
@@ -172,7 +163,7 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
                                 d_gradPtr,
                                 m_numFields,
                                 d_oneRingIdPtr,
-                                d_centroidWeights,
+                                d_centroidWeightsPtr,
                                 d_numNeighsPerVertPtr,
                                 d_oneRingScatterAddrPtr);
 
@@ -183,7 +174,8 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
 
 
     // release cuda resources so openGL can render
-    ReleaseMeshDeformedDevicePtr();
+    ReleaseDeformedMeshVertsDevicePtr();
+    ReleaseDeformedMeshNormsDevicePtr();
 }
 
 //------------------------------------------------------------------------------------------------
@@ -356,6 +348,7 @@ void ImplicitSkinDeformer::EvalFieldInCubeGPU(std::vector<float> &_output, const
 
 void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
                                            const GLuint _meshVBO,
+                                           const GLuint _meshNBO,
                                            const std::vector<glm::mat4> &_transform)
 {
 
@@ -393,7 +386,7 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
     std::vector<int> oneRingIdFlat;
     std::vector<glm::vec3> oneRingVertFlat;
     std::vector<int>numNeighsPerVertex;
-    _origMesh.GetOneRinigNeighours(oneRing);
+    _origMesh.GetOneRingNeighours(oneRing);
 
     for(auto &neighList : oneRing)
     {
@@ -410,29 +403,34 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
 
     // Register vertex buffer with CUDA
     checkCudaErrors(cudaGraphicsGLRegisterBuffer(&m_meshVBO_CUDA, _meshVBO, cudaGraphicsMapFlagsWriteDiscard));
+    checkCudaErrors(cudaGraphicsGLRegisterBuffer(&m_meshNBO_CUDA, _meshNBO, cudaGraphicsMapFlagsWriteDiscard));
 
 
     // Allocate cuda memory
-    checkCudaErrorsMsg(cudaMalloc(&d_meshOrigPtr, m_numVerts * sizeof(glm::vec3)),          "Allocate memory for original mesh");
-    checkCudaErrorsMsg(cudaMalloc(&d_transformPtr, _transform.size() * sizeof(glm::mat4)),  "Allocate memory for transforms");
-    checkCudaErrorsMsg(cudaMalloc(&d_boneIdPtr, m_numVerts * 4 * sizeof(unsigned int)),     "Allocate memory for bone Ids");
-    checkCudaErrorsMsg(cudaMalloc(&d_weightPtr, m_numVerts * 4 * sizeof(float)),            "Allocate memory for bone weights");
-    checkCudaErrorsMsg(cudaMalloc(&d_oneRingIdPtr, oneRingIdFlat.size() * sizeof(int)),     "Allocate memory for one ring ids");
-    checkCudaErrorsMsg(cudaMalloc(&d_oneRingVertPtr, oneRingVertFlat.size() * sizeof(glm::vec3)), "Allocate memory for one ring verts");
-    checkCudaErrorsMsg(cudaMalloc(&d_centroidWeights, oneRingVertFlat.size() * sizeof(float)), "Allocate memory for one ring centroid weights");
-    checkCudaErrorsMsg(cudaMalloc(&d_numNeighsPerVertPtr, m_numVerts * sizeof(int)),        "Allocate memory for num neighs per vertex");
-    checkCudaErrorsMsg(cudaMalloc(&d_oneRingScatterAddrPtr, m_numVerts * sizeof(int)),      "Allocate memory for one ring scatter address");
+    checkCudaErrorsMsg(cudaMalloc(&d_origMeshVertsPtr,  m_numVerts * sizeof(glm::vec3)),          "Allocate memory for original mesh verts");
+    checkCudaErrorsMsg(cudaMalloc(&d_origMeshNormsPtr,  m_numVerts * sizeof(glm::vec3)),          "Allocate memory for original mesh normals");
+    checkCudaErrorsMsg(cudaMalloc(&d_origVertIsoPtr,    m_numVerts * sizeof(float)),          "Allocate memory for original vert iso values");
+    checkCudaErrorsMsg(cudaMalloc(&d_transformPtr,      _transform.size() * sizeof(glm::mat4)),  "Allocate memory for transforms");
+    checkCudaErrorsMsg(cudaMalloc(&d_boneIdPtr,         m_numVerts * 4 * sizeof(unsigned int)),     "Allocate memory for bone Ids");
+    checkCudaErrorsMsg(cudaMalloc(&d_weightPtr,         m_numVerts * 4 * sizeof(float)),            "Allocate memory for bone weights");
+    checkCudaErrorsMsg(cudaMalloc(&d_oneRingIdPtr,      oneRingIdFlat.size() * sizeof(int)),     "Allocate memory for one ring ids");
+    checkCudaErrorsMsg(cudaMalloc(&d_oneRingVertPtr,    oneRingVertFlat.size() * sizeof(glm::vec3)), "Allocate memory for one ring verts");
+    checkCudaErrorsMsg(cudaMalloc(&d_centroidWeightsPtr,   oneRingVertFlat.size() * sizeof(float)), "Allocate memory for one ring centroid weights");
+    checkCudaErrorsMsg(cudaMalloc(&d_numNeighsPerVertPtr, (m_numVerts+1) * sizeof(int)),        "Allocate memory for num neighs per vertex");
+    checkCudaErrorsMsg(cudaMalloc(&d_oneRingScatterAddrPtr, (m_numVerts+1) * sizeof(int)),      "Allocate memory for one ring scatter address");
 
 
     // copy memory over to cuda
-    checkCudaErrors(cudaMemcpy((void*)d_meshOrigPtr, (void*)&_origMesh.m_meshVerts[0], m_numVerts * sizeof(glm::vec3), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy((void*)d_origMeshVertsPtr, (void*)&_origMesh.m_meshVerts[0], m_numVerts * sizeof(glm::vec3), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy((void*)d_origMeshNormsPtr, (void*)&_origMesh.m_meshNorms[0], m_numVerts * sizeof(glm::vec3), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_transformPtr, (void*)&_transform[0][0][0], _transform.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_boneIdPtr, (void*)boneIds, m_numVerts *4* sizeof(unsigned int), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_weightPtr, (void*)weights, m_numVerts *4* sizeof(float), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_oneRingIdPtr, (void*)&oneRingIdFlat[0], oneRingIdFlat.size() * sizeof(int), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_oneRingVertPtr, (void*)&oneRingVertFlat[0], oneRingVertFlat.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_numNeighsPerVertPtr, (void*)&numNeighsPerVertex[0], m_numVerts * sizeof(int), cudaMemcpyHostToDevice));
-    kernels::GenerateScatterAddress(d_numNeighsPerVertPtr, (d_numNeighsPerVertPtr+m_numVerts), d_oneRingScatterAddrPtr);
+    kernels::GenerateScatterAddress(d_numNeighsPerVertPtr, (d_numNeighsPerVertPtr+m_numVerts+1), d_oneRingScatterAddrPtr);
+//    kernels::GenerateOneRingCentroidWeights(d_origMeshVertsPtr, d_origMeshNormsPtr, m_numVerts, d_centroidWeightsPtr, d_oneRingIdPtr, d_oneRingVertPtr, d_numNeighsPerVertPtr, d_oneRingScatterAddrPtr);
 
 
 
@@ -489,6 +487,44 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
 
 //------------------------------------------------------------------------------------------------
 
+void ImplicitSkinDeformer::DestroyMeshCudaMem()
+{
+    if(m_initMeshCudaMem)
+    {
+        checkCudaErrors(cudaGraphicsUnregisterResource(m_meshVBO_CUDA));
+        checkCudaErrors(cudaGraphicsUnregisterResource(m_meshNBO_CUDA));
+        checkCudaErrors(cudaFree(d_origMeshVertsPtr));
+        checkCudaErrors(cudaFree(d_origMeshNormsPtr));
+        checkCudaErrors(cudaFree(d_origVertIsoPtr));
+        checkCudaErrors(cudaFree(d_transformPtr));
+        checkCudaErrors(cudaFree(d_boneIdPtr));
+        checkCudaErrors(cudaFree(d_weightPtr));
+        checkCudaErrors(cudaFree(d_oneRingIdPtr));
+        checkCudaErrors(cudaFree(d_oneRingVertPtr));
+        checkCudaErrors(cudaFree(d_numNeighsPerVertPtr));
+        checkCudaErrors(cudaFree(d_oneRingScatterAddrPtr));
+
+        m_initMeshCudaMem = false;
+    }
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::DestroyFieldCudaMem()
+{
+    if(m_initFieldCudaMem)
+    {
+        checkCudaErrors(cudaFree(d_textureSpacePtr));
+        checkCudaErrors(cudaFree(d_fieldsPtr));
+        checkCudaErrors(cudaFree(d_compOpPtr));
+        checkCudaErrors(cudaFree(d_compFieldPtr));
+
+        m_initFieldCudaMem = false;
+    }
+}
+
+//------------------------------------------------------------------------------------------------
+
 GlobalFieldFunction &ImplicitSkinDeformer::GetGlocalFieldFunc()
 {
     return m_globalFieldFunction;
@@ -497,27 +533,56 @@ GlobalFieldFunction &ImplicitSkinDeformer::GetGlocalFieldFunc()
 
 //------------------------------------------------------------------------------------------------
 
-glm::vec3 *ImplicitSkinDeformer::GetMeshDeformedDevicePtr()
+glm::vec3 *ImplicitSkinDeformer::GetDeformedMeshVertsDevicePtr()
 {
-    if(!m_meshDeformedMapped)
+    if(!m_deformedMeshVertsMapped)
     {
         size_t numBytes;
         checkCudaErrors(cudaGraphicsMapResources(1, &m_meshVBO_CUDA, 0));
-        checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_meshDeformedPtr, &numBytes, m_meshVBO_CUDA));
+        checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_deformedMeshVertsPtr, &numBytes, m_meshVBO_CUDA));
 
-        m_meshDeformedMapped = true;
+        m_deformedMeshVertsMapped = true;
     }
 
-    return d_meshDeformedPtr;
+    return d_deformedMeshVertsPtr;
 }
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::ReleaseMeshDeformedDevicePtr()
+void ImplicitSkinDeformer::ReleaseDeformedMeshVertsDevicePtr()
 {
-    if(m_meshDeformedMapped)
+    if(m_deformedMeshVertsMapped)
     {
         checkCudaErrors(cudaGraphicsUnmapResources(1, &m_meshVBO_CUDA, 0));
-        m_meshDeformedMapped = false;
+        m_deformedMeshVertsMapped = false;
     }
 }
+
+//------------------------------------------------------------------------------------------------
+
+glm::vec3 *ImplicitSkinDeformer::GetDeformedMeshNormsDevicePtr()
+{
+    if(!m_deformedMeshNormsMapped)
+    {
+        size_t numBytes;
+        checkCudaErrors(cudaGraphicsMapResources(1, &m_meshNBO_CUDA, 0));
+        checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_deformedMeshNormsPtr, &numBytes, m_meshNBO_CUDA));
+
+        m_deformedMeshNormsMapped = true;
+    }
+
+    return d_deformedMeshNormsPtr;
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::ReleaseDeformedMeshNormsDevicePtr()
+{
+    if(m_deformedMeshNormsMapped)
+    {
+        checkCudaErrors(cudaGraphicsUnmapResources(1, &m_meshNBO_CUDA, 0));
+        m_deformedMeshNormsMapped = false;
+    }
+}
+
+//------------------------------------------------------------------------------------------------

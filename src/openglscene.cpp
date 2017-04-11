@@ -7,6 +7,8 @@ OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
     m_yRot(180.0f*16.0f),
     m_zRot(0),
+    m_xDis(0),
+    m_yDis(0),
     m_zDis(1500)
 {
     QSurfaceFormat format;
@@ -63,7 +65,7 @@ void OpenGLScene::initializeGL()
 
 
     // Light position is fixed.
-    m_lightPos = glm::vec3(0, 0, 70);
+    m_lightPos = glm::vec3(0, 600, 700);
 
     m_initGL = true;
     m_drawTimer->start(16);
@@ -79,7 +81,8 @@ void OpenGLScene::paintGL()
 
     // update model matrix
     m_modelMat = glm::mat4(1);
-    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -1.0f*m_zDis));
+    m_modelMat = glm::translate(m_modelMat, glm::vec3(0.5f*(m_zDis/250.0f)*m_xDis, -0.5f*(m_zDis/250.0f)*m_yDis, -1.0f*m_zDis));
+//    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -1.0f*m_zDis));
     m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
     m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
 
@@ -218,8 +221,15 @@ void OpenGLScene::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton) {
         setXRotation(m_xRot + 8 * dy);
         setYRotation(m_yRot + 8 * dx);
-    } else if (event->buttons() & Qt::RightButton) {
+    }
+    else if (event->buttons() & Qt::RightButton) {
         setZTranslation(m_zDis + dy);
+    }
+
+    else if(event->buttons() & Qt::MiddleButton)
+    {
+        setXTranslation(m_xDis + dx);
+        setYTranslation(m_yDis + dy);
     }
     m_lastPos = event->pos();
 }

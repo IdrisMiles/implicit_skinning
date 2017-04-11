@@ -18,18 +18,7 @@ out vec3 vertNormal;
 
 void main()
 {
-    mat4 BoneTransform = mat4(0.0f);
-    for(int i=0; i<4; i++)
-    {
-        int boneId = BoneIDs[i];
-        if(boneId > -1)
-        {
-            BoneTransform += Bones[boneId] * Weights[i];
-        }
-    }
-
-   vert = vertex; // (inverse(BoneTransform)*vec4(vertex, 1.0f)).xyz;
+   vert = (mvMatrix * vec4(vertex, 1.0f)).xyz;
    vertNormal = normalMatrix * normal;
-   gl_Position = projMatrix * mvMatrix * /*BoneTransform * */vec4(vertex, 1.0);
-
+   gl_Position = projMatrix * mvMatrix * vec4(vertex, 1.0);
 }

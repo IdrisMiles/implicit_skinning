@@ -221,6 +221,8 @@ __global__ void SimpleEvalGlobalField_Kernel(float *_output,
 
 __global__ void LinearBlendWeightSkin_Kernel(glm::vec3 *_deformedVert,
                                              const glm::vec3 *_origVert,
+                                             glm::vec3 *_deformedNorms,
+                                             const glm::vec3 *_origNorms,
                                              const glm::mat4 *_transform,
                                              const uint *_boneId,
                                              const float *_weight,
@@ -247,7 +249,7 @@ __global__ void LinearBlendWeightSkin_Kernel(glm::vec3 *_deformedVert,
     }
 
     _deformedVert[tid] = glm::vec3(boneTransform * glm::vec4(_origVert[tid], 1.0f));
-
+    _deformedNorms[tid] = glm::transpose(glm::inverse(glm::mat3(boneTransform))) * _origNorms[tid];
 }
 
 //------------------------------------------------------------------------------------------------
@@ -311,13 +313,55 @@ __global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
 //------------------------------------------------------------------------------------------------
 
 __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
-                                                       const uint _numVerts,
-                                                       float *_centroidWeights,
-                                                       const int *_oneRingIds,
-                                                       const int *_numNeighsPerVert,
-                                                       const int *_oneRingScatterAddr)
+                                                      const glm::vec3 *d_normals,
+                                                      const uint _numVerts,
+                                                      float *_centroidWeights,
+                                                      const int *_oneRingIds,
+                                                      const glm::vec3 *_oneRingVerts,
+                                                      const int *_numNeighsPerVert,
+                                                      const int *_oneRingScatterAddr)
 {
 
+    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
+
+    if(tid >= _numVerts)
+    {
+        return;
+    }
+
+    //-------------------------------------------------------------------
+    // Passed sanity check lets get down to business
+
+    glm::vec3 v = d_verts[tid];
+    glm::vec3 n = d_normals[tid];
+    int startNeighAddr = _oneRingScatterAddr[tid];
+//    int numNeighs = _numNeighsPerVert[tid];
+    int numNeighs = _oneRingScatterAddr[tid+1] - startNeighAddr;
+
+
+    glm::vec3 oneRingVerts[10];
+    glm::vec3 q[10];
+    glm::vec3 s[10];
+    for(int i=0; i<numNeighs; ++i)
+    {
+        int neighId = startNeighAddr + i;
+        oneRingVerts[i] = _oneRingVerts[neighId];
+        q[i] = ProjectPointOnToPlane(oneRingVerts[i], v, n);
+        s[i] = q[i] - v;
+    }
+
+
+    float r[10];
+    float A[10];
+    float D[10];
+    for(int i=0; i<numNeighs; ++i)
+    {
+        int nextI = (i+1)%numNeighs;
+        int neighId = startNeighAddr + i;
+
+        r[i] = glm::length(s[i]);
+
+    }
 }
 
 //------------------------------------------------------------------------------------------------
@@ -338,12 +382,14 @@ uint kernels::iDivUp(uint a, uint b)
 //------------------------------------------------------------------------------------------------
 
 void kernels::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
-                           const glm::vec3 *_origVert,
-                           const glm::mat4 *_transform,
-                           const uint *_boneId,
-                           const float *_weight,
-                           const uint _numVerts,
-                           const uint _numBones)
+                                   const glm::vec3 *_origVert,
+                                    glm::vec3 *_deformedNorms,
+                                    const glm::vec3 *_origNorms,
+                                   const glm::mat4 *_transform,
+                                   const uint *_boneId,
+                                   const float *_weight,
+                                   const uint _numVerts,
+                                   const uint _numBones)
 {
     uint numThreads = 1024u;
     uint numBlocks = kernels::iDivUp(_numVerts, numThreads);
@@ -351,6 +397,8 @@ void kernels::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
 
     LinearBlendWeightSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert,
                                                             _origVert,
+                                                            _deformedNorms,
+                                                            _origNorms,
                                                             _transform,
                                                             _boneId,
                                                             _weight,
@@ -451,11 +499,25 @@ void kernels::GenerateScatterAddress(int *begin,
 //------------------------------------------------------------------------------------------------
 
 void kernels::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
+                                             const glm::vec3 *d_normals,
                                              const uint _numVerts,
                                              float *_centroidWeights,
                                              const int *_oneRingIds,
+                                             const glm::vec3 *_oneRingVerts,
                                              const int *_numNeighsPerVert,
                                              const int *_oneRingScatterAddr)
 {
+    uint numThreads = 1024u;
+    uint numBlocks = kernels::iDivUp(_numVerts, numThreads);
 
+    GenerateOneRingCentroidWeights_Kernel<<<numBlocks, numThreads>>>(d_verts,
+                                                                     d_normals,
+                                                                     _numVerts,
+                                                                     _centroidWeights,
+                                                                     _oneRingIds,
+                                                                     _oneRingVerts,
+                                                                     _numNeighsPerVert,
+                                                                     _oneRingScatterAddr);
+
+    cudaThreadSynchronize();
 }

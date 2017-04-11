@@ -7,6 +7,7 @@ uniform vec3 uColour;
 
 out vec4 fragColor;
 
+uniform mat4 mvMatrix;
 
 void main()
 {
