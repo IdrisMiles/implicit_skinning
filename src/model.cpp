@@ -15,7 +15,6 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-int numNeighsGlobal;
 
 Model::Model()
 {
@@ -227,21 +226,12 @@ void Model::DrawMesh()
         if(!m_wireframe)
         {
             m_meshVAO[SKINNED].bind();
-            glPolygonMode(GL_FRONT_AND_BACK, !m_wireframe?GL_LINE:GL_FILL);
+            glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
             glDrawElements(GL_TRIANGLES, 3*m_mesh.m_meshTris.size(), GL_UNSIGNED_INT, &m_mesh.m_meshTris[0]);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             m_meshVAO[SKINNED].release();
             m_shaderProg[SKINNED]->release();
         }
-
-        m_shaderProg[ISO_SURFACE]->bind();
-        glPointSize(5);
-        m_oneRingVAO.bind();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glDrawArrays(GL_TRIANGLES, 0, numNeighsGlobal);
-        glDrawArrays(GL_POINTS, 0, numNeighsGlobal);
-        m_oneRingVAO.release();
-        m_shaderProg[ISO_SURFACE]->release();
 
 
         //-------------------------------------------------------------------------------------
@@ -284,7 +274,7 @@ void Model::DrawMesh()
         // Draw marching cube of isosurface
         m_meshVAO[ISO_SURFACE].bind();
         glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_FILL:GL_FILL);
-//        glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
+        glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         m_meshVAO[ISO_SURFACE].release();
 
@@ -481,28 +471,6 @@ void Model::CreateVAOs()
 
         m_shaderProg[SKINNED]->release();
 
-
-
-        m_shaderProg[ISO_SURFACE]->bind();
-        m_oneRingVAO.create();
-        m_oneRingVAO.bind();
-        // Setup our vertex buffer object.
-        m_oneRingVBO.create();
-        m_oneRingVBO.bind();
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_oneRingVBO.release();
-        // Setup our normals buffer object.
-        m_oneRingNBO.create();
-        m_oneRingNBO.bind();
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_oneRingNBO.release();
-
-        m_oneRingVAO.release();
-        m_shaderProg[ISO_SURFACE]->release();
-
-
     }
 
 
@@ -621,11 +589,6 @@ void Model::DeleteVAOs()
         {
             m_meshVAO[i].destroy();
         }
-
-        if(m_oneRingVAO.isCreated())
-        {
-            m_oneRingVAO.destroy();
-        }
     }
 }
 
@@ -675,55 +638,6 @@ void Model::UpdateVAOs()
 
         m_shaderProg[SKINNED]->release();
 
-
-
-
-
-
-
-
-
-
-        m_shaderProg[ISO_SURFACE]->bind();
-        m_oneRingVAO.bind();
-        std::vector<std::vector<int>> oneRing;
-        m_mesh.GetOneRingNeighours(oneRing);
-        std::vector<glm::vec3> oneRingVerts;
-        std::vector<glm::vec3> oneRingNorms;
-
-        int vert = 13000;
-        for(int i=0; i<oneRing[vert].size(); i++)
-        {
-            std::cout<<oneRing[vert][i]<<", ";
-            oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[vert]);
-            oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
-
-            oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[oneRing[vert][i]]);
-            oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
-
-            oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[oneRing[vert][(i+1)%oneRing[vert].size()]]);
-            oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
-        }
-
-
-        numNeighsGlobal = oneRingVerts.size();
-        std::cout<<"\n"<<numNeighsGlobal<<"\n";
-
-        // Setup our vertex buffer object.
-        m_oneRingVBO.bind();
-        m_oneRingVBO.allocate(&oneRingVerts[0], oneRingVerts.size() * sizeof(glm::vec3));
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_oneRingVBO.release();
-        // Setup our normals buffer object.
-        m_oneRingNBO.bind();
-        m_oneRingNBO.allocate(&oneRingVerts[0], oneRingVerts.size() * sizeof(glm::vec3));
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_oneRingNBO.release();
-
-        m_oneRingVAO.release();
-        m_shaderProg[ISO_SURFACE]->release();
     }
 
 
