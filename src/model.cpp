@@ -690,18 +690,13 @@ void Model::UpdateVAOs()
         std::vector<glm::vec3> oneRingNorms;
 
         int vert = 3238;
-//        oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[vert]);
-//        oneRingNorms.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
-        for(int i=0; i<oneRing[vert].size()-3; i++)
+        for(int i=0; i<oneRing[vert].size()-4; i++)
         {
-            std::cout<<oneRing[vert][i]<<",";
             oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[oneRing[vert][i]]);
             oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
         }
-        std::cout<<"\n";
 
         numNeighsGlobal = oneRingVerts.size();
-        std::cout<<"oneRingVerts: "<<numNeighsGlobal<<"\n";
 
         // Setup our vertex buffer object.
         m_oneRingVBO.bind();

@@ -3,8 +3,12 @@
 
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 #include <glm/glm.hpp>
 #include <iostream>
+
+//#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 
 /// @author Idris Miles
 /// @version 1.0
@@ -43,15 +47,16 @@ public :
 
     //------------------------------------------------------------------------------------
 
-    void GetOneRingNeighours(std::vector<std::vector<int>> &_oneRing) const
+    bool GetOneRingNeighours(std::vector<std::vector<int>> &_oneRing) const
     {
         if(!m_oneRingComputed)
         {
             std::cout<<"not computed one ring yet\n";
-            return;
+            return false;
         }
 
         _oneRing = m_meshVertsOneRing;
+        return true;
     }
 
     //------------------------------------------------------------------------------------
@@ -60,10 +65,17 @@ public :
     {
         if(m_oneRingComputed){return;}
 
+        // make sure one ring container is empty and correct size
         m_meshVertsOneRing.clear();
         m_meshVertsOneRing.resize(m_meshVerts.size());
 
+        // Because ASSIMP can duplicate verts we need to be able to group
+        // Vertex Ids of the same vertex in space
+        std::unordered_map<glm::vec3, std::vector<int>> vertexHashIds;
+        GenerateVertexHashIds(vertexHashIds);
 
+
+        // Add 2 vertices from neighbouring faces of each vert (assuming triangle mesh)
         std::vector<std::vector<std::pair<int, int>>> oneRingFaces;
         oneRingFaces.resize(m_meshVerts.size());
 
@@ -73,23 +85,26 @@ public :
             int v1 = m_meshTris[f].y;
             int v2 = m_meshTris[f].z;
 
-            for(int i=0; i<m_meshVerts.size(); ++i)
+            std::vector<int> commonVertIds = vertexHashIds[m_meshVerts[v0]];
+            for(int v=0; v<commonVertIds.size(); ++v)
             {
-                if(glm::all(glm::equal(m_meshVerts[v0], m_meshVerts[i])))
-                {
-                    AddNeighbourFaces(oneRingFaces[i], i, v1, v2);
-                }
-                else if(glm::all(glm::equal(m_meshVerts[v1], m_meshVerts[i])))
-                {
-                    AddNeighbourFaces(oneRingFaces[i], i, v2, v0);
-                }
-                else if(glm::all(glm::equal(m_meshVerts[v2], m_meshVerts[i])))
-                {
-                    AddNeighbourFaces(oneRingFaces[i], i, v0, v1);
-                }
+                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], commonVertIds[v], v1, v2);
+            }
+
+            commonVertIds = vertexHashIds[m_meshVerts[v1]];
+            for(int v=0; v<commonVertIds.size(); ++v)
+            {
+                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], commonVertIds[v], v2, v0);
+            }
+
+            commonVertIds = vertexHashIds[m_meshVerts[v2]];
+            for(int v=0; v<commonVertIds.size(); ++v)
+            {
+                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], commonVertIds[v], v0, v1);
             }
         }
 
+        // Sort and compress our one ring neighbours to just the verts in order and not faces
         for(int v=0; v<m_meshVerts.size(); ++v)
         {
             SortNeighbours(m_meshVertsOneRing[v],  oneRingFaces[v]);
@@ -130,7 +145,7 @@ private:
 
 
     //------------------------------------------------------------------------------------
-    bool AddNeighbour(std::vector<int> &vertNeighs, int vert) const
+    bool AddNeighbourVert(std::vector<int> &vertNeighs, int vert) const
     {
         if(std::find(vertNeighs.begin(), vertNeighs.end(), vert) == vertNeighs.end())
         {
@@ -179,7 +194,7 @@ private:
 
     //------------------------------------------------------------------------------------
 
-    bool SortNeighbours(std::vector<int> &vertNeighs, std::vector<std::pair<int, int>> &faceNeighs) const
+    bool SortNeighbours(std::vector<int> &vertNeighs, std::vector<std::pair<int, int>> &faceNeighs, const bool ccw=true) const
     {
         if(faceNeighs.size() < 1)
         {
@@ -211,8 +226,23 @@ private:
             faceNeighs.erase(currFace);
         }
 
+        if(!ccw)
+        {
+            std::reverse(vertNeighs.begin(), vertNeighs.end());
+        }
+
         return cyclicOneRing;
 
+    }
+
+    //------------------------------------------------------------------------------------
+
+    void GenerateVertexHashIds(std::unordered_map<glm::vec3, std::vector<int>> &vertexHashIds)
+    {
+        for(int i=0; i<m_meshVerts.size(); ++i)
+        {
+            vertexHashIds[m_meshVerts[i]].push_back(i);
+        }
     }
 
     //------------------------------------------------------------------------------------

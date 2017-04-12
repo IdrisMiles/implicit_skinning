@@ -1,7 +1,10 @@
 #include "include/modelloader.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <assimp/config.h>
 #include <iostream>
+
+//#define AI_CONFIG_PP_RVC_FLAGS aiComponent_COLORS | aiComponent_MATERIALS | aiComponent_CAMERAS | aiComponent_LIGHTS | aiComponent_TEXTURES | aiComponent_TANGENTS_AND_BITANGENTS | aiComponent_NORMALS
 
 ModelLoader::ModelLoader()
 {
@@ -15,7 +18,8 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
     Assimp::Importer m_importer;
 
     // Load mesh with ASSIMP
-    scene = m_importer.ReadFile(    _file, aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType   );
+    scene = m_importer.ReadFile(    _file, aiProcess_GenSmoothNormals | aiProcess_RemoveComponent | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType );
+
     if(!scene)
     {
         std::cout<<"Error loading "<<_file<<" with assimp\n";
@@ -114,7 +118,6 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
             indexOffset = _model->m_mesh.m_meshVerts.size();
 
         } // end for numMeshes
-
 
         _model->m_mesh.ComputeOneRing();
 
