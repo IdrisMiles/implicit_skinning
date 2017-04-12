@@ -88,19 +88,19 @@ public :
             std::vector<int> commonVertIds = vertexHashIds[m_meshVerts[v0]];
             for(int v=0; v<commonVertIds.size(); ++v)
             {
-                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], commonVertIds[v], v1, v2);
+                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], v0, v1, v2);
             }
 
             commonVertIds = vertexHashIds[m_meshVerts[v1]];
             for(int v=0; v<commonVertIds.size(); ++v)
             {
-                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], commonVertIds[v], v2, v0);
+                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], v1, v2, v0);
             }
 
             commonVertIds = vertexHashIds[m_meshVerts[v2]];
             for(int v=0; v<commonVertIds.size(); ++v)
             {
-                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], commonVertIds[v], v0, v1);
+                AddNeighbourFaces(oneRingFaces[commonVertIds[v]], v2, v0, v1);
             }
         }
 
@@ -177,7 +177,6 @@ private:
         }
         else
         {
-
             v1 = vert2;
             v2 = vert1;
         }
@@ -200,43 +199,40 @@ private:
         for(int i=0; i<faceNeighs.size(); ++i)
         {
             auto face1 = faceNeighs[i];
-            auto f11 = vertexHashIds[m_meshVerts[face1.first]];
-            auto f12 = vertexHashIds[m_meshVerts[face1.second]];
+            auto f11 = std::hash<glm::vec3>{}(m_meshVerts[face1.first]);
+            auto f12 = std::hash<glm::vec3>{}(m_meshVerts[face1.second]);
             for(int j=i+1; j<faceNeighs.size(); ++j)
             {
                 auto face2 = faceNeighs[j];
-                auto f21 = vertexHashIds[m_meshVerts[face2.first]];
-                auto f22 = vertexHashIds[m_meshVerts[face2.second]];
+                auto f21 = std::hash<glm::vec3>{}(m_meshVerts[face2.first]);
+                auto f22 = std::hash<glm::vec3>{}(m_meshVerts[face2.second]);
 
+                bool needToSwap = false;
                 if(f11 == f21)
                 {
-//                    std::cout<<"a: ";
-//                    std::cout<<face1.first<<", "<<face2.first<<" | ";
-                    face2.first = face1.first;
-//                    std::cout<<face1.first<<", "<<face2.first<<" | ";
+                    faceNeighs[j].first = faceNeighs[i].first;
+                    needToSwap = true;
                 }
                 if(f11 == f22)
                 {
-//                    std::cout<<"b";
-//                    std::cout<<face1.first<<", "<<face2.second<<" | ";
-                    face2.second = face1.first;
-//                    std::cout<<face1.first<<", "<<face2.second<<" | ";
+                    faceNeighs[j].second = faceNeighs[i].first;
                 }
                 if(f12 == f21)
                 {
-//                    std::cout<<"c";
-//                    std::cout<<face1.second<<", "<<face2.first<<" | ";
-                    face2.first = face1.second;
-//                    std::cout<<face1.second<<", "<<face2.first<<" | ";
+                    faceNeighs[j].first = faceNeighs[i].second;
                 }
                 if(f12 == f22)
                 {
-//                    std::cout<<"d";
-//                    std::cout<<face1.second<<", "<<face2.second<<" | ";
-                    face2.second = face1.second;
-//                    std::cout<<face1.second<<", "<<face2.second<<" | ";
+                    faceNeighs[j].second = faceNeighs[i].second;
+                    needToSwap = true;
                 }
-//                std::cout<<"\n";
+
+                if(needToSwap)
+                {
+                    int tmp = faceNeighs[j].second;
+                    faceNeighs[j].second = faceNeighs[j].first;
+                    faceNeighs[j].first = tmp;
+                }
             }
         }
 
@@ -248,30 +244,39 @@ private:
 
         bool cyclicOneRing = true;
 
-        auto currFace = faceNeighs.begin();
-        vertNeighs.push_back((*currFace).first);
-        vertNeighs.push_back((*currFace).second);
-        faceNeighs.erase(currFace);
+        auto currFaceIt = faceNeighs.begin();
+        auto currFace = *currFaceIt;
+        vertNeighs.push_back(currFace.first);
+        vertNeighs.push_back(currFace.second);
+        faceNeighs.erase(currFaceIt);
 
         while(faceNeighs.size() > 0)
         {
-            currFace = std::find_if(faceNeighs.begin(), faceNeighs.end(), [currFace](std::pair<int, int> f)->bool{
-                    return f.first == currFace->second;
-                    // f.second = currFace->second;
+            auto tmp = std::find_if(faceNeighs.begin(), faceNeighs.end(), [currFace](std::pair<int, int> f)->bool{
+                    return f.first == currFace.second;
             });
 
-            if(currFace == faceNeighs.end())
+            if(tmp == faceNeighs.end())
             {
                 // not a cyclic one ring, uh oh!
                 cyclicOneRing = false;
-                currFace = faceNeighs.begin();
+                currFaceIt = faceNeighs.begin();
+            }
+            else
+            {
+                currFaceIt = tmp;
+
             }
 
-            vertNeighs.push_back(currFace->second);
-            faceNeighs.erase(currFace);
+            currFace = *currFaceIt;
+            if(std::find(vertNeighs.begin(), vertNeighs.end(), currFace.second) == vertNeighs.end())
+            {
+                vertNeighs.push_back(currFace.second);
+            }
+            faceNeighs.erase(currFaceIt);
+
         }
 
-        for(auto &v : vertNeighs)
 
         if(!ccw)
         {

@@ -691,7 +691,7 @@ void Model::UpdateVAOs()
         std::vector<glm::vec3> oneRingVerts;
         std::vector<glm::vec3> oneRingNorms;
 
-        int vert = 3000;
+        int vert = 13000;
         for(int i=0; i<oneRing[vert].size(); i++)
         {
             std::cout<<oneRing[vert][i]<<", ";
