@@ -107,7 +107,7 @@ public :
         // Sort and compress our one ring neighbours to just the verts in order and not faces
         for(int v=0; v<m_meshVerts.size(); ++v)
         {
-            SortNeighbours(m_meshVertsOneRing[v],  oneRingFaces[v]);
+            SortNeighbours(m_meshVertsOneRing[v],  oneRingFaces[v], vertexHashIds);
         }
 
         m_oneRingComputed = true;
@@ -194,8 +194,53 @@ private:
 
     //------------------------------------------------------------------------------------
 
-    bool SortNeighbours(std::vector<int> &vertNeighs, std::vector<std::pair<int, int>> &faceNeighs, const bool ccw=true) const
+    bool SortNeighbours(std::vector<int> &vertNeighs, std::vector<std::pair<int, int>> &faceNeighs, std::unordered_map<glm::vec3, std::vector<int>> &vertexHashIds, const bool ccw=true) const
     {
+        // make sure there aren't any repeated verts with different ids otherwise we bloat the one ring.
+        for(int i=0; i<faceNeighs.size(); ++i)
+        {
+            auto face1 = faceNeighs[i];
+            auto f11 = vertexHashIds[m_meshVerts[face1.first]];
+            auto f12 = vertexHashIds[m_meshVerts[face1.second]];
+            for(int j=i+1; j<faceNeighs.size(); ++j)
+            {
+                auto face2 = faceNeighs[j];
+                auto f21 = vertexHashIds[m_meshVerts[face2.first]];
+                auto f22 = vertexHashIds[m_meshVerts[face2.second]];
+
+                if(f11 == f21)
+                {
+//                    std::cout<<"a: ";
+//                    std::cout<<face1.first<<", "<<face2.first<<" | ";
+                    face2.first = face1.first;
+//                    std::cout<<face1.first<<", "<<face2.first<<" | ";
+                }
+                if(f11 == f22)
+                {
+//                    std::cout<<"b";
+//                    std::cout<<face1.first<<", "<<face2.second<<" | ";
+                    face2.second = face1.first;
+//                    std::cout<<face1.first<<", "<<face2.second<<" | ";
+                }
+                if(f12 == f21)
+                {
+//                    std::cout<<"c";
+//                    std::cout<<face1.second<<", "<<face2.first<<" | ";
+                    face2.first = face1.second;
+//                    std::cout<<face1.second<<", "<<face2.first<<" | ";
+                }
+                if(f12 == f22)
+                {
+//                    std::cout<<"d";
+//                    std::cout<<face1.second<<", "<<face2.second<<" | ";
+                    face2.second = face1.second;
+//                    std::cout<<face1.second<<", "<<face2.second<<" | ";
+                }
+//                std::cout<<"\n";
+            }
+        }
+
+
         if(faceNeighs.size() < 1)
         {
             return false;
@@ -225,6 +270,8 @@ private:
             vertNeighs.push_back(currFace->second);
             faceNeighs.erase(currFace);
         }
+
+        for(auto &v : vertNeighs)
 
         if(!ccw)
         {

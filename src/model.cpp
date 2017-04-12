@@ -237,6 +237,8 @@ void Model::DrawMesh()
         m_shaderProg[ISO_SURFACE]->bind();
         glPointSize(5);
         m_oneRingVAO.bind();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDrawArrays(GL_TRIANGLES, 0, numNeighsGlobal);
         glDrawArrays(GL_POINTS, 0, numNeighsGlobal);
         m_oneRingVAO.release();
         m_shaderProg[ISO_SURFACE]->release();
@@ -689,14 +691,23 @@ void Model::UpdateVAOs()
         std::vector<glm::vec3> oneRingVerts;
         std::vector<glm::vec3> oneRingNorms;
 
-        int vert = 3238;
-        for(int i=0; i<oneRing[vert].size()-4; i++)
+        int vert = 3000;
+        for(int i=0; i<oneRing[vert].size(); i++)
         {
+            std::cout<<oneRing[vert][i]<<", ";
+            oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[vert]);
+            oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
+
             oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[oneRing[vert][i]]);
+            oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
+
+            oneRingVerts.push_back(100.0f*m_mesh.m_meshVerts[oneRing[vert][(i+1)%oneRing[vert].size()]]);
             oneRingNorms.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
         }
 
+
         numNeighsGlobal = oneRingVerts.size();
+        std::cout<<"\n"<<numNeighsGlobal<<"\n";
 
         // Setup our vertex buffer object.
         m_oneRingVBO.bind();

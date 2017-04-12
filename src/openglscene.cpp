@@ -108,7 +108,7 @@ void OpenGLScene::paintGL()
 
 void OpenGLScene::UpdateAnim()
 {
-    m_animTime += 0.016f;
+//    m_animTime += 0.016f;
     for(auto &&model : m_models)
     {
         model->Animate(m_animTime);

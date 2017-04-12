@@ -410,6 +410,7 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
     checkCudaErrorsMsg(cudaMalloc(&d_origMeshVertsPtr,  m_numVerts * sizeof(glm::vec3)),          "Allocate memory for original mesh verts");
     checkCudaErrorsMsg(cudaMalloc(&d_origMeshNormsPtr,  m_numVerts * sizeof(glm::vec3)),          "Allocate memory for original mesh normals");
     checkCudaErrorsMsg(cudaMalloc(&d_origVertIsoPtr,    m_numVerts * sizeof(float)),          "Allocate memory for original vert iso values");
+    checkCudaErrorsMsg(cudaMalloc(&d_newVertIsoPtr,    m_numVerts * sizeof(float)),          "Allocate memory for new vert iso values");
     checkCudaErrorsMsg(cudaMalloc(&d_transformPtr,      _transform.size() * sizeof(glm::mat4)),  "Allocate memory for transforms");
     checkCudaErrorsMsg(cudaMalloc(&d_boneIdPtr,         m_numVerts * 4 * sizeof(unsigned int)),     "Allocate memory for bone Ids");
     checkCudaErrorsMsg(cudaMalloc(&d_weightPtr,         m_numVerts * 4 * sizeof(float)),            "Allocate memory for bone weights");
@@ -496,11 +497,13 @@ void ImplicitSkinDeformer::DestroyMeshCudaMem()
         checkCudaErrors(cudaFree(d_origMeshVertsPtr));
         checkCudaErrors(cudaFree(d_origMeshNormsPtr));
         checkCudaErrors(cudaFree(d_origVertIsoPtr));
+        checkCudaErrors(cudaFree(d_newVertIsoPtr));
         checkCudaErrors(cudaFree(d_transformPtr));
         checkCudaErrors(cudaFree(d_boneIdPtr));
         checkCudaErrors(cudaFree(d_weightPtr));
         checkCudaErrors(cudaFree(d_oneRingIdPtr));
         checkCudaErrors(cudaFree(d_oneRingVertPtr));
+        checkCudaErrors(cudaFree(d_centroidWeightsPtr));
         checkCudaErrors(cudaFree(d_numNeighsPerVertPtr));
         checkCudaErrors(cudaFree(d_oneRingScatterAddrPtr));
 

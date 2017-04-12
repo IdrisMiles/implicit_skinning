@@ -8,6 +8,7 @@
 MachingCube::MachingCube()
 {
     isolevel = 0.8;
+    volumeData = nullptr;
 }
 
 MachingCube::~MachingCube()
@@ -59,7 +60,16 @@ bool MachingCube::LoadVolumeFromFile(std::string _vol, const int &_w, const int 
     voxel_height = _voxelH;
     voxel_depth = _voxelD;
 
-    unsigned int volume_size = volume_width*volume_height*volume_depth;
+    if(volume_size != volume_width*volume_height*volume_depth)
+    {
+        volume_size = volume_width*volume_height*volume_depth;
+        if(volumeData != nullptr)
+        {
+            delete volumeData;
+        }
+        volumeData = new float[volume_size];
+    }
+
     char *volData = new char[volume_size];
     in.read(volData, volume_size);
 
@@ -102,9 +112,18 @@ void MachingCube::generateVolume(float *_volumeData, const float &_isolevel, con
     voxel_height = _voxelH;
     voxel_depth = _voxelD;
 
-    volume_size = volume_width*volume_height*volume_depth;
+    if(volume_size != volume_width*volume_height*volume_depth)
+    {
+        volume_size = volume_width*volume_height*volume_depth;
+        if(volumeData != nullptr)
+        {
+            delete volumeData;
+        }
+        volumeData = new float[volume_size];
+    }
     unsigned int i,j,k;
-    volumeData = new float[volume_size];
+
+
     for (i=0;i<volume_depth;i++)
     {
         for (j=0;j<volume_height;j++)
