@@ -28,7 +28,7 @@ public:
 
     //--------------------------------------------------------------------
 
-    void InitialiseDeformer();
+    void InitialiseIsoValues();
 
     void AttachMesh(const Mesh _origMesh,
                     const GLuint _meshVBO,

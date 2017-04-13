@@ -35,12 +35,39 @@ ImplicitSkinDeformer::~ImplicitSkinDeformer()
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::InitialiseDeformer()
+void ImplicitSkinDeformer::InitialiseIsoValues()
 {
-//    if(m_initFieldCudaMem && m_initMeshCudaMem & m_initGobalFieldFunc)
-    // run kernel
-//    kernels::SimpleEvalGlobalField(d_origVertIsoPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
-//    getLastCudaError("Kernel::SimpleEval");
+    if(m_initFieldCudaMem && m_initMeshCudaMem & m_initGobalFieldFunc)
+    {
+        // allocate and initialise temporary device memory
+        glm::mat4 tmpTransform(1.0f);
+        glm::mat4 * d_tmpTransform;
+        checkCudaErrors(cudaMalloc(&d_tmpTransform, m_numTransforms * sizeof(glm::mat4)));
+        for(int i=0;i<m_numFields;i++)
+        {
+            checkCudaErrors(cudaMemcpy((void*)d_tmpTransform, &tmpTransform[0][0], m_numTransforms * sizeof(glm::mat4), cudaMemcpyHostToDevice));
+        }
+
+        // run kernel
+        kernels::SimpleEvalGlobalField(d_origVertIsoPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields);
+        getLastCudaError("Kernel::SimpleEval");
+
+
+        std::vector<float> isoValue(m_numVerts, 0.0f);
+        checkCudaErrors(cudaMemcpy(&isoValue[0], d_origVertIsoPtr, m_numVerts * sizeof(float), cudaMemcpyDeviceToHost));
+        for(auto &i:isoValue)
+        {
+            if(i > 0.45f && i< 0.55f)
+            {
+                std::cout<<i<<", ";
+            }
+        }
+        std::cout<<"\n";
+
+
+        // free temporary device memory
+        checkCudaErrors(cudaFree(d_tmpTransform));
+    }
 
 }
 
@@ -70,6 +97,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
     dim = fabs(m_maxBBox.y) > dim ? fabs(m_maxBBox.y) : dim;
     dim = fabs(m_maxBBox.z) > dim ? fabs(m_maxBBox.z) : dim;
     dim *= 1.1f;
+    int res = 64;
 
     // Generate individual field functions per mesh part
     auto threadFunc = [&, this](int startId, int endId){
@@ -78,7 +106,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
             Mesh hrbfCentres;
             m_globalFieldFunction.GenerateHRBFCentres(_meshParts[mp], _boneStarts[mp], _boneEnds[mp], _numHrbfCentres, hrbfCentres);
             m_globalFieldFunction.GenerateFieldFuncs(hrbfCentres, _meshParts[mp], mp);
-            m_globalFieldFunction.PrecomputeFieldFunc(mp, 64, dim);
+            m_globalFieldFunction.PrecomputeFieldFunc(mp, res, dim);
 
         }
     };
