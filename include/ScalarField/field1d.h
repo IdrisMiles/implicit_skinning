@@ -17,7 +17,7 @@ public:
 
     T* RawData()const;
 
-    void SetTextureSpaceTransform(std::function<glm::vec3(glm::vec3)> _textureSpaceTransform);
+    void SetTextureSpaceTransform(glm::mat4 _textureSpaceTransform);
 
     void SetData(unsigned int _dim, T *_data);
 
@@ -37,7 +37,8 @@ private:
     /// @brief This attribute transform a local/word space coord into texture space
     /// so that it can be used to sample the 3D texture/data.
     /// This could be a matrix, but I wanted to play with C++11 ans this allows for complex transforms
-    std::function<glm::vec3(glm::vec3)> m_textureSpaceTransform;
+//    std::function<glm::vec3(glm::vec3)> m_textureSpaceTransform;
+    glm::mat4 m_textureSpaceTransform;
 
     /// @brief dimension of uniform 3D volume.
     unsigned int m_dim;
@@ -61,7 +62,8 @@ Field3D<T>::Field3D(unsigned int _dim)
     m_data = new T[m_dim * m_dim * m_dim];
 
 
-    m_textureSpaceTransform = [](glm::vec3 _v){return _v;};
+//    m_textureSpaceTransform = [](glm::vec3 _v){return _v;};
+    m_textureSpaceTransform = glm::mat4(1.0f);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -95,7 +97,7 @@ T* Field3D<T>::RawData()const
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-void Field3D<T>::SetTextureSpaceTransform(std::function<glm::vec3(glm::vec3)> _textureSpaceTransform)
+void Field3D<T>::SetTextureSpaceTransform(/*std::function<glm::vec3(glm::vec3)>*/ glm::mat4 _textureSpaceTransform)
 {
     m_textureSpaceTransform = _textureSpaceTransform;
 }
@@ -143,7 +145,7 @@ T Field3D<T>::TrilinearInterpolate(const float _x, const float _y, const float _
 {
 
     //[0:1]
-    glm::vec3 texSpace = m_textureSpaceTransform(glm::vec3(_x, _y, _z));
+    glm::vec3 texSpace = glm::vec3(m_textureSpaceTransform*(glm::vec4(_x, _y, _z, 1.0f)));
 
     // Get data coords
     float x = texSpace.x * m_dim;

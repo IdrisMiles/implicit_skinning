@@ -111,8 +111,8 @@ void FieldFunction::PrecomputeField(const unsigned int _res, const float _dim)
     auto textureSpaceTransform = [_dim, this](glm::vec3 x){
         return glm::vec3(m_textureSpaceTransform*glm::vec4(x, 1.0f));
     };
-    m_field.SetTextureSpaceTransform(textureSpaceTransform);
-    m_grad.SetTextureSpaceTransform(textureSpaceTransform);
+    m_field.SetTextureSpaceTransform(m_textureSpaceTransform);//textureSpaceTransform);
+    m_grad.SetTextureSpaceTransform(m_textureSpaceTransform);//textureSpaceTransform);
 
 }
 

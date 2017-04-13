@@ -469,16 +469,6 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
     kernels::GenerateOneRingCentroidWeights(d_origMeshVertsPtr, d_origMeshNormsPtr, m_numVerts, d_centroidWeightsPtr, d_oneRingIdPtr, d_oneRingVertPtr, d_numNeighsPerVertPtr, d_oneRingScatterAddrPtr);
 
 
-    std::vector<float> centroidWeights(oneRingVertFlat.size(), 0.0f);
-    checkCudaErrors(cudaMemcpy(&centroidWeights[0], d_centroidWeightsPtr, oneRingVertFlat.size() * sizeof(float), cudaMemcpyDeviceToHost));
-    for(auto &i:centroidWeights)
-    {
-        if(i>1.0f || i<0.0f)
-        {std::cout<<i<<", ";}
-    }
-    std::cout<<"\n";
-
-
     m_initMeshCudaMem = true;
 }
 

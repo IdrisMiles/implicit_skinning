@@ -145,8 +145,9 @@ __device__ void SimpleEvalGlobalField(float &_output,
     {
         glm::mat4 rigidTrans = _rigidTransforms[i];
         glm::mat4 textureSpace = _textureSpace[i];
-        glm::vec4 transformedPoint = glm::inverse(rigidTrans) * glm::vec4(_samplePoint, 1.0f);
-        glm::vec3 texturePoint = glm::vec3(textureSpace * transformedPoint);
+        glm::vec3 transformedPoint = glm::vec3(glm::inverse(rigidTrans) * glm::vec4(_samplePoint, 1.0f));
+        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
+        texturePoint = 1.015f*texturePoint;
 
         f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
 
@@ -355,7 +356,6 @@ __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
 
 
     float r[10];
-    float alpha[10];
     float A[10];
     float D[10];
 
@@ -367,8 +367,10 @@ __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
         int nextNeighId = startNeighAddr + nextI;
 
         r[i] = glm::length(s[i]);
-        alpha[i] = glm::angle(s[i], s[nextI]);
-        A[i] = 0.5f * glm::length(glm::cross(s[i], s[nextI]));
+        glm::vec3 x = glm::cross(s[i], s[nextI]);
+        A[i] = 0.5f * glm::length(x);
+//        float dot = glm::dot(x, n);
+//        A[i] = (dot >= 0.0f) ? A[i] : -A[i];
         D[i] = glm::dot(s[i], s[nextI]);
 
         if(r[i] < FLT_EPSILON)
@@ -391,39 +393,34 @@ __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
 
     }
 
+
     float tanalpha[10]; // tan(alpha/2)
     for( int i = 0; i < numNeighs; ++i)
     {
         int nextI = (i+1)%numNeighs;
-        int prevI = (numNeighs+i-1)%numNeighs; // to avoid potential negative result of % operator
         tanalpha[i] = (r[i]*r[nextI] - D[i])/(2.0*A[i]);
     }
 
-    // Equation #11, from the paper
-    float w = 0.0f;
+
+    float w[10];
     float W = 0.0f;
     for( int i = 0; i < numNeighs; ++i)
     {
-        int nextI = (i+1)%numNeighs;
         int prevI = (numNeighs+i-1)%numNeighs; // to avoid potential negative result of % operator
-        int neighId = startNeighAddr + i;
 
-        w = 2.0*( tanalpha[i] + tanalpha[prevI] )/r[i];
-        _centroidWeights[neighId] = w;
-        W += w;
+        w[i] = 2.0*( tanalpha[i] + tanalpha[prevI] )/r[i];
+        W += w[i];
     }
+
 
     if( fabs(W) > 0.0)
     {
         for( int i = 0; i < numNeighs; ++i)
         {
             int neighId = startNeighAddr + i;
-            _centroidWeights[neighId] /= W;
+            _centroidWeights[neighId] = w[i] / W;
         }
     }
-
-
-
 }
 
 //------------------------------------------------------------------------------------------------
