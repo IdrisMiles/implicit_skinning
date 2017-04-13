@@ -247,7 +247,15 @@ void Model::DrawMesh()
         int xRes = 64;
         int yRes = 64;
         int zRes = 64;
-        float dim = 800.0f; // dimension of sample range e.g. dim x dim x dim
+//        float dim = 800.0f; // dimension of sample range e.g. dim x dim x dim
+        float dim = 0.0f;
+        dim = fabs(m_mesh.m_minBBox.x) > dim ? fabs(m_mesh.m_minBBox.x) : dim;
+        dim = fabs(m_mesh.m_minBBox.y) > dim ? fabs(m_mesh.m_minBBox.y) : dim;
+        dim = fabs(m_mesh.m_minBBox.z) > dim ? fabs(m_mesh.m_minBBox.z) : dim;
+        dim = fabs(m_mesh.m_maxBBox.x) > dim ? fabs(m_mesh.m_maxBBox.x) : dim;
+        dim = fabs(m_mesh.m_maxBBox.y) > dim ? fabs(m_mesh.m_maxBBox.y) : dim;
+        dim = fabs(m_mesh.m_maxBBox.z) > dim ? fabs(m_mesh.m_maxBBox.z) : dim;
+        dim = dim *1.1 * 100.0f;
         float xScale = 1.0f* dim;
         float yScale = 1.0f* dim;
         float zScale = 1.0f* dim;

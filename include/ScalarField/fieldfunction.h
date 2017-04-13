@@ -28,7 +28,7 @@ public:
              const float _r = 1.0f);
 
     /// @brief Method to precompute field values and store them in m_field attribute.
-    void PrecomputeField(const unsigned int _dim = 32, const float _scale = 8.0f);
+    void PrecomputeField(const unsigned int _res = 32, const float _dim = 8.0f);
 
     /// @brief Method to set the support radius in order to remap the distance field
     /// to a compact field function with range [0:1]

@@ -46,14 +46,6 @@ glm::vec3 GlobalFieldFunction::Grad(const glm::vec3 &_x)
 void GlobalFieldFunction::Fit(const int _numMeshParts)
 {
     m_fieldFuncs.resize(_numMeshParts);
-
-//    for each meshPart
-//    {
-//        GenerateHRBFCentres();
-//        GenerateFieldFuncs();
-//    }
-//    GenerateGlobalFieldFunc();
-
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -130,10 +122,6 @@ void GlobalFieldFunction::GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mes
     // Set R in order to make field function compactly supported
     fieldFunc->SetSupportRadius(maxDist);
 
-    unsigned int dim = 64; // resolution of 3D space we sample
-    float scale = 8.0f; // scale of 3D space we sample 8*8*8 volume
-    fieldFunc->PrecomputeField(dim, scale);
-
     if(_id < m_fieldFuncs.size())
     {
         m_fieldFuncs[_id] = fieldFunc;
@@ -142,6 +130,13 @@ void GlobalFieldFunction::GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mes
     {
         AddFieldFunction(fieldFunc);
     }
+}
+
+//----------------------------------------------------------------------------------------------------
+
+void GlobalFieldFunction::PrecomputeFieldFunc(const int _id, const int _res, const float _dim)
+{
+    m_fieldFuncs[_id]->PrecomputeField(_res, _dim);
 }
 
 //----------------------------------------------------------------------------------------------------

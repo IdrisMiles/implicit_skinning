@@ -4,10 +4,9 @@
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
-#include <glm/glm.hpp>
 #include <iostream>
 
-//#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
 /// @author Idris Miles
@@ -40,7 +39,8 @@ public :
     //------------------------------------------------------------------------------------
 
     Mesh() :
-        m_oneRingComputed(false)
+        m_oneRingComputed(false),
+        m_bboxComputed(false)
     {
 
     }
@@ -115,6 +115,35 @@ public :
 
     //------------------------------------------------------------------------------------
 
+    void ComputeBBox(const bool &_recompute = false)
+    {
+        if(m_bboxComputed && !_recompute)
+        {
+            return;
+        }
+
+        glm::vec3 min(1e10f, 1e10f, 1e10f);
+        glm::vec3 max(0.0f, 0.0f, 0.0f);
+
+        for(auto &v : m_meshVerts)
+        {
+            min.x = min.x < v.x ? min.x : v.x;
+            min.y = min.y < v.y ? min.y : v.y;
+            min.z = min.z < v.z ? min.z : v.z;
+
+            max.x = max.x > v.x ? max.x : v.x;
+            max.y = max.y > v.y ? max.y : v.y;
+            max.z = max.z > v.z ? max.z : v.z;
+        }
+
+        m_minBBox = min;
+        m_maxBBox = max;
+
+        m_bboxComputed = true;
+    }
+
+    //------------------------------------------------------------------------------------
+
 
     /// @brief m_meshVerts, a vector containing all vertices of the mesh.
     std::vector<glm::vec3> m_meshVerts;
@@ -138,6 +167,9 @@ public :
     glm::vec3 m_colour;
 
     std::vector<std::vector<int>> m_meshVertsOneRing;
+
+    glm::vec3 m_minBBox;
+    glm::vec3 m_maxBBox;
 
 
 
@@ -301,6 +333,7 @@ private:
 
 
     bool m_oneRingComputed;
+    bool m_bboxComputed;
 
 };
 

@@ -28,6 +28,8 @@ public:
 
     //--------------------------------------------------------------------
 
+    void InitialiseDeformer();
+
     void AttachMesh(const Mesh _origMesh,
                     const GLuint _meshVBO,
                     const GLuint _meshNBO,
@@ -69,7 +71,7 @@ public:
 
     void EvalGlobalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints);
 
-    void EvalGlobalFieldInCube(std::vector<float> &_output, const int dim, const float scale);
+    void EvalGlobalFieldInCube(std::vector<float> &_output, const int res, const float dim);
 
     GlobalFieldFunction &GetGlocalFieldFunc();
 
@@ -85,10 +87,10 @@ private:
 
 
     /// @brief
-    void EvalFieldInCubeCPU(std::vector<float> &_output, const int dim, const float scale);
+    void EvalFieldInCubeCPU(std::vector<float> &_output, const int res, const float dim);
 
     /// @brief
-    void EvalFieldInCubeGPU(std::vector<float> &_output, const int dim, const float scale);
+    void EvalFieldInCubeGPU(std::vector<float> &_output, const int res, const float dim);
 
 
     //--------------------------------------------------------------------
@@ -143,6 +145,9 @@ private:
     uint m_numFields;
     uint m_numCompOps;
     uint m_numCompFields;
+    int m_numTransforms;
+    glm::vec3 m_minBBox;
+    glm::vec3 m_maxBBox;
 
     /// @brief
     GlobalFieldFunction m_globalFieldFunction;
@@ -193,7 +198,6 @@ private:
 
     /// @brief
     glm::mat4 *d_transformPtr;
-    int m_numTransforms;
 
     /// @brief
     glm::mat4 *d_textureSpacePtr;

@@ -20,7 +20,7 @@ public:
 
     void SetTheta(std::function<float(float)> _theta);
     void SetCompositionOp(std::function<float(float, float, float)> _compositionOp);
-    void Precompute(const unsigned int _dim = 32);
+    void Precompute(const unsigned int _res = 32);
 
     /// @brief Method to compute the result value of the composed field functions
     float Eval(const float f1, const float f2, const float d);

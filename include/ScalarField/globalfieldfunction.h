@@ -51,6 +51,8 @@ public:
     /// @brief
     void GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mesh &_meshPart, const int _id);
 
+    void PrecomputeFieldFunc(const int _id, const int _res, const float _dim);
+
     /// @brief
     void GenerateGlobalFieldFunc();
 

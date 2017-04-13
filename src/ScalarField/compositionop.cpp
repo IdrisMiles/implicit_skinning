@@ -29,30 +29,30 @@ void CompositionOp::SetCompositionOp(std::function<float(float, float, float)> _
     m_compositionOp = _compositionOp;
 }
 
-void CompositionOp::Precompute(const unsigned int _dim)
+void CompositionOp::Precompute(const unsigned int _res)
 {
-    float data[_dim*_dim*_dim];
+    float data[_res*_res*_res];
 //    float4 *cuGrad = new float4[_dim*_dim*_dim];
 
-    for(unsigned int z=0; z<_dim; ++z)
+    for(unsigned int z=0; z<_res; ++z)
     {
-        for(unsigned int y=0; y<_dim; ++y)
+        for(unsigned int y=0; y<_res; ++y)
         {
-            for(unsigned int x=0; x<_dim; ++x)
+            for(unsigned int x=0; x<_res; ++x)
             {
-                float f1 = (float)x/_dim;
-                float f2 = (float)y/_dim;
-                float d = (float)z/_dim;
+                float f1 = (float)x/_res;
+                float f2 = (float)y/_res;
+                float d = (float)z/_res;
 
                 float f = m_compositionOp(f1, f2, d);
 
-                data[(z*_dim*_dim) + (y*_dim) + x] = f;
+                data[(z*_res*_res) + (y*_res) + x] = f;
             }
         }
     }
 
-    m_field.SetData(_dim, data);
-    d_field.CreateCudaTexture(_dim, data, cudaFilterModeLinear);
+    m_field.SetData(_res, data);
+    d_field.CreateCudaTexture(_res, data, cudaFilterModeLinear);
 //    d_grad.CreateCudaTexture(_dim, cuGrad, cudaFilterModeLinear);
 //    delete [] cuGrad;
 

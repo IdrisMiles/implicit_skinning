@@ -35,6 +35,17 @@ ImplicitSkinDeformer::~ImplicitSkinDeformer()
 
 //------------------------------------------------------------------------------------------------
 
+void ImplicitSkinDeformer::InitialiseDeformer()
+{
+//    if(m_initFieldCudaMem && m_initMeshCudaMem & m_initGobalFieldFunc)
+    // run kernel
+//    kernels::SimpleEvalGlobalField(d_origVertIsoPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
+//    getLastCudaError("Kernel::SimpleEval");
+
+}
+
+//------------------------------------------------------------------------------------------------
+
 void ImplicitSkinDeformer::AttachMesh(const Mesh _origMesh,
                                       const GLuint _meshVBO,
                                       const GLuint _meshNBO,
@@ -51,6 +62,14 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
                                                        const int _numHrbfCentres)
 {
     m_globalFieldFunction.Fit(_meshParts.size());
+    float dim = FLT_MIN;
+    dim = fabs(m_minBBox.x) > dim ? fabs(m_minBBox.x) : dim;
+    dim = fabs(m_minBBox.y) > dim ? fabs(m_minBBox.y) : dim;
+    dim = fabs(m_minBBox.z) > dim ? fabs(m_minBBox.z) : dim;
+    dim = fabs(m_maxBBox.x) > dim ? fabs(m_maxBBox.x) : dim;
+    dim = fabs(m_maxBBox.y) > dim ? fabs(m_maxBBox.y) : dim;
+    dim = fabs(m_maxBBox.z) > dim ? fabs(m_maxBBox.z) : dim;
+    dim *= 1.1f;
 
     // Generate individual field functions per mesh part
     auto threadFunc = [&, this](int startId, int endId){
@@ -59,6 +78,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
             Mesh hrbfCentres;
             m_globalFieldFunction.GenerateHRBFCentres(_meshParts[mp], _boneStarts[mp], _boneEnds[mp], _numHrbfCentres, hrbfCentres);
             m_globalFieldFunction.GenerateFieldFuncs(hrbfCentres, _meshParts[mp], mp);
+            m_globalFieldFunction.PrecomputeFieldFunc(mp, 64, dim);
 
         }
     };
@@ -95,6 +115,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
     // Generate global field function
     m_globalFieldFunction.GenerateGlobalFieldFunc();
     m_initGobalFieldFunc = true;
+
 
     InitFieldCudaMem();
 
@@ -238,7 +259,7 @@ void ImplicitSkinDeformer::EvalGlobalField(std::vector<float> &_output, const st
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::EvalGlobalFieldInCube(std::vector<float> &_output, const int dim, const float scale)
+void ImplicitSkinDeformer::EvalGlobalFieldInCube(std::vector<float> &_output, const int res, const float dim)
 {
     _output.clear();
     if(!m_initGobalFieldFunc)
@@ -246,15 +267,15 @@ void ImplicitSkinDeformer::EvalGlobalFieldInCube(std::vector<float> &_output, co
         return;
     }
 
-    _output.resize(dim *dim *dim);
+    _output.resize(res *res *res);
 
     if(!m_initMeshCudaMem || !m_initFieldCudaMem)
     {
-        EvalFieldInCubeCPU(_output, dim, scale);
+        EvalFieldInCubeCPU(_output, res, dim);
     }
     else
     {
-        EvalFieldInCubeGPU(_output, dim, scale);
+        EvalFieldInCubeGPU(_output, res, dim);
     }
 }
 
@@ -307,7 +328,7 @@ void ImplicitSkinDeformer::EvalGlobalFieldCPU(std::vector<float> &_output, const
 
 void ImplicitSkinDeformer::EvalGlobalFieldGPU(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
 {
-    uint numFields = m_globalFieldFunction.GetFieldFuncs().size();
+    m_numFields = m_globalFieldFunction.GetFieldFuncs().size();
 
     // allocate device memory
     float *d_output;
@@ -319,7 +340,7 @@ void ImplicitSkinDeformer::EvalGlobalFieldGPU(std::vector<float> &_output, const
     checkCudaErrors(cudaMemcpy((void*)d_samplePoints, &_samplePoints[0], _samplePoints.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
 
     // run kernel
-    kernels::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, numFields);
+    kernels::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
     getLastCudaError("Kernel::SimpleEval");
 
     // download data to host
@@ -332,14 +353,14 @@ void ImplicitSkinDeformer::EvalGlobalFieldGPU(std::vector<float> &_output, const
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::EvalFieldInCubeCPU(std::vector<float> &_output, const int dim, const float scale)
+void ImplicitSkinDeformer::EvalFieldInCubeCPU(std::vector<float> &_output, const int res, const float dim)
 {
 
 }
 
 //------------------------------------------------------------------------------------------------
 
-void ImplicitSkinDeformer::EvalFieldInCubeGPU(std::vector<float> &_output, const int dim, const float scale)
+void ImplicitSkinDeformer::EvalFieldInCubeGPU(std::vector<float> &_output, const int res, const float dim)
 {
 
 }
@@ -355,6 +376,9 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
     if(m_initMeshCudaMem) { return; }
 
     m_numVerts = _origMesh.m_meshVerts.size();
+    m_numTransforms = _transform.size();
+    m_minBBox = _origMesh.m_minBBox;
+    m_maxBBox = _origMesh.m_maxBBox;
 
     // Get bone ID and weights per vertex
     unsigned int boneIds[m_numVerts *4];

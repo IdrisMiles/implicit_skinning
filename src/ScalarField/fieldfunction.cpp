@@ -57,21 +57,21 @@ void FieldFunction::Fit(const std::vector<glm::vec3>& points,
 
 //------------------------------------------------------------------------------------------------
 
-void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
+void FieldFunction::PrecomputeField(const unsigned int _res, const float _dim)
 {
-    float data[_dim*_dim*_dim];
-    glm::vec3 grad[_dim*_dim*_dim];
-    float4 *cuGrad = new float4[_dim*_dim*_dim];
+    float data[_res*_res*_res];
+    glm::vec3 grad[_res*_res*_res];
+    float4 *cuGrad = new float4[_res*_res*_res];
 
-    for(unsigned int z=0; z<_dim; ++z)
+    for(unsigned int z=0; z<_res; ++z)
     {
-        for(unsigned int y=0; y<_dim; ++y)
+        for(unsigned int y=0; y<_res; ++y)
         {
-            for(unsigned int x=0; x<_dim; ++x)
+            for(unsigned int x=0; x<_res; ++x)
             {
-                glm::vec3 point(_scale*((((float)x/_dim)*2.0f)-1.0f),
-                                _scale*((((float)y/_dim)*2.0f)-1.0f),
-                                _scale*((((float)z/_dim)*2.0f)-1.0f));
+                glm::vec3 point(_dim*((((float)x/_res)*2.0f)-1.0f),
+                                _dim*((((float)y/_res)*2.0f)-1.0f),
+                                _dim*((((float)z/_res)*2.0f)-1.0f));
 
                 glm::vec3 tx = TransformSpace(point);
                 auto samplePoint = DistanceField::Vector(tx.x, tx.y, tx.z);
@@ -84,21 +84,21 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
                     g = m_distanceField.grad(samplePoint);
                 }
 
-                data[(z*_dim*_dim) + (y*_dim)+ x] = d;
-                grad[(z*_dim*_dim) + (y*_dim)+ x] = glm::vec3(g(0), g(1), g(2));
-                cuGrad[(z*_dim*_dim) + (y*_dim)+ x] = make_float4(g(0), g(1), g(2), d);
+                data[(z*_res*_res) + (y*_res)+ x] = d;
+                grad[(z*_res*_res) + (y*_res)+ x] = glm::vec3(g(0), g(1), g(2));
+                cuGrad[(z*_res*_res) + (y*_res)+ x] = make_float4(g(0), g(1), g(2), d);
             }
         }
     }
 
     if(m_fit)
     {
-        m_field.SetData(_dim, data);
-        m_grad.SetData(_dim, grad);
+        m_field.SetData(_res, data);
+        m_grad.SetData(_res, grad);
         m_precomputedCPU = true;
     }
-    d_field.CreateCudaTexture(_dim, data, cudaFilterModeLinear);
-    d_grad.CreateCudaTexture(_dim, cuGrad, cudaFilterModeLinear);
+    d_field.CreateCudaTexture(_res, data, cudaFilterModeLinear);
+    d_grad.CreateCudaTexture(_res, cuGrad, cudaFilterModeLinear);
     delete [] cuGrad;
     m_precomputedGPU = true;
 
@@ -106,9 +106,9 @@ void FieldFunction::PrecomputeField(const unsigned int _dim, const float _scale)
     // create texture space transform
     m_textureSpaceTransform = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
     m_textureSpaceTransform = glm::translate(m_textureSpaceTransform, glm::vec3(1.0f, 1.0f, 1.0f));
-    m_textureSpaceTransform = glm::scale(m_textureSpaceTransform, glm::vec3(1.0f/_scale, 1.0f/_scale, 1.0f/_scale));
+    m_textureSpaceTransform = glm::scale(m_textureSpaceTransform, glm::vec3(1.0f/_dim, 1.0f/_dim, 1.0f/_dim));
 
-    auto textureSpaceTransform = [_scale, this](glm::vec3 x){
+    auto textureSpaceTransform = [_dim, this](glm::vec3 x){
         return glm::vec3(m_textureSpaceTransform*glm::vec4(x, 1.0f));
     };
     m_field.SetTextureSpaceTransform(textureSpaceTransform);

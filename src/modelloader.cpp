@@ -120,6 +120,7 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
         } // end for numMeshes
 
         _model->m_mesh.ComputeOneRing();
+        _model->m_mesh.ComputeBBox();
 
     }// end if has mesh
 
