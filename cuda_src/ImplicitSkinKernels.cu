@@ -345,23 +345,85 @@ __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
     for(int i=0; i<numNeighs; ++i)
     {
         int neighId = startNeighAddr + i;
+
         oneRingVerts[i] = _oneRingVerts[neighId];
         q[i] = ProjectPointOnToPlane(oneRingVerts[i], v, n);
         s[i] = q[i] - v;
+
+        _centroidWeights[neighId] = 0.0f;
     }
 
 
     float r[10];
+    float alpha[10];
     float A[10];
     float D[10];
+
+    // Check for coords close to/on boundary of cage
     for(int i=0; i<numNeighs; ++i)
     {
         int nextI = (i+1)%numNeighs;
         int neighId = startNeighAddr + i;
+        int nextNeighId = startNeighAddr + nextI;
 
         r[i] = glm::length(s[i]);
+        alpha[i] = glm::angle(s[i], s[nextI]);
+        A[i] = 0.5f * glm::length(glm::cross(s[i], s[nextI]));
+        D[i] = glm::dot(s[i], s[nextI]);
+
+        if(r[i] < FLT_EPSILON)
+        {
+            _centroidWeights[neighId] = 1.0f;
+            return;
+        }
+        else if(fabs(A[i]) < FLT_EPSILON && D[i] < 0.0f)
+        {
+            glm::vec3 dv = q[nextI] - q[i];
+            float dl = glm::length(dv);
+            // TODO: handle assertions dl==0
+            dv = v - q[i];
+            float mu = glm::length(dv) / dl;
+            // TODO: handle assertions 0<=mu<=1
+            _centroidWeights[neighId] = 1.0f - mu;
+            _centroidWeights[nextNeighId] = mu;
+            return;
+        }
 
     }
+
+    float tanalpha[10]; // tan(alpha/2)
+    for( int i = 0; i < numNeighs; ++i)
+    {
+        int nextI = (i+1)%numNeighs;
+        int prevI = (numNeighs+i-1)%numNeighs; // to avoid potential negative result of % operator
+        tanalpha[i] = (r[i]*r[nextI] - D[i])/(2.0*A[i]);
+    }
+
+    // Equation #11, from the paper
+    float w = 0.0f;
+    float W = 0.0f;
+    for( int i = 0; i < numNeighs; ++i)
+    {
+        int nextI = (i+1)%numNeighs;
+        int prevI = (numNeighs+i-1)%numNeighs; // to avoid potential negative result of % operator
+        int neighId = startNeighAddr + i;
+
+        w = 2.0*( tanalpha[i] + tanalpha[prevI] )/r[i];
+        _centroidWeights[neighId] = w;
+        W += w;
+    }
+
+    if( fabs(W) > 0.0)
+    {
+        for( int i = 0; i < numNeighs; ++i)
+        {
+            int neighId = startNeighAddr + i;
+            _centroidWeights[neighId] /= W;
+        }
+    }
+
+
+
 }
 
 //------------------------------------------------------------------------------------------------

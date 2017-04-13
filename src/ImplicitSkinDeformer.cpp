@@ -53,18 +53,6 @@ void ImplicitSkinDeformer::InitialiseIsoValues()
         getLastCudaError("Kernel::SimpleEval");
 
 
-        std::vector<float> isoValue(m_numVerts, 0.0f);
-        checkCudaErrors(cudaMemcpy(&isoValue[0], d_origVertIsoPtr, m_numVerts * sizeof(float), cudaMemcpyDeviceToHost));
-        for(auto &i:isoValue)
-        {
-            if(i > 0.45f && i< 0.55f)
-            {
-                std::cout<<i<<", ";
-            }
-        }
-        std::cout<<"\n";
-
-
         // free temporary device memory
         checkCudaErrors(cudaFree(d_tmpTransform));
     }
@@ -146,11 +134,6 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
 
 
     InitFieldCudaMem();
-
-    //---------------------------------------
-    // TODO
-    // Initialise iso values for verts here
-
 }
 
 //------------------------------------------------------------------------------------------------
@@ -483,12 +466,18 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
     checkCudaErrors(cudaMemcpy((void*)d_oneRingVertPtr, (void*)&oneRingVertFlat[0], oneRingVertFlat.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_numNeighsPerVertPtr, (void*)&numNeighsPerVertex[0], m_numVerts * sizeof(int), cudaMemcpyHostToDevice));
     kernels::GenerateScatterAddress(d_numNeighsPerVertPtr, (d_numNeighsPerVertPtr+m_numVerts+1), d_oneRingScatterAddrPtr);
-//    kernels::GenerateOneRingCentroidWeights(d_origMeshVertsPtr, d_origMeshNormsPtr, m_numVerts, d_centroidWeightsPtr, d_oneRingIdPtr, d_oneRingVertPtr, d_numNeighsPerVertPtr, d_oneRingScatterAddrPtr);
+    kernels::GenerateOneRingCentroidWeights(d_origMeshVertsPtr, d_origMeshNormsPtr, m_numVerts, d_centroidWeightsPtr, d_oneRingIdPtr, d_oneRingVertPtr, d_numNeighsPerVertPtr, d_oneRingScatterAddrPtr);
 
 
+    std::vector<float> centroidWeights(oneRingVertFlat.size(), 0.0f);
+    checkCudaErrors(cudaMemcpy(&centroidWeights[0], d_centroidWeightsPtr, oneRingVertFlat.size() * sizeof(float), cudaMemcpyDeviceToHost));
+    for(auto &i:centroidWeights)
+    {
+        if(i>1.0f || i<0.0f)
+        {std::cout<<i<<", ";}
+    }
+    std::cout<<"\n";
 
-
-    checkCudaErrors(cudaThreadSynchronize());
 
     m_initMeshCudaMem = true;
 }
