@@ -14,8 +14,10 @@ __device__ void VertexProjection(glm::vec3 &_deformedVert,
                                  const float &_sigma,
                                  const float &_contactAngle)
 {
-    float angle = _gradAngle = glm::angle(glm::normalize(_newIsoGrad), glm::normalize(_prevIsoGrad));
-    if(glm::degrees(angle) < _contactAngle)
+    float angle = _gradAngle = glm::degrees(glm::angle(glm::normalize(_newIsoGrad), glm::normalize(_prevIsoGrad)));
+//    printf("%f\n",angle);
+
+    if((angle) < _contactAngle)
     {
         glm::vec3 displacement = ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
         _deformedVert = _deformedVert + displacement;
@@ -47,7 +49,6 @@ __device__ void TangentialRelaxation(glm::vec3 &_deformedVert,
     for(int i=0; i<_numNeighs; i++)
     {
         glm::vec3 neighVert = _verts[_oneRingNeigh[i]];
-//        glm::vec3 projNeighVert = neighVert - (glm::dot(neighVert - _deformedVert, _normal) * _normal);
         glm::vec3 projNeighVert = ProjectPointOnToPlane(neighVert, _deformedVert, _normal);
         float barycentricCoord = _centroidWeights[i];
         sumWeightedCentroid += barycentricCoord * projNeighVert;
@@ -174,14 +175,21 @@ __device__ void EvalGradGlobalField(float &_outputF,
         int f2Id = _compFields[i].fieldFuncB;
         int coId = _compFields[i].compOp;
 
-        glm::vec3 df1(df[f1Id].x, df[f1Id].y, df[f1Id].z);
-        glm::vec3 df2(df[f2Id].x, df[f2Id].y, df[f2Id].z);
-        float angle = glm::angle(df1, df2);
+        glm::vec3 f1Grad(df[f1Id].x, df[f1Id].y, df[f1Id].z);
+        glm::vec3 f2Grad(df[f2Id].x, df[f2Id].y, df[f2Id].z);
+        float angle = glm::angle(f1Grad, f2Grad);
         float theta = tex1D<float>(_theta[coId], (angle*0.5f*M_1_PI));
 
+        // composed field value
         cf[i] = (f2Id < 0) ? f[f1Id] : tex3D<float>(_compOps[coId], f[f1Id], f[f2Id], theta);
 
-        grad = (cf[i]>maxF) ? df[i] : grad;
+        // compose field gradient
+        float df1 = tex3D<float>(_compOps[coId], f[f1Id]+0.1f, f[f2Id], theta) - cf[i];
+        float df2 = tex3D<float>(_compOps[coId], f[f1Id], f[f2Id]+0.1f, theta) - cf[i];
+        cdf[i] = (df[f1Id]*df1) + (df[f2Id]*df2);
+
+        // apply max operator
+        grad = (cf[i]>maxF) ? cdf[i] : grad;
         maxF = (cf[i]>maxF) ? cf[i] : maxF;
     }
 
@@ -248,14 +256,14 @@ __device__ void SimpleEvalGradGlobalField(float &_outputF,
         f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
         df[i] = tex3D<float4>(_fieldDerivs[i], texturePoint.x, texturePoint.y, texturePoint.z);
 
-        grad += df[i];
-//        grad = (f[i]>maxF) ? df[i] : grad;
+//        grad += df[i];
+        grad = (f[i]>maxF) ? df[i] : grad;
         maxF = (f[i]>maxF) ? f[i] : maxF;
     }
-    grad *= _numFields;
 
     _outputF = maxF;
     _outputG = glm::vec3(grad.x, grad.y, grad.z);
+
 }
 
 //------------------------------------------------------------------------------------------------
@@ -417,7 +425,7 @@ __global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
     // Get iso value from global field
     glm::vec3 deformedVert = _deformedVert[tid];
     float origIsoValue = _origIsoValue[tid];
-    glm::vec3 prevGrad = glm::vec3(0.0f, 1.0f, 0.0f); //_prevIsoGrad[tid];//
+    glm::vec3 prevGrad = _prevIsoGrad[tid];//
     glm::vec3 newGrad;
     float newIsoValue;
 
@@ -439,6 +447,7 @@ __global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
     VertexProjection(deformedVert, origIsoValue, newIsoValue, newGrad, prevGrad, gradAngle, sigma, contactAngle);
 
     _deformedVert[tid] = deformedVert;
+    _prevIsoGrad[tid] = newGrad;
 
 
     //----------------------------------------------------
