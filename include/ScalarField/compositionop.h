@@ -20,6 +20,10 @@ public:
 
     void SetTheta(std::function<float(float)> _theta);
     void SetCompositionOp(std::function<float(float, float, float)> _compositionOp);
+    void SetParams(float _alpha0, float _alpha1, float _alpha2,
+                   float _theta0, float _theta1, float _theta2,
+                   float _w0, float _w1);
+
     void Precompute(const unsigned int _res = 32);
 
     /// @brief Method to compute the result value of the composed field functions
@@ -32,16 +36,34 @@ public:
 
 
     cudaTextureObject_t &GetFieldFunc3DTexture();
+    cudaTextureObject_t &GetFieldGrad3DTexture();
 
 private:
     std::function<float(float)> m_theta;
 
+    std::function<float(float)> m_kTheta;
+
+    std::function<float(float, float)> m_gHat;
+
     std::function<float(float, float, float)> m_compositionOp;
+
 
 
     Field3D<float> m_field;
 
     Cuda3DTexture<float> d_field;
+    Cuda3DTexture<float4> d_grad;
+
+    float m_alpha0;
+    float m_alpha1;
+    float m_alpha2;
+
+    float m_theta0;
+    float m_theta1;
+    float m_theta2;
+
+    float m_w0;
+    float m_w1;
 
     bool m_precomputed;
 

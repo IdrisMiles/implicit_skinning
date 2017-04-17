@@ -14,10 +14,11 @@ __device__ void VertexProjection(glm::vec3 &_deformedVert,
                                  const float &_sigma,
                                  const float &_contactAngle)
 {
-    float angle = _gradAngle = glm::angle(_newIsoGrad, _prevIsoGrad);
-    if(angle < _contactAngle)
+    float angle = _gradAngle = glm::angle(glm::normalize(_newIsoGrad), glm::normalize(_prevIsoGrad));
+    if(glm::degrees(angle) < _contactAngle)
     {
-        _deformedVert = _deformedVert + ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
+        glm::vec3 displacement = ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
+        _deformedVert = _deformedVert + displacement;
         _prevIsoGrad = _newIsoGrad;
     }
 }
@@ -77,7 +78,7 @@ __device__ void LaplacianSmoothing(glm::vec3 &_deformedVert,
 
 //------------------------------------------------------------------------------------------------
 
-__device__ void EvalGlobalField(float &_output,
+__device__ void EvalGlobalField(float &_outputF,
                                 const glm::vec3 &_samplePoint,
                                 const uint _numSamples,
                                 const glm::mat4 *_textureSpace,
@@ -86,6 +87,7 @@ __device__ void EvalGlobalField(float &_output,
                                 const cudaTextureObject_t *_fieldDeriv,
                                 const uint _numFields,
                                 const cudaTextureObject_t *_compOps,
+                                const cudaTextureObject_t *_compOpDerivs,
                                 const cudaTextureObject_t *_theta,
                                 const uint _numOps,
                                 const ComposedFieldCuda *_compFields,
@@ -125,7 +127,67 @@ __device__ void EvalGlobalField(float &_output,
     }
 
 
-    _output = maxF;
+    _outputF = maxF;
+}
+
+//------------------------------------------------------------------------------------------------
+
+
+__device__ void EvalGradGlobalField(float &_outputF,
+                                glm::vec3 &_outputG,
+                                const glm::vec3 &_samplePoint,
+                                const uint _numSamples,
+                                const glm::mat4 *_textureSpace,
+                                const glm::mat4 *_rigidTransforms,
+                                const cudaTextureObject_t *_fieldFuncs,
+                                const cudaTextureObject_t *_fieldDeriv,
+                                const uint _numFields,
+                                const cudaTextureObject_t *_compOps,
+                                const cudaTextureObject_t *_compOpDerivs,
+                                const cudaTextureObject_t *_theta,
+                                const uint _numOps,
+                                const ComposedFieldCuda *_compFields,
+                                const uint _numCompFields)
+{
+    float f[100];
+    float4 df[100];
+    int i=0;
+    for(i=0; i<_numFields; i++)
+    {
+        glm::mat4 rigidTrans = _rigidTransforms[i];
+        glm::mat4 textureSpace = _textureSpace[i];
+        glm::vec4 transformedPoint = glm::inverse(rigidTrans) * glm::vec4(_samplePoint, 1.0f);
+        glm::vec3 texturePoint = glm::vec3(textureSpace * transformedPoint);
+
+        f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
+        df[i] = tex3D<float4>(_fieldDeriv[i], texturePoint.x, texturePoint.y, texturePoint.z);
+    }
+
+
+    float cf[100];
+    float4 cdf[100];
+    float4 grad;
+    float maxF = FLT_MIN;
+    for(i=0; i<_numCompFields; i++)
+    {
+        int f1Id = _compFields[i].fieldFuncA;
+        int f2Id = _compFields[i].fieldFuncB;
+        int coId = _compFields[i].compOp;
+
+        glm::vec3 df1(df[f1Id].x, df[f1Id].y, df[f1Id].z);
+        glm::vec3 df2(df[f2Id].x, df[f2Id].y, df[f2Id].z);
+        float angle = glm::angle(df1, df2);
+        float theta = tex1D<float>(_theta[coId], (angle*0.5f*M_1_PI));
+
+        cf[i] = (f2Id < 0) ? f[f1Id] : tex3D<float>(_compOps[coId], f[f1Id], f[f2Id], theta);
+
+        grad = (cf[i]>maxF) ? df[i] : grad;
+        maxF = (cf[i]>maxF) ? cf[i] : maxF;
+    }
+
+
+    _outputF = maxF;
+    _outputG = glm::vec3(grad.x, grad.y, grad.z);
 }
 
 //------------------------------------------------------------------------------------------------
@@ -158,6 +220,46 @@ __device__ void SimpleEvalGlobalField(float &_output,
 }
 
 
+//------------------------------------------------------------------------------------------------
+
+__device__ void SimpleEvalGradGlobalField(float &_outputF,
+                                          glm::vec3 &_outputG,
+                                          const glm::vec3 &_samplePoint,
+                                          const uint _numSamples,
+                                          const glm::mat4 *_textureSpace,
+                                          const glm::mat4 *_rigidTransforms,
+                                          const cudaTextureObject_t *_fieldFuncs,
+                                          const cudaTextureObject_t *_fieldDerivs,
+                                          const uint _numFields)
+{
+    float maxF = FLT_MIN;
+    float4 grad;
+    float f[100];
+    float4 df[100];
+
+    for(int i=0; i<_numFields; i++)
+    {
+        glm::mat4 rigidTrans = _rigidTransforms[i];
+        glm::mat4 textureSpace = _textureSpace[i];
+        glm::vec3 transformedPoint = glm::vec3(glm::inverse(rigidTrans) * glm::vec4(_samplePoint, 1.0f));
+        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
+        texturePoint = 1.015f*texturePoint;
+
+        f[i] = tex3D<float>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
+        df[i] = tex3D<float4>(_fieldDerivs[i], texturePoint.x, texturePoint.y, texturePoint.z);
+
+        grad += df[i];
+//        grad = (f[i]>maxF) ? df[i] : grad;
+        maxF = (f[i]>maxF) ? f[i] : maxF;
+    }
+    grad *= _numFields;
+
+    _outputF = maxF;
+    _outputG = glm::vec3(grad.x, grad.y, grad.z);
+}
+
+//------------------------------------------------------------------------------------------------
+
 
 //------------------------------------------------------------------------------------------------
 // CUDA Global Kernels
@@ -173,6 +275,7 @@ __global__ void EvalGlobalField_Kernel(float *_output,
                                        const cudaTextureObject_t *_fieldDeriv,
                                        const uint _numFields,
                                        const cudaTextureObject_t *_compOps,
+                                       const cudaTextureObject_t *_compOpDerivs,
                                        const cudaTextureObject_t *_theta,
                                        const uint _numOps,
                                        const ComposedFieldCuda *_compFields,
@@ -187,7 +290,7 @@ __global__ void EvalGlobalField_Kernel(float *_output,
 
     EvalGlobalField(_output[tid], _samplePoint[tid], _numSamples,
                     _textureSpace, _rigidTransforms, _fieldFuncs, _fieldDeriv, _numFields,
-                    _compOps, _theta, _numOps,
+                    _compOps, _compOpDerivs, _theta, _numOps,
                     _compFields, _numCompFields);
 }
 
@@ -214,6 +317,38 @@ __global__ void SimpleEvalGlobalField_Kernel(float *_output,
                               _textureSpace,
                               _rigidTransforms,
                               _fieldFuncs,
+                              _numFields);
+
+}
+
+
+//------------------------------------------------------------------------------------------------
+
+__global__ void SimpleEvalGradGlobalField_Kernel(float *_outputF,
+                                                 glm::vec3 *_outputG,
+                                                 const glm::vec3 *_samplePoint,
+                                                 const uint _numSamples,
+                                                 const glm::mat4 *_textureSpace,
+                                                 const glm::mat4 *_rigidTransforms,
+                                                 const cudaTextureObject_t *_fieldFuncs,
+                                                 const cudaTextureObject_t *_fieldDerivs,
+                                                 const uint _numFields)
+{
+    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
+
+    if(tid >= _numSamples)
+    {
+        return;
+    }
+
+    SimpleEvalGradGlobalField(_outputF[tid],
+                              _outputG[tid],
+                              _samplePoint[tid],
+                              _numSamples,
+                              _textureSpace,
+                              _rigidTransforms,
+                              _fieldFuncs,
+                              _fieldDerivs,
                               _numFields);
 
 }
@@ -258,6 +393,7 @@ __global__ void LinearBlendWeightSkin_Kernel(glm::vec3 *_deformedVert,
 __global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
                                           const glm::vec3 *_normal,
                                           const float *_origIsoValue,
+                                          glm::vec3 *_prevIsoGrad,
                                           const uint _numVerts,
                                           const glm::mat4 *_textureSpace,
                                           const glm::mat4 *_rigidTransforms,
@@ -281,17 +417,19 @@ __global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
     // Get iso value from global field
     glm::vec3 deformedVert = _deformedVert[tid];
     float origIsoValue = _origIsoValue[tid];
-    glm::vec3 prevGrad;
+    glm::vec3 prevGrad = glm::vec3(0.0f, 1.0f, 0.0f); //_prevIsoGrad[tid];//
     glm::vec3 newGrad;
     float newIsoValue;
 
-    SimpleEvalGlobalField(newIsoValue,
-                          deformedVert,
-                          _numVerts,
-                          _textureSpace,
-                          _rigidTransforms,
-                          _fieldFuncs,
-                          _numFields);
+    SimpleEvalGradGlobalField(newIsoValue,
+                              newGrad,
+                              deformedVert,
+                              _numVerts,
+                              _textureSpace,
+                              _rigidTransforms,
+                              _fieldFuncs,
+                              _fieldDeriv,
+                              _numFields);
 
     //----------------------------------------------------
     // Perform vertex projection along gradient of global field
@@ -491,6 +629,33 @@ void kernels::SimpleEvalGlobalField(float *_output,
 
 //------------------------------------------------------------------------------------------------
 
+void kernels::SimpleEvalGradGlobalField(float *_outputF,
+                                        glm::vec3 *_outputG,
+                                        const glm::vec3 *_samplePoint,
+                                        const uint _numSamples,
+                                        const glm::mat4* _textureSpace,
+                                        const glm::mat4 *_rigidTransforms,
+                                        const cudaTextureObject_t *_fieldFuncs,
+                                        const cudaTextureObject_t *_fieldDerivs,
+                                        const uint _numFields)
+{
+    uint numThreads = 1024u;
+    uint numBlocks = kernels::iDivUp(_numSamples, numThreads);
+
+    SimpleEvalGradGlobalField_Kernel<<<numBlocks, numThreads>>>(_outputF,
+                                                                _outputG,
+                                                                _samplePoint,
+                                                                _numSamples,
+                                                                _textureSpace,
+                                                                _rigidTransforms,
+                                                                _fieldFuncs,
+                                                                _fieldDerivs,
+                                                                _numFields);
+    cudaThreadSynchronize();
+}
+
+//------------------------------------------------------------------------------------------------
+
 void kernels::EvalGlobalField(float *_output,
                               const glm::vec3 *_samplePoint,
                               const uint _numSamples,
@@ -500,6 +665,7 @@ void kernels::EvalGlobalField(float *_output,
                               const cudaTextureObject_t *_fieldDeriv,
                               const uint _numFields,
                               const cudaTextureObject_t *_compOps,
+                              const cudaTextureObject_t *_compOpDerivs,
                               const cudaTextureObject_t *_theta,
                               const uint _numOps,
                               const ComposedFieldCuda *_compFields,
@@ -510,7 +676,7 @@ void kernels::EvalGlobalField(float *_output,
 
     EvalGlobalField_Kernel<<<numBlocks, numThreads>>>(_output, _samplePoint, _numSamples,
                                                           _textureSpace, _rigidTransforms, _fieldFuncs, _fieldDeriv, _numFields,
-                                                          _compOps, _theta, _numOps,
+                                                          _compOps, _compOpDerivs, _theta, _numOps,
                                                           _compFields, _numCompFields);
 
     cudaThreadSynchronize();
@@ -519,23 +685,24 @@ void kernels::EvalGlobalField(float *_output,
 //------------------------------------------------------------------------------------------------
 
 void kernels::SimpleImplicitSkin(glm::vec3 *_deformedVert,
-                                  const glm::vec3 *_normal,
-                                  const float *_origIsoValue,
-                                  const uint _numVerts,
-                                  const glm::mat4 *_textureSpace,
-                                  const glm::mat4 *_rigidTransforms,
-                                  const cudaTextureObject_t *_fieldFuncs,
-                                  const cudaTextureObject_t *_fieldDeriv,
-                                  const uint _numFields,
-                                  const int *_oneRingNeigh,
-                                  const float *_centroidWeights,
-                                  const int *_numNeighs,
-                                  const int *_neighScatterAddr)
+                                 const glm::vec3 *_normal,
+                                 const float *_origIsoValue,
+                                 glm::vec3 *_prevIsoGrad,
+                                 const uint _numVerts,
+                                 const glm::mat4 *_textureSpace,
+                                 const glm::mat4 *_rigidTransforms,
+                                 const cudaTextureObject_t *_fieldFuncs,
+                                 const cudaTextureObject_t *_fieldDeriv,
+                                 const uint _numFields,
+                                 const int *_oneRingNeigh,
+                                 const float *_centroidWeights,
+                                 const int *_numNeighs,
+                                 const int *_neighScatterAddr)
 {
     uint numThreads = 1024u;
     uint numBlocks = kernels::iDivUp(_numVerts, numThreads);
 
-    SimpleImplicitSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _numVerts,
+    SimpleImplicitSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
                                                          _textureSpace, _rigidTransforms, _fieldFuncs, _fieldDeriv, _numFields,
                                                          _oneRingNeigh, _centroidWeights, _numNeighs, _neighScatterAddr);
 

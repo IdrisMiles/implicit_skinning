@@ -243,4 +243,28 @@ void OpenGLScene::keyPressEvent(QKeyEvent *event)
             model->ToggleWireframe();
         }
     }
+
+    if(event->key() == Qt::Key_E)
+    {
+        for(auto &&model : m_models)
+        {
+            model->ToggleSkinnedSurface();
+        }
+    }
+
+    if(event->key() == Qt::Key_R)
+    {
+        for(auto &&model : m_models)
+        {
+            model->ToggleIsoSurface();
+        }
+    }
+
+    if(event->key() == Qt::Key_T)
+    {
+        for(auto &&model : m_models)
+        {
+            model->ToggleSkinnedImplicitSurface();
+        }
+    }
 }

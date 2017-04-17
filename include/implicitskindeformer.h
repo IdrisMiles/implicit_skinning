@@ -197,6 +197,9 @@ private:
     float *d_newVertIsoPtr;
 
     /// @brief
+    glm::vec3 *d_vertIsoGradPtr;
+
+    /// @brief
     glm::mat4 *d_transformPtr;
 
     /// @brief
@@ -206,7 +209,7 @@ private:
     cudaTextureObject_t *d_fieldsPtr;
 
     /// @brief
-    cudaTextureObject_t *d_gradPtr;
+    cudaTextureObject_t *d_fieldGradPtr;
 
     /// @brief
     cudaTextureObject_t *d_compOpPtr;

@@ -49,7 +49,7 @@ void ImplicitSkinDeformer::InitialiseIsoValues()
         }
 
         // run kernel
-        kernels::SimpleEvalGlobalField(d_origVertIsoPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields);
+        kernels::SimpleEvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, d_fieldGradPtr, m_numFields);
         getLastCudaError("Kernel::SimpleEval");
 
 
@@ -141,7 +141,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
 void ImplicitSkinDeformer::Deform()
 {
     PerformLBWSkinning();
-//    PerformImplicitSkinning();
+    PerformImplicitSkinning();
 }
 
 //------------------------------------------------------------------------------------------------
@@ -188,11 +188,12 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
     kernels::SimpleImplicitSkin(GetDeformedMeshVertsDevicePtr(),
                                 GetDeformedMeshNormsDevicePtr(),
                                 d_origVertIsoPtr,
+                                d_vertIsoGradPtr,
                                 m_numVerts,
                                 d_textureSpacePtr,
                                 d_transformPtr,
                                 d_fieldsPtr,
-                                d_gradPtr,
+                                d_fieldGradPtr,
                                 m_numFields,
                                 d_oneRingIdPtr,
                                 d_centroidWeightsPtr,
@@ -446,6 +447,7 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
     checkCudaErrorsMsg(cudaMalloc(&d_origMeshNormsPtr,  m_numVerts * sizeof(glm::vec3)),          "Allocate memory for original mesh normals");
     checkCudaErrorsMsg(cudaMalloc(&d_origVertIsoPtr,    m_numVerts * sizeof(float)),          "Allocate memory for original vert iso values");
     checkCudaErrorsMsg(cudaMalloc(&d_newVertIsoPtr,    m_numVerts * sizeof(float)),          "Allocate memory for new vert iso values");
+    checkCudaErrorsMsg(cudaMalloc(&d_vertIsoGradPtr,    m_numVerts * sizeof(glm::vec3)),          "Allocate memory for new vert iso Grad values");
     checkCudaErrorsMsg(cudaMalloc(&d_transformPtr,      _transform.size() * sizeof(glm::mat4)),  "Allocate memory for transforms");
     checkCudaErrorsMsg(cudaMalloc(&d_boneIdPtr,         m_numVerts * 4 * sizeof(unsigned int)),     "Allocate memory for bone Ids");
     checkCudaErrorsMsg(cudaMalloc(&d_weightPtr,         m_numVerts * 4 * sizeof(float)),            "Allocate memory for bone weights");
@@ -491,6 +493,7 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
     // allocate memory
     checkCudaErrors(cudaMalloc(&d_textureSpacePtr, m_numFields * sizeof(glm::mat4)));
     checkCudaErrors(cudaMalloc(&d_fieldsPtr, m_numFields * sizeof(cudaTextureObject_t)));
+    checkCudaErrors(cudaMalloc(&d_fieldGradPtr, m_numFields * sizeof(cudaTextureObject_t)));
     checkCudaErrors(cudaMalloc(&d_compOpPtr, m_numCompOps * sizeof(cudaTextureObject_t)));
     checkCudaErrors(cudaMalloc(&d_compFieldPtr, m_numCompFields * sizeof(ComposedFieldCuda)));
 
@@ -500,7 +503,9 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
     {
         texSpaceTrans[i] = fieldFuncs[i]->GetTextureSpaceTransform();
         auto fieldTex = fieldFuncs[i]->GetFieldFunc3DTexture();
+        auto fieldGradTex = fieldFuncs[i]->GetFieldGrad3DTexture();
         cudaMemcpy(d_fieldsPtr+i, &fieldTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(d_fieldGradPtr+i, &fieldGradTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
     }
     for(int i=0; i<m_numCompOps; ++i)
     {
@@ -529,6 +534,7 @@ void ImplicitSkinDeformer::DestroyMeshCudaMem()
         checkCudaErrors(cudaFree(d_origMeshNormsPtr));
         checkCudaErrors(cudaFree(d_origVertIsoPtr));
         checkCudaErrors(cudaFree(d_newVertIsoPtr));
+        checkCudaErrors(cudaFree(d_vertIsoGradPtr));
         checkCudaErrors(cudaFree(d_transformPtr));
         checkCudaErrors(cudaFree(d_boneIdPtr));
         checkCudaErrors(cudaFree(d_weightPtr));
@@ -550,6 +556,7 @@ void ImplicitSkinDeformer::DestroyFieldCudaMem()
     {
         checkCudaErrors(cudaFree(d_textureSpacePtr));
         checkCudaErrors(cudaFree(d_fieldsPtr));
+        checkCudaErrors(cudaFree(d_fieldGradPtr));
         checkCudaErrors(cudaFree(d_compOpPtr));
         checkCudaErrors(cudaFree(d_compFieldPtr));
 

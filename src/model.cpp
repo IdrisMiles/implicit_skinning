@@ -20,6 +20,10 @@
 Model::Model()
 {
     m_wireframe = false;
+    m_drawIsoSurface = true;
+    m_drawSkin = true;
+    m_drawImplicitSkin = true;
+
     m_initGL = false;
 
     m_threads.resize(std::thread::hardware_concurrency() - 1);
@@ -122,7 +126,14 @@ void Model::GenerateMeshParts()
 
 void Model::DeformSkin()
 {
-    m_implicitSkinner->Deform();
+    if(m_drawImplicitSkin)
+    {
+        m_implicitSkinner->Deform();
+    }
+    else
+    {
+        m_implicitSkinner->PerformLBWSkinning();
+    }
 }
 
 //---------------------------------------------------------------------------------
@@ -224,7 +235,7 @@ void Model::DrawMesh()
         glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
         glUniformMatrix3fv(m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
         glUniform3fv(m_colourLoc[SKINNED], 1, &m_mesh.m_colour[0]);
-        if(!m_wireframe)
+        if(m_drawSkin)
         {
             m_meshVAO[SKINNED].bind();
             glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
@@ -237,52 +248,57 @@ void Model::DrawMesh()
 
         //-------------------------------------------------------------------------------------
         // Draw implicit mesh
-        m_shaderProg[ISO_SURFACE]->bind();
-        glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
-        glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-        normalMatrix =  glm::mat3(1.0f);//glm::inverse(glm::mat3(m_modelMat));
-        glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
+
+        if(m_drawIsoSurface)
+        {
+
+            m_shaderProg[ISO_SURFACE]->bind();
+            glUniformMatrix4fv(m_projMatrixLoc[ISO_SURFACE], 1, false, &m_projMat[0][0]);
+            glUniformMatrix4fv(m_mvMatrixLoc[ISO_SURFACE], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+            normalMatrix = glm::inverse(glm::mat3(m_modelMat));
+            glUniformMatrix3fv(m_normalMatrixLoc[ISO_SURFACE], 1, true, &normalMatrix[0][0]);
 
 
-        // Get Scalar field for each mesh part and polygonize
-        int xRes = 64;
-        int yRes = 64;
-        int zRes = 64;
-        glm::vec3 min(fabs(m_mesh.m_minBBox.x), fabs(m_mesh.m_minBBox.y), fabs(m_mesh.m_minBBox.z));
-        glm::vec3 max(fabs(m_mesh.m_maxBBox.x), fabs(m_mesh.m_maxBBox.y), fabs(m_mesh.m_maxBBox.z));
-        float dim = glm::compMax(min) > glm::compMax(max) ? glm::compMax(min) : glm::compMax(max);
-        dim = dim *1.1f * m_rig.m_globalInverseTransform[0][0];
-        float xScale = 1.0f* dim;
-        float yScale = 1.0f* dim;
-        float zScale = 1.0f* dim;
-        UpdateImplicitSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
+            // Get Scalar field for each mesh part and polygonize
+            int xRes = 64;
+            int yRes = 64;
+            int zRes = 64;
+            glm::vec3 min(fabs(m_mesh.m_minBBox.x), fabs(m_mesh.m_minBBox.y), fabs(m_mesh.m_minBBox.z));
+            glm::vec3 max(fabs(m_mesh.m_maxBBox.x), fabs(m_mesh.m_maxBBox.y), fabs(m_mesh.m_maxBBox.z));
+            float dim = glm::compMax(min) > glm::compMax(max) ? glm::compMax(min) : glm::compMax(max);
+            dim = dim *1.1f * m_rig.m_globalInverseTransform[0][0];
+            float xScale = 1.0f* dim;
+            float yScale = 1.0f* dim;
+            float zScale = 1.0f* dim;
+            UpdateImplicitSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
 
 
-        // upload new verts
-        glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshIsoSurface.m_colour[0]);// Setup our vertex buffer object.
-        m_meshVBO[ISO_SURFACE].bind();
-        m_meshVBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
-        glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
-        glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshVBO[ISO_SURFACE].release();
+            // upload new verts
+            glUniform3fv(m_colourLoc[ISO_SURFACE], 1, &m_meshIsoSurface.m_colour[0]);// Setup our vertex buffer object.
+            m_meshVBO[ISO_SURFACE].bind();
+            m_meshVBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshVerts[0], m_meshIsoSurface.m_meshVerts.size() * sizeof(glm::vec3));
+            glEnableVertexAttribArray(m_vertAttrLoc[ISO_SURFACE]);
+            glVertexAttribPointer(m_vertAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+            m_meshVBO[ISO_SURFACE].release();
 
 
-        // upload new normals
-        m_meshNBO[ISO_SURFACE].bind();
-        m_meshNBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
-        glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
-        glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-        m_meshNBO[ISO_SURFACE].release();
+            // upload new normals
+            m_meshNBO[ISO_SURFACE].bind();
+            m_meshNBO[ISO_SURFACE].allocate(&m_meshIsoSurface.m_meshNorms[0], m_meshIsoSurface.m_meshNorms.size() * sizeof(glm::vec3));
+            glEnableVertexAttribArray(m_normAttrLoc[ISO_SURFACE]);
+            glVertexAttribPointer(m_normAttrLoc[ISO_SURFACE], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+            m_meshNBO[ISO_SURFACE].release();
 
 
-        // Draw marching cube of isosurface
-        m_meshVAO[ISO_SURFACE].bind();
-        glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_FILL:GL_FILL);
-        glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        m_meshVAO[ISO_SURFACE].release();
+            // Draw marching cube of isosurface
+            m_meshVAO[ISO_SURFACE].bind();
+            glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_FILL:GL_FILL);
+            glDrawArrays(GL_TRIANGLES, 0, m_meshIsoSurface.m_meshVerts.size());
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            m_meshVAO[ISO_SURFACE].release();
 
-        m_shaderProg[ISO_SURFACE]->release();
+            m_shaderProg[ISO_SURFACE]->release();
+        }
     }
 
 }
@@ -333,6 +349,21 @@ void Model::Animate(const float _animationTime)
 void Model::ToggleWireframe()
 {
     m_wireframe = !m_wireframe;
+}
+
+void Model::ToggleSkinnedSurface()
+{
+    m_drawSkin = !m_drawSkin;
+}
+
+void Model::ToggleSkinnedImplicitSurface()
+{
+    m_drawImplicitSkin = !m_drawImplicitSkin;
+}
+
+void Model::ToggleIsoSurface()
+{
+    m_drawIsoSurface = !m_drawIsoSurface;
 }
 
 

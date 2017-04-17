@@ -45,6 +45,9 @@ public:
     void Animate(const float _animationTime);
 
     void ToggleWireframe();
+    void ToggleSkinnedSurface();
+    void ToggleSkinnedImplicitSurface();
+    void ToggleIsoSurface();
 
     void CreateShaders();
     void DeleteShaders();
@@ -100,6 +103,7 @@ public:
 
     bool m_wireframe;
     bool m_drawSkin;
+    bool m_drawImplicitSkin;
     bool m_drawIsoSurface;
     bool m_initGL;
 
