@@ -4,18 +4,19 @@
 #include <assimp/config.h>
 #include <iostream>
 
-//#define AI_CONFIG_PP_RVC_FLAGS aiComponent_COLORS | aiComponent_MATERIALS | aiComponent_CAMERAS | aiComponent_LIGHTS | aiComponent_TEXTURES | aiComponent_TANGENTS_AND_BITANGENTS | aiComponent_NORMALS
 
 ModelLoader::ModelLoader()
 {
 
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
 
-void ModelLoader::LoadModel(Model* _model, const std::string &_file)
+Model * ModelLoader::LoadModel(const std::string &_file)
 {
     const aiScene *scene;
     Assimp::Importer m_importer;
+    Model *model = new Model();
 
     // Load mesh with ASSIMP
     scene = m_importer.ReadFile(    _file, aiProcess_GenSmoothNormals | aiProcess_RemoveComponent | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType );
@@ -23,22 +24,21 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
     if(!scene)
     {
         std::cout<<"Error loading "<<_file<<" with assimp\n";
-        return;
+        return nullptr;
     }
 
 
     glm::mat4 globalInverseTransform = ConvertToGlmMat(scene->mRootNode->mTransformation);
-    _model->GetRig().m_globalInverseTransform  = glm::inverse(globalInverseTransform);
+    model->GetRig().m_globalInverseTransform  = glm::inverse(globalInverseTransform);
 
-    InitModelMesh(_model, scene);
-    InitRigMesh(_model, scene);
-    InitRig(_model, scene);
+    InitModelMesh(model, scene);
+    InitRigMesh(model, scene);
+    InitRig(model, scene);
 
-
+    return model;
 }
 
-
-
+//--------------------------------------------------------------------------------------------------------------------------
 
 void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
 {
@@ -147,6 +147,8 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
     }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
+
 void ModelLoader::InitRigMesh(Model *_model, const aiScene *_scene)
 {
     glm::mat4 mat = ConvertToGlmMat(_scene->mRootNode->mTransformation) * _model->GetRig().m_globalInverseTransform;
@@ -177,6 +179,7 @@ void ModelLoader::InitRigMesh(Model *_model, const aiScene *_scene)
 
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
 
 void ModelLoader::InitRig(Model* _model, const aiScene *_scene)
 {
@@ -214,6 +217,8 @@ void ModelLoader::InitRig(Model* _model, const aiScene *_scene)
     _model->GetRig().m_boneTransforms.resize(_model->GetRig().m_boneAnims.size(), glm::mat4(1.0f));
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
+
 void ModelLoader::SetRigVerts(Model *_model, aiNode* _pParentNode, aiNode* _pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform)
 {
     const std::string parentNodeName(_pParentNode->mName.data);
@@ -247,6 +252,8 @@ void ModelLoader::SetRigVerts(Model *_model, aiNode* _pParentNode, aiNode* _pNod
     }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
+
 void ModelLoader::SetJointVert(Model *_model, const std::string _nodeName, const glm::mat4 &_transform, VertexBoneData &_vb)
 {
     if(_model->GetRig().m_boneNameIdMapping.find(_nodeName) != _model->GetRig().m_boneNameIdMapping.end())
@@ -269,6 +276,8 @@ void ModelLoader::SetJointVert(Model *_model, const std::string _nodeName, const
 }
 
 
+//--------------------------------------------------------------------------------------------------------------------------
+
 glm::mat4 ModelLoader::ConvertToGlmMat(const aiMatrix4x4 &m)
 {
 //    glm::mat4 a(  m.a1, m.a2, m.a3, m.a4,
@@ -283,6 +292,8 @@ glm::mat4 ModelLoader::ConvertToGlmMat(const aiMatrix4x4 &m)
     return a;
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------------
 
 const aiBone* GetBone(const aiScene *_aiScene, std::string _name)
 {
@@ -300,6 +311,8 @@ const aiBone* GetBone(const aiScene *_aiScene, std::string _name)
     return NULL;
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
+
 const aiNodeAnim* ModelLoader::FindNodeAnim(const aiAnimation* _pAnimation, const std::string _nodeName)
 {
     for (uint i = 0 ; i < _pAnimation->mNumChannels ; i++) {
@@ -312,6 +325,8 @@ const aiNodeAnim* ModelLoader::FindNodeAnim(const aiAnimation* _pAnimation, cons
 
     return NULL;
 }
+
+//--------------------------------------------------------------------------------------------------------------------------
 
 void ModelLoader::CopyRigStructure(const std::unordered_map<std::string, unsigned int> &_boneMapping, const aiScene *_aiScene, aiNode *_aiNode, Rig &_rig, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform)
 {
@@ -379,6 +394,8 @@ void ModelLoader::CopyRigStructure(const std::unordered_map<std::string, unsigne
     }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
+
 BoneAnim ModelLoader::ConvertToBoneAnim(const aiNodeAnim *_pNodeAnim)
 {
     BoneAnim newBoneAnim;
@@ -429,3 +446,5 @@ BoneAnim ModelLoader::ConvertToBoneAnim(const aiNodeAnim *_pNodeAnim)
 
     return newBoneAnim;
 }
+
+//--------------------------------------------------------------------------------------------------------------------------

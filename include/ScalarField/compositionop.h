@@ -5,13 +5,20 @@
 
 #include <glm/glm.hpp>
 
-#include "ScalarField/field1d.h"
-
 #include <cuda.h>
-#include "cudatexture.h"
+
+#include "Texture3DCuda.h"
+#include "Texture3DCpu.h"
 
 
+//-------------------------------------------------------------------------------
+/// @author Idris Miles
+/// @version 1.0
+/// @date 18/04/2017
+//-------------------------------------------------------------------------------
 
+
+/// @class
 class CompositionOp
 {
 public:
@@ -49,10 +56,10 @@ private:
 
 
 
-    Field3D<float> m_field;
+    Texture3DCpu<float> m_field;
 
-    Cuda3DTexture<float> d_field;
-    Cuda3DTexture<float4> d_grad;
+    Texture3DCuda<float> d_field;
+    Texture3DCuda<float4> d_grad;
 
     float m_alpha0;
     float m_alpha1;

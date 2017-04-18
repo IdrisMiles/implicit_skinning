@@ -1,6 +1,7 @@
 #ifndef CUDATEXTURE_H
 #define CUDATEXTURE_H
 
+//--------------------------------------------------------------------------------
 #include <iostream>
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -8,24 +9,26 @@
 #include "helper_cuda.h"
 
 
+//--------------------------------------------------------------------------------
 /// @author Idris Miles
 /// @version 1.0
 /// @date 18/04/2017
+//--------------------------------------------------------------------------------
 
 
 /// @class Cuda3DTexture<T>
 /// @brief A templated class for creating a 3D cuda texture object.
 /// @brief Templates can only be float1, float2 and float4
 template<typename T>
-class Cuda3DTexture
+class Texture3DCuda
 {
 public:
 
     /// @brief constructor.
-    Cuda3DTexture();
+    Texture3DCuda();
 
     /// @brief Destructor.
-    ~Cuda3DTexture();
+    ~Texture3DCuda();
 
     /// @brief Method to create a 3D texture cudaTextureObject from host side array
     /// @param _dim : the dimensions of the 3D texture.
@@ -64,7 +67,7 @@ private:
 //------------------------------------------------------------------------------------------------
 
 template<typename T>
-Cuda3DTexture<T>::Cuda3DTexture()
+Texture3DCuda<T>::Texture3DCuda()
 {
     m_init = false;
 }
@@ -72,7 +75,7 @@ Cuda3DTexture<T>::Cuda3DTexture()
 //------------------------------------------------------------------------------------------------
 
 template<typename T>
-Cuda3DTexture<T>::~Cuda3DTexture()
+Texture3DCuda<T>::~Texture3DCuda()
 {
     DeleteCudaTexture();
 }
@@ -80,7 +83,7 @@ Cuda3DTexture<T>::~Cuda3DTexture()
 //------------------------------------------------------------------------------------------------
 
 template<typename T>
-void Cuda3DTexture<T>::CreateCudaTexture(unsigned int _dim, T *_data, cudaTextureFilterMode _filterMode)
+void Texture3DCuda<T>::CreateCudaTexture(unsigned int _dim, T *_data, cudaTextureFilterMode _filterMode)
 {
     // just in case it's already been created
     DeleteCudaTexture();
@@ -124,7 +127,7 @@ void Cuda3DTexture<T>::CreateCudaTexture(unsigned int _dim, T *_data, cudaTextur
 //------------------------------------------------------------------------------------------------
 
 template<typename T>
-cudaTextureObject_t &Cuda3DTexture<T>::GetCudaTextureObject()
+cudaTextureObject_t &Texture3DCuda<T>::GetCudaTextureObject()
 {
     if(m_init)
     {
@@ -137,7 +140,7 @@ cudaTextureObject_t &Cuda3DTexture<T>::GetCudaTextureObject()
 //------------------------------------------------------------------------------------------------
 
 template<typename T>
-void Cuda3DTexture<T>::DeleteCudaTexture()
+void Texture3DCuda<T>::DeleteCudaTexture()
 {
     if(m_init)
     {

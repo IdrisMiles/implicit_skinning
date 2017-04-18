@@ -7,6 +7,15 @@
 #include <ScalarField/fieldfunction.h>
 
 
+//-------------------------------------------------------------------------------
+/// @author Idris Miles
+/// @version 1.0
+/// @date 18/04/2017
+//-------------------------------------------------------------------------------
+
+
+/// @class ComposeField
+/// @brief
 class ComposedField
 {
 public:

@@ -108,11 +108,9 @@ void FieldFunction::PrecomputeField(const unsigned int _res, const float _dim)
     m_textureSpaceTransform = glm::translate(m_textureSpaceTransform, glm::vec3(1.0f, 1.0f, 1.0f));
     m_textureSpaceTransform = glm::scale(m_textureSpaceTransform, glm::vec3(1.0f/_dim, 1.0f/_dim, 1.0f/_dim));
 
-    auto textureSpaceTransform = [_dim, this](glm::vec3 x){
-        return glm::vec3(m_textureSpaceTransform*glm::vec4(x, 1.0f));
-    };
-    m_field.SetTextureSpaceTransform(m_textureSpaceTransform);//textureSpaceTransform);
-    m_grad.SetTextureSpaceTransform(m_textureSpaceTransform);//textureSpaceTransform);
+
+    m_field.SetTextureSpaceTransform(m_textureSpaceTransform);
+    m_grad.SetTextureSpaceTransform(m_textureSpaceTransform);
 
 }
 
@@ -142,14 +140,6 @@ glm::mat4 FieldFunction::GetTransform() const
 glm::mat4 FieldFunction::GetTextureSpaceTransform() const
 {
     return m_textureSpaceTransform;
-}
-
-//------------------------------------------------------------------------------------------------
-
-bool FieldFunction::Equiv(glm::vec3 _a, glm::vec3 _b)
-{
-    glm::bvec3 result = glm::equal(_a, _b);
-    return result.x && result.b && result.z;
 }
 
 //------------------------------------------------------------------------------------------------
@@ -212,14 +202,14 @@ glm::vec3 FieldFunction::Grad(const glm::vec3& x)
 
 //------------------------------------------------------------------------------------------------
 
-cudaTextureObject_t &FieldFunction::GetFieldFunc3DTexture()
+cudaTextureObject_t &FieldFunction::GetFieldFuncCudaTextureObject()
 {
     return d_field.GetCudaTextureObject();
 }
 
 //------------------------------------------------------------------------------------------------
 
-cudaTextureObject_t &FieldFunction::GetFieldGrad3DTexture()
+cudaTextureObject_t &FieldFunction::GetFieldGradCudaTextureObject()
 {
     return d_grad.GetCudaTextureObject();
 }

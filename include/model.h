@@ -1,6 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+//-------------------------------------------------------------------------------
 #include <thread>
 
 #include <GL/glew.h>
@@ -24,10 +25,11 @@
 
 #include "implicitskindeformer.h"
 
-
+//-------------------------------------------------------------------------------
 /// @author Idris Miles
 /// @version 1.0
-/// @data 18/04/2017
+/// @date 18/04/2017
+//-------------------------------------------------------------------------------
 
 
 enum RenderType { SKINNED = 0, RIG, ISO_SURFACE, NUMRENDERTYPES };
@@ -47,9 +49,8 @@ public:
     /// @brief destructor
     ~Model();
 
-    /// @brief Method to laod a model from file
-    /// @param _mesh : The file name of the model we wish to load
-    void Load(const std::string &_mesh);
+    /// @brief Method to initialise model
+    void Initialise();
 
     /// @brief Method to draw the skinned animated model
     void DrawMesh();
@@ -165,20 +166,22 @@ private:
     /// @brief The mesh for the Iso surface produced by the implicit deformer
     Mesh m_meshIsoSurface;
 
-    ///
-    MachingCube m_polygonizer;
-
-    std::vector<float> m_meshVertIsoValues;
-    std::vector<std::vector<unsigned int>> m_meshVertOneRingNeighbour;
-    std::vector<std::vector<float>> m_meshVertCentroidWeights;
-
-
+    /// @brief draw wireframe boolean
     bool m_wireframe;
+
+    /// @brief draw skin boolean
     bool m_drawSkin;
-    bool m_drawImplicitSkin;
+
+    /// @brief deform mesh using implicit skinning boolean
+    bool m_deformImplicitSkin;
+
+    /// @brief draw iso surface boolean
     bool m_drawIsoSurface;
+
+    /// @brief GL stuff initialised
     bool m_initGL;
 
+    /// @brief
     glm::vec3 m_lightPos;
     glm::mat4 m_projMat;
     glm::mat4 m_viewMat;

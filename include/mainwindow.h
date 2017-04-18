@@ -1,12 +1,18 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
-// Qt includes
+//-------------------------------------------------------------------------------
 #include <QMainWindow>
+#include <QPushButton>
 
 #include "openglscene.h"
-#include <QPushButton>
+
+
+//-------------------------------------------------------------------------------
+/// @author Idris Miles
+/// @version 1.0
+/// @date 18/04/2017
+//-------------------------------------------------------------------------------
 
 
 namespace Ui {

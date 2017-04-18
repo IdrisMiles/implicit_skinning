@@ -1,7 +1,7 @@
 #ifndef OPENGLSCENE_H
 #define OPENGLSCENE_H
 
-
+//-------------------------------------------------------------------------------
 #include <GL/glew.h>
 
 #include <QOpenGLWidget>
@@ -18,6 +18,17 @@
 #include <vector>
 #include "include/model.h"
 
+
+//-------------------------------------------------------------------------------
+/// @author Idris Miles
+/// @version 1.0
+/// @date 18/04/2017
+//-------------------------------------------------------------------------------
+
+
+
+/// @class OpenGLScene
+/// @brief
 class OpenGLScene : public QOpenGLWidget
 {
 

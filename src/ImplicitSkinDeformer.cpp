@@ -503,8 +503,8 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
     for(int i=0; i<m_numFields; ++i)
     {
         texSpaceTrans[i] = fieldFuncs[i]->GetTextureSpaceTransform();
-        auto fieldTex = fieldFuncs[i]->GetFieldFunc3DTexture();
-        auto fieldGradTex = fieldFuncs[i]->GetFieldGrad3DTexture();
+        auto fieldTex = fieldFuncs[i]->GetFieldFuncCudaTextureObject();
+        auto fieldGradTex = fieldFuncs[i]->GetFieldGradCudaTextureObject();
         cudaMemcpy(d_fieldsPtr+i, &fieldTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
         cudaMemcpy(d_fieldGradPtr+i, &fieldGradTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
     }

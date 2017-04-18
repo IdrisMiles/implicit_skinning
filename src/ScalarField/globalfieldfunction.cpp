@@ -262,7 +262,7 @@ std::vector<cudaTextureObject_t> GlobalFieldFunction::GetFieldFunc3DTextures()
     std::vector<cudaTextureObject_t> textures;
     for(auto f : m_fieldFuncs)
     {
-        textures.push_back(f->GetFieldFunc3DTexture());
+        textures.push_back(f->GetFieldFuncCudaTextureObject());
     }
 
     return textures;

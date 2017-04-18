@@ -54,29 +54,29 @@ public :
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief polygonize the iso surface
     //----------------------------------------------------------------------------------------------------------------------
-    void Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
+    static void Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
 
 protected :
 
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief Generate vertices and normals
     //----------------------------------------------------------------------------------------------------------------------
-    void createVerts(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD);
+    static void createVerts(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD);
 
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief extract triangles from each voxel, add the triangles into tri vector
     //----------------------------------------------------------------------------------------------------------------------
-    unsigned int MachingTriangles(Voxel g, float iso, std::vector<Triangle> &triList);
+    static unsigned int MachingTriangles(Voxel g, float iso, std::vector<Triangle> &triList);
 
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief intepolate the intersection point from the level value
     //----------------------------------------------------------------------------------------------------------------------
-    glm::vec3 VertexInterp(float isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2);
+    static glm::vec3 VertexInterp(float isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2);
 
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief compute the normal from the three vertices
     //----------------------------------------------------------------------------------------------------------------------
-    glm::vec3 computeTriangleNormal(Triangle &itr);
+    static glm::vec3 computeTriangleNormal(Triangle &itr);
 
 };
 

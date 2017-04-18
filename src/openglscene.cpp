@@ -3,6 +3,8 @@
 #include <QMouseEvent>
 #include <math.h>
 
+#include "modelloader.h"
+
 OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
     m_yRot(180.0f*16.0f),
@@ -38,16 +40,14 @@ OpenGLScene::~OpenGLScene()
     cleanup();
 }
 
-
-
 void OpenGLScene::AddModel(const std::string &_modelFile)
 {
 
     if(m_initGL)
     {
         makeCurrent();
-        m_models.push_back(std::shared_ptr<Model>(new Model()));
-        m_models.back()->Load(_modelFile);
+        m_models.push_back(std::shared_ptr<Model>(ModelLoader::LoadModel(_modelFile)));
+        m_models.back()->Initialise();
         doneCurrent();
         update();
     }

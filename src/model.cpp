@@ -1,5 +1,4 @@
 #include "model.h"
-#include "modelloader.h"
 #include "MeshSampler/meshsampler.h"
 
 #include <QOpenGLContext>
@@ -22,7 +21,7 @@ Model::Model()
     m_wireframe = false;
     m_drawIsoSurface = true;
     m_drawSkin = true;
-    m_drawImplicitSkin = true;
+    m_deformImplicitSkin = true;
 
     m_initGL = false;
 
@@ -39,19 +38,13 @@ Model::~Model()
     }
 }
 
-void Model::Load(const std::string &_file)
+void Model::Initialise()
 {
-    ModelLoader::LoadModel(this, _file);
-
-
-    //--------------------------------------------------
 
     CreateShaders();
     CreateVAOs();
     UpdateVAOs();
 
-
-    //--------------------------------------------------
 
     InitImplicitSkinner();
 }
@@ -126,7 +119,7 @@ void Model::GenerateMeshParts(std::vector<Mesh> &_meshParts)
 
 void Model::DeformSkin()
 {
-    if(m_drawImplicitSkin)
+    if(m_deformImplicitSkin)
     {
         m_implicitSkinner->Deform();
     }
@@ -204,7 +197,7 @@ void Model::UpdateIsoSurface(int xRes,
 
 
     // Polygonize scalar field using maching cube
-    m_polygonizer.Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, &f[0], 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
+    MachingCube::Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, &f[0], 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
 }
 
 
@@ -358,7 +351,7 @@ void Model::ToggleSkinnedSurface()
 
 void Model::ToggleSkinnedImplicitSurface()
 {
-    m_drawImplicitSkin = !m_drawImplicitSkin;
+    m_deformImplicitSkin = !m_deformImplicitSkin;
 }
 
 void Model::ToggleIsoSurface()

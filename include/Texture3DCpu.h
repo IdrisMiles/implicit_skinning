@@ -1,43 +1,54 @@
 #ifndef FIELD1D_H
 #define FIELD1D_H
 
-#include <functional>
-
 #include <glm/glm.hpp>
 
+
+//-------------------------------------------------------------------------------
+/// @author Idris Miles
+/// @version 1.0
+/// @date 18/04/2017
+//-------------------------------------------------------------------------------
+
+
+/// @class Texture3DCpu
+/// @brief A templated 3D texture class that resides on the CPU
 template <typename T>
-class Field3D
+class Texture3DCpu
 {
 public:
-    Field3D(unsigned int _dim = 32);
+    /// @brief constructor
+    Texture3DCpu(unsigned int _dim = 32);
 
-    ~Field3D();
+    /// @brief destructor
+    ~Texture3DCpu();
 
-    unsigned int Dim() const;
-
-    T* RawData()const;
-
+    /// @brief Method to set the texture space transform
     void SetTextureSpaceTransform(glm::mat4 _textureSpaceTransform);
 
+    /// @brief Method to set the data within in the texture
     void SetData(unsigned int _dim, T *_data);
 
+    /// @brief Method to get value of texture at sample point
     T Eval(const glm::vec3 &_samplePoint);
 
+    /// @brief Method to get value of texture at sample point
     T Eval(const float _x, const float _y, const float _z);
 
 
 private:
 
+    /// @brief Method to perform trilinear interpolation on the texture
     T TrilinearInterpolate(const float _x, const float _y, const float _z);
 
+    /// @brief Method to perform linear interpolatation between 2 values
     T LinearInterpolate(const T _f1, const T _f2, const float _t);
 
+    /// @brief Method to hash x,y,z coords into a single value usedd to query the texture
     int Hash(const int _x, const int _y, const int _z);
 
     /// @brief This attribute transform a local/word space coord into texture space
     /// so that it can be used to sample the 3D texture/data.
-    /// This could be a matrix, but I wanted to play with C++11 ans this allows for complex transforms
-//    std::function<glm::vec3(glm::vec3)> m_textureSpaceTransform;
     glm::mat4 m_textureSpaceTransform;
 
     /// @brief dimension of uniform 3D volume.
@@ -56,7 +67,7 @@ private:
 
 
 template <typename T>
-Field3D<T>::Field3D(unsigned int _dim)
+Texture3DCpu<T>::Texture3DCpu(unsigned int _dim)
 {
     m_dim = _dim;
     m_data = new T[m_dim * m_dim * m_dim];
@@ -69,7 +80,7 @@ Field3D<T>::Field3D(unsigned int _dim)
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-Field3D<T>::~Field3D()
+Texture3DCpu<T>::~Texture3DCpu()
 {
     if(m_data != nullptr)
     {
@@ -81,23 +92,7 @@ Field3D<T>::~Field3D()
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-unsigned int Field3D<T>::Dim() const
-{
-    return m_dim;
-}
-
-//------------------------------------------------------------------------------------------------
-
-template <typename T>
-T* Field3D<T>::RawData()const
-{
-    return m_data;
-}
-
-//------------------------------------------------------------------------------------------------
-
-template <typename T>
-void Field3D<T>::SetTextureSpaceTransform(/*std::function<glm::vec3(glm::vec3)>*/ glm::mat4 _textureSpaceTransform)
+void Texture3DCpu<T>::SetTextureSpaceTransform(glm::mat4 _textureSpaceTransform)
 {
     m_textureSpaceTransform = _textureSpaceTransform;
 }
@@ -105,7 +100,7 @@ void Field3D<T>::SetTextureSpaceTransform(/*std::function<glm::vec3(glm::vec3)>*
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-void Field3D<T>::SetData(unsigned int _dim, T *_data)
+void Texture3DCpu<T>::SetData(unsigned int _dim, T *_data)
 {
     if(m_data != nullptr)
     {
@@ -125,7 +120,7 @@ void Field3D<T>::SetData(unsigned int _dim, T *_data)
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-T Field3D<T>::Eval(const glm::vec3 &_samplePoint)
+T Texture3DCpu<T>::Eval(const glm::vec3 &_samplePoint)
 {
     return TrilinearInterpolate(_samplePoint.x, _samplePoint.y, _samplePoint.z);
 }
@@ -133,7 +128,7 @@ T Field3D<T>::Eval(const glm::vec3 &_samplePoint)
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-T Field3D<T>::Eval(const float _x, const float _y, const float _z)
+T Texture3DCpu<T>::Eval(const float _x, const float _y, const float _z)
 {
     return TrilinearInterpolate(_x, _y, _z);
 }
@@ -141,7 +136,7 @@ T Field3D<T>::Eval(const float _x, const float _y, const float _z)
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-T Field3D<T>::TrilinearInterpolate(const float _x, const float _y, const float _z)
+T Texture3DCpu<T>::TrilinearInterpolate(const float _x, const float _y, const float _z)
 {
 
     //[0:1]
@@ -205,7 +200,7 @@ T Field3D<T>::TrilinearInterpolate(const float _x, const float _y, const float _
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-T Field3D<T>::LinearInterpolate(const T _f1, const T _f2, const float _t)
+T Texture3DCpu<T>::LinearInterpolate(const T _f1, const T _f2, const float _t)
 {
     float t = _t < 0.0f ? 0.0f : (_t > 1.0f ? 1.0f : _t);
     return _f1 + ((_f2-_f1) * t);
@@ -214,7 +209,7 @@ T Field3D<T>::LinearInterpolate(const T _f1, const T _f2, const float _t)
 //------------------------------------------------------------------------------------------------
 
 template <typename T>
-int Field3D<T>::Hash(const int _x, const int _y, const int _z)
+int Texture3DCpu<T>::Hash(const int _x, const int _y, const int _z)
 {
     return _x + (_y * m_dim) + (_z * m_dim * m_dim);
 }
