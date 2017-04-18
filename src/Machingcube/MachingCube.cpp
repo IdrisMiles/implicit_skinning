@@ -7,202 +7,80 @@
 
 MachingCube::MachingCube()
 {
-    isolevel = 0.8;
-    volumeData = nullptr;
 }
 
 MachingCube::~MachingCube()
 {
-    if(volumeData != nullptr)
-    {
-        delete volumeData;
-    }
-
-    m_meshVerts.erase(m_meshVerts.begin(),m_meshVerts.end());
-    m_meshNorms.erase(m_meshNorms.begin(),m_meshNorms.end());
 }
 
 
 //----------------------------------------------------------------------------------------------------------------------
 void MachingCube::Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
 {
-    generateVolume(_volumeData, _isolevel, _w, _h, _d, _voxelW, _voxelH, _voxelD);
-    createVerts();
-    GetVerts(_verts, _norms);
-}
-
-
-void MachingCube::Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, std::string _vol, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
-{
-    LoadVolumeFromFile(_vol, _w, _h, _d, _voxelW, _voxelH, _voxelD);
-    createVerts();
-    GetVerts(_verts, _norms);
+    createVerts(_verts, _norms, _volumeData, _isolevel, _w, _h, _d, _voxelW, _voxelH, _voxelD);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-
-bool MachingCube::LoadVolumeFromFile(std::string _vol, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
-{
-    std::ifstream in(_vol.c_str(), std::ifstream::binary);
-    if (in.is_open() != true)
-    {
-        std::cout<<"FILE NOT FOUND !!!! "<<_vol.c_str()<<"\n";
-        return false;
-    }
-
-    // read in the volume data 200x160x160, 1 byte per voxel
-    volume_width = _w;
-    volume_height = _h;
-    volume_depth = _d;
-
-    voxel_width = _voxelW;
-    voxel_height = _voxelH;
-    voxel_depth = _voxelD;
-
-    if(volume_size != volume_width*volume_height*volume_depth)
-    {
-        volume_size = volume_width*volume_height*volume_depth;
-        if(volumeData != nullptr)
-        {
-            delete volumeData;
-        }
-        volumeData = new float[volume_size];
-    }
-
-    char *volData = new char[volume_size];
-    in.read(volData, volume_size);
-
-    // compute the minimum and maximum value of the volume
-    unsigned char minVolumeData;
-    unsigned char maxVolumeData;
-    minVolumeData=maxVolumeData=volData[0];
-    for(unsigned int i = 1; i<volume_size; i++)
-    {
-        if(minVolumeData>volData[i]) minVolumeData = volData[i];
-        if(maxVolumeData<volData[i]) maxVolumeData = volData[i];
-    }
-
-    // normalize volume value into [0.0, 1.0]
-    volumeData = new float[volume_size];
-    float dim =maxVolumeData - minVolumeData;
-    for(unsigned int i = 1; i<volume_size; i++)
-    {
-        volumeData[i]=((float)volData[i]-minVolumeData)/(float)dim;
-    }
-
-    if(volData != nullptr)
-    {
-        delete volData;
-    }
-    in.close();
-    return true;
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void MachingCube::generateVolume(float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
-{
-    volume_width = _w;
-    volume_height = _h;
-    volume_depth = _d;
-
-    voxel_width = _voxelW;
-    voxel_height = _voxelH;
-    voxel_depth = _voxelD;
-
-    if(volume_size != volume_width*volume_height*volume_depth)
-    {
-        volume_size = volume_width*volume_height*volume_depth;
-        if(volumeData != nullptr)
-        {
-            delete volumeData;
-        }
-        volumeData = new float[volume_size];
-    }
-    unsigned int i,j,k;
-
-
-    for (i=0;i<volume_depth;i++)
-    {
-        for (j=0;j<volume_height;j++)
-        {
-            for (k=0;k<volume_width;k++)
-            {
-                volumeData[i*volume_width*volume_height + j*volume_width + k] = _volumeData[i*volume_width*volume_height + j*volume_width + k];
-            }
-        }
-    }
-    isolevel = _isolevel;
-
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-void MachingCube::createVerts()
+void MachingCube::createVerts(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW, const float &_voxelH, const float &_voxelD)
 {
     glm::vec3   vert;
     glm::vec3   norm;
     Voxel       grid;
     std::vector<Triangle> allTriangles;
     unsigned int    i,j,k, numTris;
-    m_meshVerts.clear();
-    m_meshNorms.clear();
+    _verts.clear();
+    _norms.clear();
 
-    m_nVerts = 0;
 
     // iterate through each voxel of volume and generate triangles
-    for (i=0;i<volume_depth-1;i++)
+    for (i=0;i<_d-1;i++)
     {
-        for (j=0;j<volume_height-1;j++)
+        for (j=0;j<_h-1;j++)
         {
-            for (k=0;k<volume_width-1;k++)
+            for (k=0;k<_w-1;k++)
             {
                 // back bottom left
                 grid.p[0].x = k;
                 grid.p[0].y = j;
                 grid.p[0].z = i;
-                grid.val[0] = volumeData[i*volume_width*volume_height + j*volume_width + k];
+                grid.val[0] = _volumeData[i*_w*_h + j*_w + k];
                 // back bottom right
                 grid.p[1].x = k+1;
                 grid.p[1].y = j;
                 grid.p[1].z = i;
-                grid.val[1] = volumeData[i*volume_width*volume_height + j*volume_width + (k+1)];
+                grid.val[1] = _volumeData[i*_w*_h + j*_w + (k+1)];
                 // front bottom right
                 grid.p[2].x = k+1;
                 grid.p[2].y = j;
                 grid.p[2].z = i+1;
-                grid.val[2] = volumeData[(i+1)*volume_width*volume_height + j*volume_width + (k+1)];
+                grid.val[2] = _volumeData[(i+1)*_w*_h + j*_w + (k+1)];
                 // front bottom left
                 grid.p[3].x = k;
                 grid.p[3].y = j;
                 grid.p[3].z = i+1;
-                grid.val[3] = volumeData[(i+1)*volume_width*volume_height + j*volume_width + k];
+                grid.val[3] = _volumeData[(i+1)*_w*_h + j*_w + k];
                 // back top left
                 grid.p[4].x = k;
                 grid.p[4].y = j+1;
                 grid.p[4].z = i;
-                grid.val[4] = volumeData[i*volume_width*volume_height + (j+1)*volume_width + k];
+                grid.val[4] = _volumeData[i*_w*_h + (j+1)*_w + k];
                 // back top right
                 grid.p[5].x = k+1;
                 grid.p[5].y = j+1;
                 grid.p[5].z = i;
-                grid.val[5] = volumeData[i*volume_width*volume_height + (j+1)*volume_width + (k+1)];
+                grid.val[5] = _volumeData[i*_w*_h + (j+1)*_w + (k+1)];
                 // front top right
                 grid.p[6].x = k+1;
                 grid.p[6].y = j+1;
                 grid.p[6].z = i+1;
-                grid.val[6] = volumeData[(i+1)*volume_width*volume_height + (j+1)*volume_width + (k+1)];
+                grid.val[6] = _volumeData[(i+1)*_w*_h + (j+1)*_w + (k+1)];
                 // front top left
                 grid.p[7].x = k;
                 grid.p[7].y = j+1;
                 grid.p[7].z = i+1;
-                grid.val[7] = volumeData[(i+1)*volume_width*volume_height + (j+1)*volume_width + k];
-                numTris = MachingTriangles(grid, isolevel, allTriangles);
-                m_nVerts += numTris*3;
+                grid.val[7] = _volumeData[(i+1)*_w*_h + (j+1)*_w + k];
+                numTris = MachingTriangles(grid, _isolevel, allTriangles);
             }
         }
     }
@@ -216,39 +94,21 @@ void MachingCube::createVerts()
         for(i=0;i<3;i++)
         {
             // pack in the vertex data first
-            vert.x = (((itr->p[i].x/volume_width) * 2.0f) -1.0f)    * voxel_width;
-            vert.y = (((itr->p[i].y/volume_height) * 2.0f) -1.0f)  * voxel_height;
-            vert.z = (((itr->p[i].z/volume_depth) * 2.0f) -1.0f)    * voxel_depth;
+            vert.x = (((itr->p[i].x/_w) * 2.0f) -1.0f)    * _voxelW;
+            vert.y = (((itr->p[i].y/_h) * 2.0f) -1.0f)  * _voxelH;
+            vert.z = (((itr->p[i].z/_d) * 2.0f) -1.0f)    * _voxelD;
 
             // one normal for all three vertices in the triangle
             norm.x = triNormal.x;
             norm.y = triNormal.y;
             norm.z = triNormal.z;
 
-            m_meshVerts.push_back(vert);
-            m_meshNorms.push_back(norm);
+            _verts.push_back(vert);
+            _norms.push_back(norm);
         }
     }
 }
 
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-void MachingCube::GetVerts(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms)
-{
-    _verts.clear();
-    _norms.clear();
-
-    for(auto v : m_meshVerts)
-    {
-        _verts.push_back(v);
-    }
-    for(auto n : m_meshNorms)
-    {
-        _norms.push_back(n);
-    }
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -741,18 +601,18 @@ unsigned int MachingCube::MachingTriangles(Voxel _g, float _iso, std::vector<Tri
    Return the point between two points in the same ratio as
    isolevel is between valp1 and valp2
 */
-glm::vec3 MachingCube::VertexInterp(float isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2)
+glm::vec3 MachingCube::VertexInterp(float _isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2)
 {
     float       mu;
     glm::vec3   p;
 
-    if (fabs(isolevel-valp1) < 0.00001)
+    if (fabs(_isolevel-valp1) < 0.00001)
         return(p1);
-    if (fabs(isolevel-valp2) < 0.00001)
+    if (fabs(_isolevel-valp2) < 0.00001)
         return(p2);
     if (fabs(valp1-valp2) < 0.00001)
         return(p1);
-    mu = (isolevel - valp1) / (valp2 - valp1);
+    mu = (_isolevel - valp1) / (valp2 - valp1);
     p.x = p1.x + mu * (p2.x - p1.x);
     p.y = p1.y + mu * (p2.y - p1.y);
     p.z = p1.z + mu * (p2.z - p1.z);
