@@ -11,6 +11,7 @@
 
 /// @author Idris Miles
 /// @version 1.0
+/// @date 18/04/2017
 
 
 /// @brief MaxNumBlendWeightsPerVertex, maximum blend weights per vertex.
@@ -38,6 +39,7 @@ class Mesh
 public :
     //------------------------------------------------------------------------------------
 
+    /// @brief constructor
     Mesh() :
         m_oneRingComputed(false),
         m_bboxComputed(false)
@@ -47,6 +49,8 @@ public :
 
     //------------------------------------------------------------------------------------
 
+    /// @brief Method to get the one ring neighbourhoods
+    /// @param _oneRing : This is a vector of vectors of ints and holds the one ring neighbourhood for each vertex by their Id
     bool GetOneRingNeighours(std::vector<std::vector<int>> &_oneRing) const
     {
         if(!m_oneRingComputed)
@@ -61,6 +65,7 @@ public :
 
     //------------------------------------------------------------------------------------
 
+    /// @brief Method to compute the one ring neighbourhood
     void ComputeOneRing()
     {
         if(m_oneRingComputed){return;}
@@ -115,6 +120,8 @@ public :
 
     //------------------------------------------------------------------------------------
 
+    /// @brief Method to internally compute the axis aligned bounding box of this mesh
+    /// @param _recompute : boolean to recompute this if it has previously been computed but the mesh may have changed since
     void ComputeBBox(const bool &_recompute = false)
     {
         if(m_bboxComputed && !_recompute)
@@ -166,9 +173,13 @@ public :
     /// @brief m_colour, a base colour of the whole mesh, used for simple rendering.
     glm::vec3 m_colour;
 
+    /// @brief m_meshVertsOneRing, the one ring neighbourhood for each vertex by id
     std::vector<std::vector<int>> m_meshVertsOneRing;
 
+    /// @brief m_minBBox, the min half of the axis aligned bounding box
     glm::vec3 m_minBBox;
+
+    /// @brief m_maxBBox, the max half of the axis aligned bounding box
     glm::vec3 m_maxBBox;
 
 
@@ -177,7 +188,10 @@ private:
 
 
     //------------------------------------------------------------------------------------
-    bool AddNeighbourVert(std::vector<int> &vertNeighs, int vert) const
+    /// @brief Method to add a vertex id to a neighbourhood
+    /// @param vertNeighs : the current neighbourhood
+    /// @param vert : the vertex id to add to the neighbourhood
+    bool AddNeighbourVert(std::vector<int> &vertNeighs, const int vert) const
     {
         if(std::find(vertNeighs.begin(), vertNeighs.end(), vert) == vertNeighs.end())
         {
@@ -192,7 +206,12 @@ private:
 
     //------------------------------------------------------------------------------------
 
-    bool AddNeighbourFaces(std::vector<std::pair<int, int>> &faceNeighs, int vert0, int vert1, int vert2) const
+    /// @brief Method to add vert1 and vert2 of a face to the face neighbourhood of vert0
+    /// @param faceNeigh : the pairs of vertices in the neighbour faces (we assume triangle faces)
+    /// @param vert0 : the vertex whose neighbourhood we are adding to
+    /// @param vert1 : a vertex in the face we are adding
+    /// @param vert2 : a vertex in the face we are adding
+    bool AddNeighbourFaces(std::vector<std::pair<int, int>> &faceNeighs, const int vert0, const int vert1, const int vert2) const
     {
         // Sort out order of one ring
         int v1, v2;
@@ -223,8 +242,14 @@ private:
         }
     }
 
+
     //------------------------------------------------------------------------------------
 
+    /// @brief Method to sort the nieghbours so that the one ring neighbourhood follows a cw/ccw direction
+    /// @param vertNeighs : the vertex neighourhood we are adding to/sorting
+    /// @param faceNeighs : the vertex face neighbourhood
+    /// @param vertexHashIds : ASSIMP sometimes duplicates vertices, so we have a map that has hashed vertex positions with the collection of vertex ids that are duplicated
+    /// @param ccw : boolean to set whether we want our one ring to be ccw or cw
     bool SortNeighbours(std::vector<int> &vertNeighs, std::vector<std::pair<int, int>> &faceNeighs, std::unordered_map<glm::vec3, std::vector<int>> &vertexHashIds, const bool ccw=true) const
     {
         // make sure there aren't any repeated verts with different ids otherwise we bloat the one ring.
@@ -321,6 +346,8 @@ private:
 
     //------------------------------------------------------------------------------------
 
+    /// @brief Method to generate hash ids for each vertex, and add duplicated verts into a vector
+    /// @param vertexHashIds :
     void GenerateVertexHashIds(std::unordered_map<glm::vec3, std::vector<int>> &vertexHashIds)
     {
         for(int i=0; i<m_meshVerts.size(); ++i)
@@ -331,8 +358,10 @@ private:
 
     //------------------------------------------------------------------------------------
 
-
+    /// @brief Boolean to check whether the one ring has been computed yet as it's an expensive operation
     bool m_oneRingComputed;
+
+    /// @brief boolean to check whether the axis aligned bounding box has been computed yet.
     bool m_bboxComputed;
 
 };
