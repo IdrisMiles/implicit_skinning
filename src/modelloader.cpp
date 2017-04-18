@@ -128,10 +128,8 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
     if(_scene->HasAnimations())
     {
         _model->m_rig.m_animExists = true;
-        _model->m_rig.m_numAnimations = _scene->mNumAnimations;
-        _model->m_rig.m_animationID = _model->m_rig.m_numAnimations - 1;
-        _model->m_rig.m_ticksPerSecond = _scene->mAnimations[_model->m_rig.m_animationID]->mTicksPerSecond;
-        _model->m_rig.m_animationDuration = _scene->mAnimations[_model->m_rig.m_animationID]->mDuration;
+        _model->m_rig.m_ticksPerSecond = _scene->mAnimations[_scene->mNumAnimations-1]->mTicksPerSecond;
+        _model->m_rig.m_animationDuration = _scene->mAnimations[_scene->mNumAnimations-1]->mDuration;
 
     }
     else

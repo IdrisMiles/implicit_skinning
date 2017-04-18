@@ -4,9 +4,6 @@
 /// @file MachineCube.h
 /// @brief basic maching cube algorithm
 //----------------------------------------------------------------------------------------------------------------------
-// must include types.h first for ngl::Real and GLEW if required
-
-#include <GL/glew.h>
 
 #include <vector>
 #include <list>
@@ -15,9 +12,6 @@
 #include <string>
 #include <memory>
 #include <glm/glm.hpp>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLBuffer>
-#include <QOpenGLShaderProgram>
 #include <cmath>
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -25,7 +19,7 @@
 /// @brief basic maching cube algorithm
 /// @author Xiaosong Yang, Idris Miles
 /// @version 1.0
-/// @date 14/01/13, 14/01/2017
+/// @date 14/01/13, 18/04/2017
 //----------------------------------------------------------------------------------------------------------------------
 
 

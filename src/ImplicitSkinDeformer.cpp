@@ -49,7 +49,7 @@ void ImplicitSkinDeformer::InitialiseIsoValues()
         }
 
         // run kernel
-        kernels::SimpleEvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, d_fieldGradPtr, m_numFields);
+        isgw::SimpleEvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, d_fieldGradPtr, m_numFields);
         getLastCudaError("Kernel::SimpleEval");
 
 
@@ -72,8 +72,7 @@ void ImplicitSkinDeformer::AttachMesh(const Mesh _origMesh,
 //------------------------------------------------------------------------------------------------
 
 void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &_meshParts,
-                                                       const std::vector<glm::vec3> &_boneStarts,
-                                                       const std::vector<glm::vec3> &_boneEnds,
+                                                       const std::vector<std::pair<glm::vec3, glm::vec3> > &_boneEnds,
                                                        const int _numHrbfCentres)
 {
     m_globalFieldFunction.Fit(_meshParts.size());
@@ -92,7 +91,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
         for(int mp=startId; mp<endId; mp++)
         {
             Mesh hrbfCentres;
-            m_globalFieldFunction.GenerateHRBFCentres(_meshParts[mp], _boneStarts[mp], _boneEnds[mp], _numHrbfCentres, hrbfCentres);
+            m_globalFieldFunction.GenerateHRBFCentres(_meshParts[mp], _boneEnds[mp].first, _boneEnds[mp].second, _numHrbfCentres, hrbfCentres);
             m_globalFieldFunction.GenerateFieldFuncs(hrbfCentres, _meshParts[mp], mp);
             m_globalFieldFunction.PrecomputeFieldFunc(mp, res, dim);
 
@@ -134,6 +133,8 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
 
 
     InitFieldCudaMem();
+
+    InitialiseIsoValues();
 }
 
 //------------------------------------------------------------------------------------------------
@@ -155,7 +156,7 @@ void ImplicitSkinDeformer::PerformLBWSkinning()
     }
 
 
-    kernels::LinearBlendWeightSkin(GetDeformedMeshVertsDevicePtr(),
+    isgw::LinearBlendWeightSkin(GetDeformedMeshVertsDevicePtr(),
                                    d_origMeshVertsPtr,
                                    GetDeformedMeshNormsDevicePtr(),
                                    d_origMeshNormsPtr,
@@ -185,7 +186,7 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
     }
 
 
-    kernels::SimpleImplicitSkin(GetDeformedMeshVertsDevicePtr(),
+    isgw::SimpleImplicitSkin(GetDeformedMeshVertsDevicePtr(),
                                 GetDeformedMeshNormsDevicePtr(),
                                 d_origVertIsoPtr,
                                 d_vertIsoGradPtr,
@@ -352,7 +353,7 @@ void ImplicitSkinDeformer::EvalGlobalFieldGPU(std::vector<float> &_output, const
     checkCudaErrors(cudaMemcpy((void*)d_samplePoints, &_samplePoints[0], _samplePoints.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
 
     // run kernel
-    kernels::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
+    isgw::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
     getLastCudaError("Kernel::SimpleEval");
 
     // download data to host
@@ -467,8 +468,8 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
     checkCudaErrors(cudaMemcpy((void*)d_oneRingIdPtr, (void*)&oneRingIdFlat[0], oneRingIdFlat.size() * sizeof(int), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_oneRingVertPtr, (void*)&oneRingVertFlat[0], oneRingVertFlat.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy((void*)d_numNeighsPerVertPtr, (void*)&numNeighsPerVertex[0], m_numVerts * sizeof(int), cudaMemcpyHostToDevice));
-    kernels::GenerateScatterAddress(d_numNeighsPerVertPtr, (d_numNeighsPerVertPtr+m_numVerts+1), d_oneRingScatterAddrPtr);
-    kernels::GenerateOneRingCentroidWeights(d_origMeshVertsPtr, d_origMeshNormsPtr, m_numVerts, d_centroidWeightsPtr, d_oneRingIdPtr, d_oneRingVertPtr, d_numNeighsPerVertPtr, d_oneRingScatterAddrPtr);
+    isgw::GenerateScatterAddress(d_numNeighsPerVertPtr, (d_numNeighsPerVertPtr+m_numVerts+1), d_oneRingScatterAddrPtr);
+    isgw::GenerateOneRingCentroidWeights(d_origMeshVertsPtr, d_origMeshNormsPtr, m_numVerts, d_centroidWeightsPtr, d_oneRingIdPtr, d_oneRingVertPtr, d_numNeighsPerVertPtr, d_oneRingScatterAddrPtr);
 
 
     m_initMeshCudaMem = true;
@@ -563,14 +564,6 @@ void ImplicitSkinDeformer::DestroyFieldCudaMem()
         m_initFieldCudaMem = false;
     }
 }
-
-//------------------------------------------------------------------------------------------------
-
-GlobalFieldFunction &ImplicitSkinDeformer::GetGlocalFieldFunc()
-{
-    return m_globalFieldFunction;
-}
-
 
 //------------------------------------------------------------------------------------------------
 

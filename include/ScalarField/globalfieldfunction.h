@@ -4,7 +4,7 @@
 #include <ScalarField/compositionop.h>
 #include <ScalarField/fieldfunction.h>
 #include <ScalarField/composedfield.h>
-#include <ScalarField/compfield.h>
+#include <ScalarField/composedfieldGPU.h>
 
 #include <mesh.h>
 #include <MeshSampler/meshsampler.h>

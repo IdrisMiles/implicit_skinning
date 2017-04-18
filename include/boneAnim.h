@@ -10,6 +10,7 @@
 
 /// @author Idris Miles
 /// @version 1.0
+/// @date 18/04/2017
 
 
 /// @struct PosAnim
@@ -80,15 +81,22 @@ struct RotAnim
 
 /// @struct BoneAnim
 /// @brief Structure to hold animation for a single bone.
-class BoneAnim
+struct BoneAnim
 {
 public:
     /// @brief Default constructor
     BoneAnim(){}
 
+    /// @brief The bones name that this animation belong to
     std::string m_name;
+
+    /// @brief The positional animation
     std::vector<PosAnim> m_posAnim;
+
+    /// @brief The scaling animation
     std::vector<ScaleAnim> m_scaleAnim;
+
+    /// @brief The rotational animation
     std::vector<RotAnim> m_rotAnim;
 
 };

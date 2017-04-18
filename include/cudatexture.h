@@ -4,10 +4,13 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include <cuda.h>
+
 #include "helper_cuda.h"
+
 
 /// @author Idris Miles
 /// @version 1.0
+/// @date 18/04/2017
 
 
 /// @class Cuda3DTexture<T>

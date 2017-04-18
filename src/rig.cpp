@@ -6,6 +6,11 @@ Rig::Rig()
 
 }
 
+Rig::~Rig()
+{
+
+}
+
 
 void Rig::Animate(const float _animationTime)
 {

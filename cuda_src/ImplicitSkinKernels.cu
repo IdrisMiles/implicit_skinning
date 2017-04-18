@@ -574,7 +574,7 @@ __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
 // Helper CPP Functions
 //------------------------------------------------------------------------------------------------
 
-uint kernels::iDivUp(uint a, uint b)
+uint isgw::iDivUp(uint a, uint b)
 {
     uint c = a/b;
     c += (a%b == 0) ? 0: 1;
@@ -587,7 +587,7 @@ uint kernels::iDivUp(uint a, uint b)
 // CPP functions
 //------------------------------------------------------------------------------------------------
 
-void kernels::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
+void isgw::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                                    const glm::vec3 *_origVert,
                                     glm::vec3 *_deformedNorms,
                                     const glm::vec3 *_origNorms,
@@ -598,7 +598,7 @@ void kernels::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                                    const uint _numBones)
 {
     uint numThreads = 1024u;
-    uint numBlocks = kernels::iDivUp(_numVerts, numThreads);
+    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
 
 
     LinearBlendWeightSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert,
@@ -615,7 +615,7 @@ void kernels::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
 
 //------------------------------------------------------------------------------------------------
 
-void kernels::SimpleEvalGlobalField(float *_output,
+void isgw::SimpleEvalGlobalField(float *_output,
                                     const glm::vec3 *_samplePoint,
                                     const uint _numSamples,
                                     const glm::mat4* _textureSpace,
@@ -624,7 +624,7 @@ void kernels::SimpleEvalGlobalField(float *_output,
                                     const uint _numFields)
 {
     uint numThreads = 1024u;
-    uint numBlocks = kernels::iDivUp(_numSamples, numThreads);
+    uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
 
     SimpleEvalGlobalField_Kernel<<<numBlocks, numThreads>>>(_output,
                                                                 _samplePoint,
@@ -638,7 +638,7 @@ void kernels::SimpleEvalGlobalField(float *_output,
 
 //------------------------------------------------------------------------------------------------
 
-void kernels::SimpleEvalGradGlobalField(float *_outputF,
+void isgw::SimpleEvalGradGlobalField(float *_outputF,
                                         glm::vec3 *_outputG,
                                         const glm::vec3 *_samplePoint,
                                         const uint _numSamples,
@@ -649,7 +649,7 @@ void kernels::SimpleEvalGradGlobalField(float *_outputF,
                                         const uint _numFields)
 {
     uint numThreads = 1024u;
-    uint numBlocks = kernels::iDivUp(_numSamples, numThreads);
+    uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
 
     SimpleEvalGradGlobalField_Kernel<<<numBlocks, numThreads>>>(_outputF,
                                                                 _outputG,
@@ -665,7 +665,7 @@ void kernels::SimpleEvalGradGlobalField(float *_outputF,
 
 //------------------------------------------------------------------------------------------------
 
-void kernels::EvalGlobalField(float *_output,
+void isgw::EvalGlobalField(float *_output,
                               const glm::vec3 *_samplePoint,
                               const uint _numSamples,
                               const glm::mat4 *_textureSpace,
@@ -681,7 +681,7 @@ void kernels::EvalGlobalField(float *_output,
                               const uint _numCompFields)
 {
     uint numThreads = 1024u;
-    uint numBlocks = kernels::iDivUp(_numSamples, numThreads);
+    uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
 
     EvalGlobalField_Kernel<<<numBlocks, numThreads>>>(_output, _samplePoint, _numSamples,
                                                           _textureSpace, _rigidTransforms, _fieldFuncs, _fieldDeriv, _numFields,
@@ -693,7 +693,7 @@ void kernels::EvalGlobalField(float *_output,
 
 //------------------------------------------------------------------------------------------------
 
-void kernels::SimpleImplicitSkin(glm::vec3 *_deformedVert,
+void isgw::SimpleImplicitSkin(glm::vec3 *_deformedVert,
                                  const glm::vec3 *_normal,
                                  const float *_origIsoValue,
                                  glm::vec3 *_prevIsoGrad,
@@ -709,7 +709,7 @@ void kernels::SimpleImplicitSkin(glm::vec3 *_deformedVert,
                                  const int *_neighScatterAddr)
 {
     uint numThreads = 1024u;
-    uint numBlocks = kernels::iDivUp(_numVerts, numThreads);
+    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
 
     SimpleImplicitSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
                                                          _textureSpace, _rigidTransforms, _fieldFuncs, _fieldDeriv, _numFields,
@@ -721,7 +721,7 @@ void kernels::SimpleImplicitSkin(glm::vec3 *_deformedVert,
 
 //------------------------------------------------------------------------------------------------
 
-void kernels::GenerateScatterAddress(int *begin,
+void isgw::GenerateScatterAddress(int *begin,
                                      int *end,
                                      int *scatteredAddr)
 {
@@ -733,7 +733,7 @@ void kernels::GenerateScatterAddress(int *begin,
 
 //------------------------------------------------------------------------------------------------
 
-void kernels::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
+void isgw::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
                                              const glm::vec3 *d_normals,
                                              const uint _numVerts,
                                              float *_centroidWeights,
@@ -743,7 +743,7 @@ void kernels::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
                                              const int *_oneRingScatterAddr)
 {
     uint numThreads = 1024u;
-    uint numBlocks = kernels::iDivUp(_numVerts, numThreads);
+    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
 
     GenerateOneRingCentroidWeights_Kernel<<<numBlocks, numThreads>>>(d_verts,
                                                                      d_normals,

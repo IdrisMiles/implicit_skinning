@@ -750,15 +750,12 @@ void Model::InitImplicitSkinner()
 
     GenerateMeshParts();
 
-    std::vector<glm::vec3> boneStarts;
-    std::vector<glm::vec3> boneEnds;
+    std::vector<std::pair<glm::vec3, glm::vec3>> boneEnds;
     for(int i=0; i<m_meshParts.size(); i++)
     {
-        boneStarts.push_back(m_rigMesh.m_meshVerts[i*2]);
-        boneEnds.push_back(m_rigMesh.m_meshVerts[(i*2) + 1]);
+        boneEnds.push_back(std::make_pair(m_rigMesh.m_meshVerts[i*2], m_rigMesh.m_meshVerts[(i*2) + 1]));
     }
-    m_implicitSkinner->GenerateGlobalFieldFunction(m_meshParts, boneStarts, boneEnds, 50);
-    m_implicitSkinner->InitialiseIsoValues();
+    m_implicitSkinner->GenerateGlobalFieldFunction(m_meshParts, boneEnds, 50);
 }
 
 //---------------------------------------------------------------------------------
