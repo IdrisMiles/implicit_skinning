@@ -28,7 +28,7 @@ void ModelLoader::LoadModel(Model* _model, const std::string &_file)
 
 
     glm::mat4 globalInverseTransform = ConvertToGlmMat(scene->mRootNode->mTransformation);
-    _model->m_rig.m_globalInverseTransform  = glm::inverse(globalInverseTransform);
+    _model->GetRig().m_globalInverseTransform  = glm::inverse(globalInverseTransform);
 
     InitModelMesh(_model, scene);
     InitRigMesh(_model, scene);
@@ -53,7 +53,7 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
             for(unsigned int f=0; f<numFaces; f++)
             {
                 auto face = _scene->mMeshes[i]->mFaces[f];
-                _model->m_mesh.m_meshTris.push_back(glm::ivec3(face.mIndices[0]+indexOffset, face.mIndices[1]+indexOffset, face.mIndices[2]+indexOffset));
+                _model->GetMesh().m_meshTris.push_back(glm::ivec3(face.mIndices[0]+indexOffset, face.mIndices[1]+indexOffset, face.mIndices[2]+indexOffset));
             }
 
             // Mesh verts and norms
@@ -62,18 +62,18 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
             {
                 auto vert = _scene->mMeshes[i]->mVertices[v];
                 auto norm = _scene->mMeshes[i]->mNormals[v];
-                _model->m_mesh.m_meshVerts.push_back(glm::vec3(vert.x, vert.y, vert.z));
-                _model->m_mesh.m_meshNorms.push_back(glm::vec3(norm.x, norm.y, norm.z));
+                _model->GetMesh().m_meshVerts.push_back(glm::vec3(vert.x, vert.y, vert.z));
+                _model->GetMesh().m_meshNorms.push_back(glm::vec3(norm.x, norm.y, norm.z));
 
                 if(_scene->mMeshes[i]->mNumUVComponents[v] < 0)
                 {
                     auto uv = _scene->mMeshes[i]->mTextureCoords[v][0];
-                    _model->m_mesh.m_meshUVs.push_back(glm::vec2(uv.x, uv.y));
+                    _model->GetMesh().m_meshUVs.push_back(glm::vec2(uv.x, uv.y));
                 }
             }
 
 
-            _model->m_mesh.m_meshBoneWeights.resize(_model->m_mesh.m_meshVerts.size());
+            _model->GetMesh().m_meshBoneWeights.resize(_model->GetMesh().m_meshVerts.size());
 
             // Mesh bones
             unsigned int numBones = _scene->mMeshes[i]->mNumBones;
@@ -84,15 +84,15 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
                 std::string boneName = bone->mName.data;
 
                 // Check this is a new bone
-                if(_model->m_rig.m_boneNameIdMapping.find(boneName) == _model->m_rig.m_boneNameIdMapping.end())
+                if(_model->GetRig().m_boneNameIdMapping.find(boneName) == _model->GetRig().m_boneNameIdMapping.end())
                 {
                     boneIndex = nb;
                     nb++;
-                    _model->m_rig.m_boneNameIdMapping[boneName] = boneIndex;
+                    _model->GetRig().m_boneNameIdMapping[boneName] = boneIndex;
                 }
                 else
                 {
-                    boneIndex = _model->m_rig.m_boneNameIdMapping[boneName];
+                    boneIndex = _model->GetRig().m_boneNameIdMapping[boneName];
                 }
 
 
@@ -104,10 +104,10 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
                     float vertexWeight = bone->mWeights[bw].mWeight;
                     for(unsigned int w=0; w<MaxNumBlendWeightsPerVertex; w++)
                     {
-                        if(_model->m_mesh.m_meshBoneWeights[vertexID].boneWeight[w] < FLT_EPSILON)
+                        if(_model->GetMesh().m_meshBoneWeights[vertexID].boneWeight[w] < FLT_EPSILON)
                         {
-                            _model->m_mesh.m_meshBoneWeights[vertexID].boneWeight[w] = vertexWeight;
-                            _model->m_mesh.m_meshBoneWeights[vertexID].boneID[w] = boneIndex;
+                            _model->GetMesh().m_meshBoneWeights[vertexID].boneWeight[w] = vertexWeight;
+                            _model->GetMesh().m_meshBoneWeights[vertexID].boneID[w] = boneIndex;
                             break;
                         }
                     }
@@ -115,33 +115,33 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
 
             } // end for numBones
 
-            indexOffset = _model->m_mesh.m_meshVerts.size();
+            indexOffset = _model->GetMesh().m_meshVerts.size();
 
         } // end for numMeshes
 
-        _model->m_mesh.ComputeOneRing();
-        _model->m_mesh.ComputeBBox();
+        _model->GetMesh().ComputeOneRing();
+        _model->GetMesh().ComputeBBox();
 
     }// end if has mesh
 
 
     if(_scene->HasAnimations())
     {
-        _model->m_rig.m_animExists = true;
-        _model->m_rig.m_ticksPerSecond = _scene->mAnimations[_scene->mNumAnimations-1]->mTicksPerSecond;
-        _model->m_rig.m_animationDuration = _scene->mAnimations[_scene->mNumAnimations-1]->mDuration;
+        _model->GetRig().m_animExists = true;
+        _model->GetRig().m_ticksPerSecond = _scene->mAnimations[_scene->mNumAnimations-1]->mTicksPerSecond;
+        _model->GetRig().m_animationDuration = _scene->mAnimations[_scene->mNumAnimations-1]->mDuration;
 
     }
     else
     {
-        _model->m_rig.m_animExists = false;
+        _model->GetRig().m_animExists = false;
 
-        for(unsigned int bw=0; bw<_model->m_mesh.m_meshVerts.size();bw++)
+        for(unsigned int bw=0; bw<_model->GetMesh().m_meshVerts.size();bw++)
         {
             for(unsigned int bwpv = 0; bwpv < MaxNumBlendWeightsPerVertex; bwpv++)
             {
-                _model->m_mesh.m_meshBoneWeights[bw].boneID[bwpv] = 0;
-                _model->m_mesh.m_meshBoneWeights[bw].boneWeight[bwpv] = 0.0;
+                _model->GetMesh().m_meshBoneWeights[bw].boneID[bwpv] = 0;
+                _model->GetMesh().m_meshBoneWeights[bw].boneWeight[bwpv] = 0.0;
             }
         }
     }
@@ -149,76 +149,76 @@ void ModelLoader::InitModelMesh(Model* _model, const aiScene *_scene)
 
 void ModelLoader::InitRigMesh(Model *_model, const aiScene *_scene)
 {
-    glm::mat4 mat = ConvertToGlmMat(_scene->mRootNode->mTransformation) * _model->m_rig.m_globalInverseTransform;
+    glm::mat4 mat = ConvertToGlmMat(_scene->mRootNode->mTransformation) * _model->GetRig().m_globalInverseTransform;
 
     for (uint i = 0 ; i < _scene->mRootNode->mNumChildren ; i++)
     {
         SetRigVerts(_model, _scene->mRootNode, _scene->mRootNode->mChildren[i], mat, mat);
     }
 
-    if(_model->m_rigMesh.m_meshVerts.size() % 2)
+    if(_model->GetRigMesh().m_meshVerts.size() % 2)
     {
-        for(unsigned int i=0; i<_model->m_rigMesh.m_meshVerts.size()/2; i++)
+        for(unsigned int i=0; i<_model->GetRigMesh().m_meshVerts.size()/2; i++)
         {
             int id = i*2;
-            if(_model->m_rigMesh.m_meshVerts[id] == _model->m_rigMesh.m_meshVerts[id+1])
+            if(_model->GetRigMesh().m_meshVerts[id] == _model->GetRigMesh().m_meshVerts[id+1])
             {
 //                std::cout<<"Repeated joint causing rig issue, removing joint\n";
-                _model->m_rigMesh.m_meshVerts.erase(_model->m_rigMesh.m_meshVerts.begin()+id);
-                _model->m_rigMesh.m_meshVertColours.erase(_model->m_rigMesh.m_meshVertColours.begin()+id);
-                _model->m_rigMesh.m_meshBoneWeights.erase(_model->m_rigMesh.m_meshBoneWeights.begin()+id);
+                _model->GetRigMesh().m_meshVerts.erase(_model->GetRigMesh().m_meshVerts.begin()+id);
+                _model->GetRigMesh().m_meshVertColours.erase(_model->GetRigMesh().m_meshVertColours.begin()+id);
+                _model->GetRigMesh().m_meshBoneWeights.erase(_model->GetRigMesh().m_meshBoneWeights.begin()+id);
 
                 break;
             }
         }
     }
 
-//    std::cout<<"Number of rig verts:\t"<<_model->m_rigMesh.m_meshVerts.size()<<"\n";
+//    std::cout<<"Number of rig verts:\t"<<_model->GetRigMesh().m_meshVerts.size()<<"\n";
 
 }
 
 
 void ModelLoader::InitRig(Model* _model, const aiScene *_scene)
 {
-    _model->m_rig.m_rootBone= std::shared_ptr<Bone>(new Bone());
-    _model->m_rig.m_rootBone->m_name = std::string(_scene->mRootNode->mName.data);
-    _model->m_rig.m_rootBone->m_transform = ConvertToGlmMat(_scene->mRootNode->mTransformation);
-    _model->m_rig.m_rootBone->m_boneOffset = glm::mat4(1.0f);
-    _model->m_rig.m_rootBone->m_parent = nullptr;
-    if(_model->m_rig.m_animExists)
+    _model->GetRig().m_rootBone= std::shared_ptr<Bone>(new Bone());
+    _model->GetRig().m_rootBone->m_name = std::string(_scene->mRootNode->mName.data);
+    _model->GetRig().m_rootBone->m_transform = ConvertToGlmMat(_scene->mRootNode->mTransformation);
+    _model->GetRig().m_rootBone->m_boneOffset = glm::mat4(1.0f);
+    _model->GetRig().m_rootBone->m_parent = nullptr;
+    if(_model->GetRig().m_animExists)
     {
         const aiNodeAnim *pNodeAnim = FindNodeAnim(_scene->mAnimations[_scene->mNumAnimations-1], std::string(_scene->mRootNode->mName.data));
         if(pNodeAnim)
         {
-            _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = ConvertToBoneAnim(pNodeAnim);
-            _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
+            _model->GetRig().m_boneAnims[_model->GetRig().m_rootBone->m_name] = ConvertToBoneAnim(pNodeAnim);
+            _model->GetRig().m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->GetRig().m_boneAnims[_model->GetRig().m_rootBone->m_name]);
 
         }
         else
         {
             BoneAnim rootAnim;
-            rootAnim.m_name = _model->m_rig.m_rootBone->m_name;
+            rootAnim.m_name = _model->GetRig().m_rootBone->m_name;
             rootAnim.m_posAnim.push_back(PosAnim(0.0f, glm::vec3(0, 0, 0)));
             rootAnim.m_scaleAnim.push_back(ScaleAnim(0.0f, glm::vec3(1, 1, 1)));
-            _model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name] = rootAnim;
-            _model->m_rig.m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->m_rig.m_boneAnims[_model->m_rig.m_rootBone->m_name]);
+            _model->GetRig().m_boneAnims[_model->GetRig().m_rootBone->m_name] = rootAnim;
+            _model->GetRig().m_rootBone->m_boneAnim = std::make_shared<BoneAnim>(_model->GetRig().m_boneAnims[_model->GetRig().m_rootBone->m_name]);
         }
 
         unsigned int numChildren = _scene->mRootNode->mNumChildren;
         for (unsigned int i=0; i<numChildren; i++)
         {
-            CopyRigStructure(_model->m_rig.m_boneNameIdMapping, _scene, _scene->mRootNode->mChildren[i], _model->m_rig, _model->m_rig.m_rootBone, ConvertToGlmMat(_scene->mRootNode->mTransformation));
+            CopyRigStructure(_model->GetRig().m_boneNameIdMapping, _scene, _scene->mRootNode->mChildren[i], _model->GetRig(), _model->GetRig().m_rootBone, ConvertToGlmMat(_scene->mRootNode->mTransformation));
         }
     }
 
-    _model->m_rig.m_boneTransforms.resize(_model->m_rig.m_boneAnims.size(), glm::mat4(1.0f));
+    _model->GetRig().m_boneTransforms.resize(_model->GetRig().m_boneAnims.size(), glm::mat4(1.0f));
 }
 
 void ModelLoader::SetRigVerts(Model *_model, aiNode* _pParentNode, aiNode* _pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform)
 {
     const std::string parentNodeName(_pParentNode->mName.data);
     const std::string nodeName = _pNode->mName.data;
-    bool isBone = _model->m_rig.m_boneNameIdMapping.find(nodeName) != _model->m_rig.m_boneNameIdMapping.end();
+    bool isBone = _model->GetRig().m_boneNameIdMapping.find(nodeName) != _model->GetRig().m_boneNameIdMapping.end();
 
     glm::mat4 newThisTransform = _thisTransform * ConvertToGlmMat(_pNode->mTransformation);
     glm::mat4 newParentTransform = _parentTransform;
@@ -249,17 +249,17 @@ void ModelLoader::SetRigVerts(Model *_model, aiNode* _pParentNode, aiNode* _pNod
 
 void ModelLoader::SetJointVert(Model *_model, const std::string _nodeName, const glm::mat4 &_transform, VertexBoneData &_vb)
 {
-    if(_model->m_rig.m_boneNameIdMapping.find(_nodeName) != _model->m_rig.m_boneNameIdMapping.end())
+    if(_model->GetRig().m_boneNameIdMapping.find(_nodeName) != _model->GetRig().m_boneNameIdMapping.end())
     {
-        _vb.boneID[0] = _model->m_rig.m_boneNameIdMapping[_nodeName];
+        _vb.boneID[0] = _model->GetRig().m_boneNameIdMapping[_nodeName];
         _vb.boneWeight[0] = 1.0f;
         _vb.boneWeight[1] = 0.0f;
         _vb.boneWeight[2] = 0.0f;
         _vb.boneWeight[3] = 0.0f;
 
-        _model->m_rigMesh.m_meshVerts.push_back(glm::vec3(_transform*glm::vec4(0.0f,0.0f,0.0f,1.0f)));
-        _model->m_rigMesh.m_meshVertColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
-        _model->m_rigMesh.m_meshBoneWeights.push_back(_vb);
+        _model->GetRigMesh().m_meshVerts.push_back(glm::vec3(_transform*glm::vec4(0.0f,0.0f,0.0f,1.0f)));
+        _model->GetRigMesh().m_meshVertColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
+        _model->GetRigMesh().m_meshBoneWeights.push_back(_vb);
     }
     else
     {

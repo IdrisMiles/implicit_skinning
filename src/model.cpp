@@ -57,10 +57,10 @@ void Model::Load(const std::string &_file)
 }
 
 
-void Model::GenerateMeshParts()
+void Model::GenerateMeshParts(std::vector<Mesh> &_meshParts)
 {
     unsigned int numParts = m_rig.m_boneNameIdMapping.size();
-    m_meshParts.resize(numParts);
+    _meshParts.resize(numParts);
 
 
     for(unsigned int t=0; t<m_mesh.m_meshTris.size(); t++)
@@ -108,16 +108,16 @@ void Model::GenerateMeshParts()
             }
 
             if(weight[v] >0.2f)
-                m_meshParts[boneId[v]].m_meshTris.push_back(glm::ivec3(v1, v2, v3));
+                _meshParts[boneId[v]].m_meshTris.push_back(glm::ivec3(v1, v2, v3));
         }
 
     }
 
 
-    for(unsigned int i=0 ;i<m_meshParts.size(); i++)
+    for(unsigned int i=0 ;i<_meshParts.size(); i++)
     {
-        m_meshParts[i].m_meshVerts = m_mesh.m_meshVerts;
-        m_meshParts[i].m_meshNorms = m_mesh.m_meshNorms;
+        _meshParts[i].m_meshVerts = m_mesh.m_meshVerts;
+        _meshParts[i].m_meshNorms = m_mesh.m_meshNorms;
     }
 
 }
@@ -138,7 +138,7 @@ void Model::DeformSkin()
 
 //---------------------------------------------------------------------------------
 
-void Model::UpdateImplicitSurface(int xRes,
+void Model::UpdateIsoSurface(int xRes,
                                   int yRes,
                                   int zRes,
                                   float dim,
@@ -270,7 +270,7 @@ void Model::DrawMesh()
             float xScale = 1.0f* dim;
             float yScale = 1.0f* dim;
             float zScale = 1.0f* dim;
-            UpdateImplicitSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
+            UpdateIsoSurface(xRes, yRes, zRes, dim, xScale, yScale, zScale);
 
 
             // upload new verts
@@ -748,14 +748,15 @@ void Model::InitImplicitSkinner()
     m_implicitSkinner = new ImplicitSkinDeformer();
     m_implicitSkinner->AttachMesh(m_mesh, m_meshVBO[SKINNED].bufferId(), m_meshNBO[SKINNED].bufferId(), m_rig.m_boneTransforms);
 
-    GenerateMeshParts();
+    std::vector<Mesh> meshParts;
+    GenerateMeshParts(meshParts);
 
     std::vector<std::pair<glm::vec3, glm::vec3>> boneEnds;
-    for(int i=0; i<m_meshParts.size(); i++)
+    for(int i=0; i<meshParts.size(); i++)
     {
         boneEnds.push_back(std::make_pair(m_rigMesh.m_meshVerts[i*2], m_rigMesh.m_meshVerts[(i*2) + 1]));
     }
-    m_implicitSkinner->GenerateGlobalFieldFunction(m_meshParts, boneEnds, 50);
+    m_implicitSkinner->GenerateGlobalFieldFunction(meshParts, boneEnds, 50);
 }
 
 //---------------------------------------------------------------------------------
@@ -802,6 +803,27 @@ void Model::SetViewMatrix(const glm::mat4 &_viewMat)
 void Model::SetProjectionMatrix(const glm::mat4 &_projMat)
 {
     m_projMat = _projMat;
+}
+
+//---------------------------------------------------------------------------------
+
+Rig &Model::GetRig()
+{
+    return m_rig;
+}
+
+//---------------------------------------------------------------------------------
+
+Mesh &Model::GetMesh()
+{
+    return m_mesh;
+}
+
+//---------------------------------------------------------------------------------
+
+Mesh &Model::GetRigMesh()
+{
+    return m_rigMesh;
 }
 
 //---------------------------------------------------------------------------------
