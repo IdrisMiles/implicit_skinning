@@ -28,48 +28,73 @@
 
 
 /// @class OpenGLScene
-/// @brief
+/// @brief This class is iniherited from QOpenGLWidget and acts as our scene.
+/// This is based on https://github.com/IdrisMiles/QtOpenGL
 class OpenGLScene : public QOpenGLWidget
 {
 
     Q_OBJECT
 
 public:
+    /// @brief constructor
     OpenGLScene(QWidget *parent = 0);
+
+    /// @brief destructor
     ~OpenGLScene();
 
+    /// @brief Method to add a model into the scene
+    /// @param _modelField : File to load into the scene
     void AddModel(const std::string &_modelFile);
 
-    QSize minimumSizeHint() const Q_DECL_OVERRIDE;
-    QSize sizeHint() const Q_DECL_OVERRIDE;
 
 public slots:
+    /// @brief set X rotation of world
     void setXRotation(int angle);
+
+    /// @brief set Y rotation of world
     void setYRotation(int angle);
+
+    /// @brief set Z rotation of world
     void setZRotation(int angle);
+
+    /// @brief set X translation of world
     void setXTranslation(int x);
+
+    /// @brief set Y translation of world
     void setYTranslation(int y);
+
+    /// @brief set Z translation of world
     void setZTranslation(int z);
+
+    /// @brief clean up scene
     void cleanup();
 
+    /// @brief update animation of models
     void UpdateAnim();
+
+    /// @brief calls update
     void UpdateDraw();
 
 signals:
-    void xRotationChanged(int angle);
-    void yRotationChanged(int angle);
-    void zRotationChanged(int angle);
-    void xTranslationChanged(int x);
-    void yTranslationChanged(int y);
-    void zTranslationChanged(int z);
 
 protected:
+    /// @brief overloaded method from QOpenGLWidget, initialises GL stuff and starts animation/drawing timers
     void initializeGL() Q_DECL_OVERRIDE;
+
+    /// @brief overloaded method from QOpenGLWidget, draw our scene
     void paintGL() Q_DECL_OVERRIDE;
+
+    /// @brief overloaded method from QOpenGLWidget, updates projection matrix
     void resizeGL(int width, int height) Q_DECL_OVERRIDE;
+
+    /// @brief overloaded method from QOpenGLWidget, updates the m_lastPos
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+
+    /// @brief overloaded method from QOpenGLWidget,
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) override;
+
+    /// @brief overloaded method from QOpenGLWidget,
+    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
 
 private:

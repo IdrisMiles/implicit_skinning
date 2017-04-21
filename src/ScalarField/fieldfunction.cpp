@@ -59,9 +59,9 @@ void FieldFunction::Fit(const std::vector<glm::vec3>& points,
 
 void FieldFunction::PrecomputeField(const unsigned int _res, const float _dim)
 {
-    float data[_res*_res*_res];
-    glm::vec3 grad[_res*_res*_res];
-    float4 *cuGrad = new float4[_res*_res*_res];
+    float *data = new float[_res*_res*_res];
+    glm::vec3 *grad = new glm::vec3[_res*_res*_res];
+    float4 *cuFieldNGrad = new float4[_res*_res*_res];
 
     for(unsigned int z=0; z<_res; ++z)
     {
@@ -86,7 +86,7 @@ void FieldFunction::PrecomputeField(const unsigned int _res, const float _dim)
 
                 data[(z*_res*_res) + (y*_res)+ x] = d;
                 grad[(z*_res*_res) + (y*_res)+ x] = glm::vec3(g(0), g(1), g(2));
-                cuGrad[(z*_res*_res) + (y*_res)+ x] = make_float4(g(0), g(1), g(2), d);
+                cuFieldNGrad[(z*_res*_res) + (y*_res)+ x] = make_float4(g(0), g(1), g(2), d);
             }
         }
     }
@@ -97,9 +97,11 @@ void FieldFunction::PrecomputeField(const unsigned int _res, const float _dim)
         m_grad.SetData(_res, grad);
         m_precomputedCPU = true;
     }
-    d_field.CreateCudaTexture(_res, data, cudaFilterModeLinear);
-    d_grad.CreateCudaTexture(_res, cuGrad, cudaFilterModeLinear);
-    delete [] cuGrad;
+    d_field.CreateCudaTexture(_res, cuFieldNGrad, cudaFilterModeLinear);
+//    d_grad.CreateCudaTexture(_res, cuFieldNGrad, cudaFilterModeLinear);
+    delete [] cuFieldNGrad;
+    delete [] data;
+    delete [] grad;
     m_precomputedGPU = true;
 
 
@@ -209,10 +211,10 @@ cudaTextureObject_t &FieldFunction::GetFieldFuncCudaTextureObject()
 
 //------------------------------------------------------------------------------------------------
 
-cudaTextureObject_t &FieldFunction::GetFieldGradCudaTextureObject()
-{
-    return d_grad.GetCudaTextureObject();
-}
+//cudaTextureObject_t &FieldFunction::GetFieldGradCudaTextureObject()
+//{
+//    return d_grad.GetCudaTextureObject();
+//}
 
 //------------------------------------------------------------------------------------------------
 

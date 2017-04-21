@@ -5,6 +5,7 @@
 
 #include "modelloader.h"
 
+//-----------------------------------------------------------------------------------------------------
 OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
     m_yRot(180.0f*16.0f),
@@ -34,11 +35,14 @@ OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
 
 }
 
+//-----------------------------------------------------------------------------------------------------
 
 OpenGLScene::~OpenGLScene()
 {
     cleanup();
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::AddModel(const std::string &_modelFile)
 {
@@ -53,6 +57,7 @@ void OpenGLScene::AddModel(const std::string &_modelFile)
     }
 }
 
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::initializeGL()
 {
@@ -72,6 +77,8 @@ void OpenGLScene::initializeGL()
     m_animTimer->start(16);
 
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::paintGL()
 {
@@ -101,10 +108,9 @@ void OpenGLScene::paintGL()
         model->DrawRig();
     }
 
-    //---------------------------------------------------------------------------------------
-
 }
 
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::UpdateAnim()
 {
@@ -115,25 +121,21 @@ void OpenGLScene::UpdateAnim()
     }
 }
 
+//-----------------------------------------------------------------------------------------------------
+
 void OpenGLScene::UpdateDraw()
 {
     update();
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::resizeGL(int w, int h)
 {
     m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.1f, 5000.0f);
 }
 
-QSize OpenGLScene::minimumSizeHint() const
-{
-    return QSize(50, 50);
-}
-
-QSize OpenGLScene::sizeHint() const
-{
-    return QSize(400, 400);
-}
+//-----------------------------------------------------------------------------------------------------
 
 static void qNormalizeAngle(int &angle)
 {
@@ -143,62 +145,70 @@ static void qNormalizeAngle(int &angle)
         angle -= 360 * 16;
 }
 
+//-----------------------------------------------------------------------------------------------------
+
 void OpenGLScene::setXTranslation(int x)
 {
     if (x != m_xDis) {
         m_xDis = x;
-        emit xTranslationChanged(x);
         update();
     }
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::setYTranslation(int y)
 {
     if (y != m_yDis) {
         m_yDis = y;
-        emit yTranslationChanged(y);
         update();
     }
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::setZTranslation(int z)
 {
     if (z != m_zDis) {
         m_zDis= z;
-        emit zTranslationChanged(z);
         update();
     }
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::setXRotation(int angle)
 {
     qNormalizeAngle(angle);
     if (angle != m_xRot) {
         m_xRot = angle;
-        emit xRotationChanged(angle);
         update();
     }
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::setYRotation(int angle)
 {
     qNormalizeAngle(angle);
     if (angle != m_yRot) {
         m_yRot = angle;
-        emit yRotationChanged(angle);
         update();
     }
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::setZRotation(int angle)
 {
     qNormalizeAngle(angle);
     if (angle != m_zRot) {
         m_zRot = angle;
-        emit zRotationChanged(angle);
         update();
     }
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::cleanup()
 {
@@ -207,11 +217,14 @@ void OpenGLScene::cleanup()
     doneCurrent();
 }
 
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::mouseMoveEvent(QMouseEvent *event)
 {
@@ -233,6 +246,8 @@ void OpenGLScene::mouseMoveEvent(QMouseEvent *event)
     }
     m_lastPos = event->pos();
 }
+
+//-----------------------------------------------------------------------------------------------------
 
 void OpenGLScene::keyPressEvent(QKeyEvent *event)
 {
@@ -268,3 +283,4 @@ void OpenGLScene::keyPressEvent(QKeyEvent *event)
         }
     }
 }
+//-----------------------------------------------------------------------------------------------------

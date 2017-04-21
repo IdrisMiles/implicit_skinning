@@ -77,7 +77,7 @@ public:
     cudaTextureObject_t &GetFieldFuncCudaTextureObject();
 
     /// @brief Method to Get the cuda texture object holding the gradiet of the field function
-    cudaTextureObject_t &GetFieldGradCudaTextureObject();
+//    cudaTextureObject_t &GetFieldGradCudaTextureObject();
 
 
 
@@ -122,10 +122,10 @@ private:
     Texture3DCpu<glm::vec3> m_grad;
 
     /// @brief A GPU based 3D texture to store precomputed field value
-    Texture3DCuda<float> d_field;
+    Texture3DCuda<float4> d_field;
 
     /// @brief A GPU based 3D texture to store precomputed gradient value
-    Texture3DCuda<float4> d_grad;
+//    Texture3DCuda<float4> d_grad;
 
 
 };

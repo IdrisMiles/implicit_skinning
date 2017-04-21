@@ -1,6 +1,7 @@
 #ifndef RIG_H
 #define RIG_H
 
+//---------------------------------------------------------------
 #include <vector>
 #include <unordered_map>
 #include <memory>
@@ -8,10 +9,11 @@
 #include "include/boneAnim.h"
 #include "include/bone.h"
 
-
+//---------------------------------------------------------------
 /// @author Idris Miles
 /// @version 1.0
 /// @date 18/04/2017
+//---------------------------------------------------------------
 
 
 /// @class Rig
@@ -32,8 +34,6 @@ public:
     void Animate(const float _animationTime);
 
 private:
-    //--------------------------------------------------
-    // Animation related
 
     /// @brief Method to update the bone hierarchy transforms
     void UpdateBoneHierarchy(const float _animationTime, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);

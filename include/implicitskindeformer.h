@@ -259,9 +259,6 @@ private:
     cudaTextureObject_t *d_fieldsPtr;
 
     /// @brief
-    cudaTextureObject_t *d_fieldGradPtr;
-
-    /// @brief
     cudaTextureObject_t *d_compOpPtr;
 
     /// @brief
