@@ -68,10 +68,16 @@ Load in an aniimatio file.
 | **R** | Toggle rendering Iso-Surface of global field |
 | **T** | Toggle between Implicit Skinning and Linear Blend Weight Skinning |
 
+
+## Issues
+
+
 ## Version
 This is version 0.1.0
 
+
 ## Author
 Idris Miles
+
 
 ## License
