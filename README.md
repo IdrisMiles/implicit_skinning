@@ -20,7 +20,10 @@ doxygen Doxyfile
 ```
 
 ## Supported Platforms
-This project has only been tested on Linux, Ubuntu 16.04 and CentOS.
+This project has been tested on the following platforms
+| **OS** | **Version** |
+| Ubuntu | 16.04 |
+| RedHat | 7.2 |
 
 Requires an NVIDIA CUDA enabled GPU to utilize parallel optimizations.
 
@@ -54,14 +57,16 @@ Load in an aniimatio file.
 ### Accepted Animation Files Format
 * .dae (COLLADA) - tested
 ### Key Operations
-* **W** - Toggle skinned mesh wireframe
-* **E** - Toggle rendering skinned mesh
-* **R** - Toggle rendering Iso-Surface of global field
-* **T** - Toggle between Implicit Skinning and Linear Blend Weight Skinning
+| **Key** | **Operation** |
+| **W** | Toggle skinned mesh wireframe |
+| **E** | Toggle rendering skinned mesh |
+| **R** | Toggle rendering Iso-Surface of global field |
+| **T** | Toggle between Implicit Skinning and Linear Blend Weight Skinning |
 
 ## Version
 This is version 0.1.0
 
 ## Author
+Idris Miles
 
 ## License
