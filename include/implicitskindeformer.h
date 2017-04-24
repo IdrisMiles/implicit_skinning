@@ -262,6 +262,9 @@ private:
     cudaTextureObject_t *d_compOpPtr;
 
     /// @brief
+    cudaTextureObject_t *d_thetaPtr;
+
+    /// @brief
     ComposedFieldCuda *d_compFieldPtr;
 
     /// @brief

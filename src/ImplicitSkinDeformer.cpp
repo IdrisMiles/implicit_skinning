@@ -49,8 +49,10 @@ void ImplicitSkinDeformer::InitialiseIsoValues()
         }
 
         // run kernel
-        isgw::SimpleEvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields);
-        getLastCudaError("Kernel::SimpleEval");
+//        isgw::SimpleEvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields);
+//        getLastCudaError("isgw::SimpleEvalGradGlobalField");
+        isgw::EvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields, d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields);
+        getLastCudaError("isgw::EvalGradGlobalField");
 
 
         // free temporary device memory
@@ -352,11 +354,10 @@ void ImplicitSkinDeformer::EvalGlobalFieldGPU(std::vector<float> &_output, const
     checkCudaErrors(cudaMemcpy((void*)d_samplePoints, &_samplePoints[0], _samplePoints.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
 
     // run kernel
-    isgw::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
-    getLastCudaError("Kernel::SimpleEval");
-
-//    isgw::EvalGlobalField(_output, _samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, d_fieldGradPtr, m_numFields,
-//                          d_compOpPtr, d_comOpGradPtr,
+//    isgw::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
+//    getLastCudaError("isgw::SimpleEvalGlobalField");
+    isgw::EvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields, d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields);
+    getLastCudaError("isgw::EvalGlobalField");
 
     // download data to host
     checkCudaErrors(cudaMemcpy(&_output[0], d_output, _samplePoints.size() * sizeof(float), cudaMemcpyDeviceToHost));
@@ -486,7 +487,7 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
 
     auto fieldFuncs = m_globalFieldFunction.GetFieldFuncs();
     auto compOps = m_globalFieldFunction.GetCompOps();
-    auto compFields = m_globalFieldFunction.GetCompFields();
+    auto compFields = m_globalFieldFunction.GetCompFieldsCuda();
 
     // create device memory here
     m_numFields = fieldFuncs.size();
@@ -497,6 +498,7 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
     checkCudaErrors(cudaMalloc(&d_textureSpacePtr, m_numFields * sizeof(glm::mat4)));
     checkCudaErrors(cudaMalloc(&d_fieldsPtr, m_numFields * sizeof(cudaTextureObject_t)));
     checkCudaErrors(cudaMalloc(&d_compOpPtr, m_numCompOps * sizeof(cudaTextureObject_t)));
+    checkCudaErrors(cudaMalloc(&d_thetaPtr, m_numCompOps * sizeof(cudaTextureObject_t)));
     checkCudaErrors(cudaMalloc(&d_compFieldPtr, m_numCompFields * sizeof(ComposedFieldCuda)));
 
     // upload data
@@ -510,7 +512,9 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
     for(int i=0; i<m_numCompOps; ++i)
     {
         auto compOpTex = compOps[i]->GetFieldFunc3DTexture();
+        auto thetaTex = compOps[i]->GetThetaTexture();
         cudaMemcpy(d_compOpPtr+i, &compOpTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(d_thetaPtr+i, &thetaTex, 1*sizeof(cudaTextureObject_t), cudaMemcpyHostToDevice);
     }
     for(int i=0; i<m_numCompFields; ++i)
     {
@@ -557,6 +561,7 @@ void ImplicitSkinDeformer::DestroyFieldCudaMem()
         checkCudaErrors(cudaFree(d_textureSpacePtr));
         checkCudaErrors(cudaFree(d_fieldsPtr));
         checkCudaErrors(cudaFree(d_compOpPtr));
+        checkCudaErrors(cudaFree(d_thetaPtr));
         checkCudaErrors(cudaFree(d_compFieldPtr));
 
         m_initFieldCudaMem = false;

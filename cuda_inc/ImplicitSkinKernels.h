@@ -96,6 +96,20 @@ void EvalGlobalField(float *_output,
                       const ComposedFieldCuda *_compFields,
                       const uint _numCompFields);
 
+void EvalGradGlobalField(float *_output,
+                         glm::vec3 *_outputG,
+                         const glm::vec3 *_samplePoint,
+                         const uint _numSamples,
+                         const glm::mat4 *_textureSpace,
+                         const glm::mat4 *_rigidTransforms,
+                         const cudaTextureObject_t *_fieldFuncs,
+                         const uint _numFields,
+                         const cudaTextureObject_t *_compOps,
+                         const cudaTextureObject_t *_theta,
+                         const uint _numOps,
+                         const ComposedFieldCuda *_compFields,
+                         const uint _numCompFields);
+
 /// @brief Function to launch CUDA Kernel to perform implicit skinning
 void SimpleImplicitSkin(glm::vec3 *_deformedVert,
                           const glm::vec3 *_normal,

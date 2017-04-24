@@ -165,12 +165,44 @@ void CompositionOp::Precompute(const unsigned int _res)
         }
     }
 
-
-
     m_field.SetData(_res, data);
-    d_field.CreateCudaTexture(_res, data, cudaFilterModeLinear);
-    d_grad.CreateCudaTexture(_res, cuGrad, cudaFilterModeLinear);
+    d_field.CreateCudaTexture(_res, cuGrad, cudaFilterModeLinear);
     delete [] cuGrad;
+
+
+    // Precompute theta
+    float thetas[_res];
+    for(unsigned int x=0; x<_res; ++x)
+    {
+        thetas[x] = m_theta((2.0f*M_PI)*((float)x/_res));
+    }
+
+    float *d_cuArrayTheta;
+    cudaMalloc(&d_cuArrayTheta, _res*sizeof(float));
+    cudaMemcpy(d_cuArrayTheta, thetas, _res*sizeof(float), cudaMemcpyHostToDevice);
+    // Initalise cuda texture
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
+
+    struct cudaResourceDesc resDesc;
+    memset(&resDesc, 0, sizeof(resDesc));
+    resDesc.resType = cudaResourceTypeLinear;
+    resDesc.res.linear.devPtr = d_cuArrayTheta;
+    resDesc.res.linear.desc = channelDesc;
+    resDesc.res.linear.sizeInBytes = _res*sizeof(float);
+
+    struct cudaTextureDesc texDesc;
+    memset(&texDesc, 0, sizeof(texDesc));
+    texDesc.addressMode[0] = cudaAddressModeClamp;
+    texDesc.addressMode[1] = cudaAddressModeClamp;
+    texDesc.addressMode[2] = cudaAddressModeClamp;
+    texDesc.filterMode = cudaFilterModeLinear;
+    texDesc.readMode = cudaReadModeElementType;
+    texDesc.normalizedCoords = 1;
+
+    d_theta = 0;
+    checkCudaErrors(cudaCreateTextureObject(&d_theta, &resDesc, &texDesc, NULL));
+
+
 
     m_precomputed = true;
 }
@@ -206,9 +238,7 @@ cudaTextureObject_t &CompositionOp::GetFieldFunc3DTexture()
 
 //-----------------------------------------------------------------------------------------------------
 
-cudaTextureObject_t &CompositionOp::GetFieldGrad3DTexture()
+cudaTextureObject_t &CompositionOp::GetThetaTexture()
 {
-    return d_grad.GetCudaTextureObject();
+    return d_theta;
 }
-
-//-----------------------------------------------------------------------------------------------------

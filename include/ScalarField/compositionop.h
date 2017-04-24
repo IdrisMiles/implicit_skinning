@@ -43,7 +43,7 @@ public:
 
 
     cudaTextureObject_t &GetFieldFunc3DTexture();
-    cudaTextureObject_t &GetFieldGrad3DTexture();
+    cudaTextureObject_t &GetThetaTexture();
 
 private:
     std::function<float(float)> m_theta;
@@ -58,8 +58,8 @@ private:
 
     Texture3DCpu<float> m_field;
 
-    Texture3DCuda<float> d_field;
-    Texture3DCuda<float4> d_grad;
+    Texture3DCuda<float4> d_field;
+    cudaTextureObject_t d_theta;
 
     float m_alpha0;
     float m_alpha1;
