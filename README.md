@@ -1,11 +1,11 @@
 # Implicit Skinning
 This is my Advanced Graphics Software Development Techniques assignment for Bournemouth University.
-This project is my implementation of implicit skinning based on [the "Implicit Skinning: Real-Time Skin Deformation with Contact Modeling" paper](http://rodolphe-vaillant.fr/pivotx/templates/projects/implicit_skinning/implicit_skinning.pdf). 
-The project is written in C++ and uses CUDA to speed up evaluation of field functions as wel as perform skinning computations  
+This project is my implementation of implicit skinning based on ["Implicit Skinning: Real-Time Skin Deformation with Contact Modeling"](http://rodolphe-vaillant.fr/pivotx/templates/projects/implicit_skinning/implicit_skinning.pdf). 
+The project is written in C++ and uses CUDA to speed up evaluation of field functions as well as perform skinning computations  
 
 ## Docs
 To build the documentation using Doxygen, run:
-```
+```bash
 doxygen Doxyfile
 ```
 
@@ -18,7 +18,7 @@ doxygen Doxyfile
 
 
 ## Install and Build
-```
+```bash
 git clone https://github.com/IdrisMiles/ImplicitSkinning.git
 cd ImplicitSkinning
 qmake
@@ -27,7 +27,7 @@ make
 ```
 
 ## Run
-```
+```bash
 cd ImplicitSkinning/bin
 ./app
 ```
