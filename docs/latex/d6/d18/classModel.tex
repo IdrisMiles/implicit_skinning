@@ -1,0 +1,95 @@
+\hypertarget{classModel}{}\section{Model Class Reference}
+\label{classModel}\index{Model@{Model}}
+
+
+A model, this holds the mesh, animated rig, and skin deformer, it also handles the rendering of itself.  
+
+
+
+
+{\ttfamily \#include $<$model.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classModel_ae3b375de5f6df4faf74a95d64748e048}{Model} ()\hypertarget{classModel_ae3b375de5f6df4faf74a95d64748e048}{}\label{classModel_ae3b375de5f6df4faf74a95d64748e048}
+
+\begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
+\hyperlink{classModel_ad6ebd2062a0b823db841a0b88baac4c0}{$\sim$\+Model} ()\hypertarget{classModel_ad6ebd2062a0b823db841a0b88baac4c0}{}\label{classModel_ad6ebd2062a0b823db841a0b88baac4c0}
+
+\begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
+void \hyperlink{classModel_a9fc27c23ef71e81fc9949953125fcee8}{Initialise} ()\hypertarget{classModel_a9fc27c23ef71e81fc9949953125fcee8}{}\label{classModel_a9fc27c23ef71e81fc9949953125fcee8}
+
+\begin{DoxyCompactList}\small\item\em Method to initialise model. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_ac02a26d23143d6456a726957e1042840}{Draw\+Mesh} ()\hypertarget{classModel_ac02a26d23143d6456a726957e1042840}{}\label{classModel_ac02a26d23143d6456a726957e1042840}
+
+\begin{DoxyCompactList}\small\item\em Method to draw the skinned animated model. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_a593d18e249b56ca87fdc6339916e7b5e}{Draw\+Rig} ()\hypertarget{classModel_a593d18e249b56ca87fdc6339916e7b5e}{}\label{classModel_a593d18e249b56ca87fdc6339916e7b5e}
+
+\begin{DoxyCompactList}\small\item\em Method to draw the animated rig. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_a72cc0344f05776e6bbbb9ec82ed0b7b6}{Animate} (const float \+\_\+animation\+Time)
+\begin{DoxyCompactList}\small\item\em Method to animate the model. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_ad8697962971f8443f3e1bfd474e6ac20}{Toggle\+Wireframe} ()\hypertarget{classModel_ad8697962971f8443f3e1bfd474e6ac20}{}\label{classModel_ad8697962971f8443f3e1bfd474e6ac20}
+
+\begin{DoxyCompactList}\small\item\em Method to toggle rendering the skinned mesh in wireframe or filled. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_a7ce564f5eb3e962970bc285305a352f7}{Toggle\+Skinned\+Surface} ()\hypertarget{classModel_a7ce564f5eb3e962970bc285305a352f7}{}\label{classModel_a7ce564f5eb3e962970bc285305a352f7}
+
+\begin{DoxyCompactList}\small\item\em Method to toggle rendering of the skinned mesh. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_ad453680f0603420e226c2aa4a74db9dd}{Toggle\+Skinned\+Implicit\+Surface} ()\hypertarget{classModel_ad453680f0603420e226c2aa4a74db9dd}{}\label{classModel_ad453680f0603420e226c2aa4a74db9dd}
+
+\begin{DoxyCompactList}\small\item\em Method to toggle performing implicit or linear blend weight skinning. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_ac97e2c6ccbe0937d0c7b5aed1bfceb04}{Toggle\+Iso\+Surface} ()\hypertarget{classModel_ac97e2c6ccbe0937d0c7b5aed1bfceb04}{}\label{classModel_ac97e2c6ccbe0937d0c7b5aed1bfceb04}
+
+\begin{DoxyCompactList}\small\item\em Method to toggle rendering the iso surface of the global field from the implicit deformer. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_afad9aa7af2bdbdf511dcd3e0748a2d9a}{Set\+Light\+Pos} (const glm\+::vec3 \&\+\_\+light\+Pos)\hypertarget{classModel_afad9aa7af2bdbdf511dcd3e0748a2d9a}{}\label{classModel_afad9aa7af2bdbdf511dcd3e0748a2d9a}
+
+\begin{DoxyCompactList}\small\item\em Method to set light position. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_a88d681e1ea367b0140b04ae84ee72512}{Set\+Model\+Matrix} (const glm\+::mat4 \&\+\_\+model\+Mat)\hypertarget{classModel_a88d681e1ea367b0140b04ae84ee72512}{}\label{classModel_a88d681e1ea367b0140b04ae84ee72512}
+
+\begin{DoxyCompactList}\small\item\em Method to set the model matrix. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_a8cffd0fa41ec392fabaa02fce9f2624e}{Set\+Normal\+Matrix} (const glm\+::mat3 \&\+\_\+norm\+Mat)\hypertarget{classModel_a8cffd0fa41ec392fabaa02fce9f2624e}{}\label{classModel_a8cffd0fa41ec392fabaa02fce9f2624e}
+
+\begin{DoxyCompactList}\small\item\em Method to set the normal matrix. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_aa98bb18be5df8aef0da8aa47d6e09f19}{Set\+View\+Matrix} (const glm\+::mat4 \&\+\_\+view\+Mat)\hypertarget{classModel_aa98bb18be5df8aef0da8aa47d6e09f19}{}\label{classModel_aa98bb18be5df8aef0da8aa47d6e09f19}
+
+\begin{DoxyCompactList}\small\item\em Method to set the view matrix. \end{DoxyCompactList}\item 
+void \hyperlink{classModel_aee6397055a5aa1e964cde1639da05122}{Set\+Projection\+Matrix} (const glm\+::mat4 \&\+\_\+proj\+Mat)\hypertarget{classModel_aee6397055a5aa1e964cde1639da05122}{}\label{classModel_aee6397055a5aa1e964cde1639da05122}
+
+\begin{DoxyCompactList}\small\item\em Method to set the projection matrix. \end{DoxyCompactList}\item 
+\hyperlink{classRig}{Rig} \& \hyperlink{classModel_ab41210858b52e222212ec2c9e4bfbed1}{Get\+Rig} ()\hypertarget{classModel_ab41210858b52e222212ec2c9e4bfbed1}{}\label{classModel_ab41210858b52e222212ec2c9e4bfbed1}
+
+\begin{DoxyCompactList}\small\item\em Method to get the \hyperlink{classRig}{Rig}. \end{DoxyCompactList}\item 
+\hyperlink{classMesh}{Mesh} \& \hyperlink{classModel_a868b3918a895ab46d6b7f9fdd74106ac}{Get\+Mesh} ()\hypertarget{classModel_a868b3918a895ab46d6b7f9fdd74106ac}{}\label{classModel_a868b3918a895ab46d6b7f9fdd74106ac}
+
+\begin{DoxyCompactList}\small\item\em Method to get the model mesh. \end{DoxyCompactList}\item 
+\hyperlink{classMesh}{Mesh} \& \hyperlink{classModel_a14500b0c2d22f4cf8b823a217900e85a}{Get\+Rig\+Mesh} ()\hypertarget{classModel_a14500b0c2d22f4cf8b823a217900e85a}{}\label{classModel_a14500b0c2d22f4cf8b823a217900e85a}
+
+\begin{DoxyCompactList}\small\item\em Method to get the \hyperlink{classRig}{Rig} \hyperlink{classMesh}{Mesh}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A model, this holds the mesh, animated rig, and skin deformer, it also handles the rendering of itself. 
+
+\subsection{Member Function Documentation}
+\index{Model@{Model}!Animate@{Animate}}
+\index{Animate@{Animate}!Model@{Model}}
+\subsubsection[{\texorpdfstring{Animate(const float \+\_\+animation\+Time)}{Animate(const float _animationTime)}}]{\setlength{\rightskip}{0pt plus 5cm}void Model\+::\+Animate (
+\begin{DoxyParamCaption}
+\item[{const float}]{\+\_\+animation\+Time}
+\end{DoxyParamCaption}
+)}\hypertarget{classModel_a72cc0344f05776e6bbbb9ec82ed0b7b6}{}\label{classModel_a72cc0344f05776e6bbbb9ec82ed0b7b6}
+
+
+Method to animate the model. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+animation\+Time} & \+: the time the animation should be a \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/model.\+h\item 
+src/model.\+cpp\end{DoxyCompactItemize}

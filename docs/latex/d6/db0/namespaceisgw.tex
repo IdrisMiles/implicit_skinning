@@ -1,0 +1,141 @@
+\hypertarget{namespaceisgw}{}\section{isgw Namespace Reference}
+\label{namespaceisgw}\index{isgw@{isgw}}
+
+
+, Implicit Skin G\+PU Wrapper (isgw), wraps up Implicit Skinining C\+U\+DA kernals in a C\+PP interface  
+
+
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint \hyperlink{namespaceisgw_a2e4ac5beae0fbbe25749f7ba5a85805e}{i\+Div\+Up} (uint a, uint b)
+\begin{DoxyCompactList}\small\item\em Function to divide a by b and add 1 if there is a remainder, useful for generatinig the number of C\+U\+DA blocks from size of data and number of threads. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceisgw_a39bc6d7899858b8364613ca9485fad73}{Linear\+Blend\+Weight\+Skin} (glm\+::vec3 $\ast$\+\_\+deformed\+Vert, const glm\+::vec3 $\ast$\+\_\+orig\+Vert, glm\+::vec3 $\ast$\+\_\+deformed\+Norms, const glm\+::vec3 $\ast$\+\_\+orig\+Norms, const glm\+::mat4 $\ast$\+\_\+transform, const uint $\ast$\+\_\+bone\+Id, const float $\ast$\+\_\+weight, const uint \+\_\+num\+Verts, const uint \+\_\+num\+Bones)
+\begin{DoxyCompactList}\small\item\em Function to launch C\+U\+DA Kernel to perform linear blend weight skinning. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceisgw_a9ae47979d1bf1fae8efed62f8b9f91b6}{Simple\+Eval\+Global\+Field} (float $\ast$\+\_\+output, const glm\+::vec3 $\ast$\+\_\+sample\+Point, const uint \+\_\+num\+Samples, const glm\+::mat4 $\ast$\+\_\+texture\+Space, const glm\+::mat4 $\ast$\+\_\+rigid\+Transforms, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+field\+Funcs, const uint \+\_\+num\+Fields)
+\begin{DoxyCompactList}\small\item\em Function to launch C\+U\+DA Kernel to evaluate the global field. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceisgw_accf545e1ce56c19f17e0da59310a23f1}{Simple\+Eval\+Grad\+Global\+Field} (float $\ast$\+\_\+outputF, glm\+::vec3 $\ast$\+\_\+outputG, const glm\+::vec3 $\ast$\+\_\+sample\+Point, const uint \+\_\+num\+Samples, const glm\+::mat4 $\ast$\+\_\+texture\+Space, const glm\+::mat4 $\ast$\+\_\+rigid\+Transforms, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+field\+Funcs, const uint \+\_\+num\+Fields)\hypertarget{namespaceisgw_accf545e1ce56c19f17e0da59310a23f1}{}\label{namespaceisgw_accf545e1ce56c19f17e0da59310a23f1}
+
+\begin{DoxyCompactList}\small\item\em Function to launch C\+U\+DA Kernel to evaluate gradient of global field. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceisgw_a604bf029583becf2202af2d10f70f6a0}{Eval\+Global\+Field} (float $\ast$\+\_\+output, const glm\+::vec3 $\ast$\+\_\+sample\+Point, const uint \+\_\+num\+Samples, const glm\+::mat4 $\ast$\+\_\+texture\+Space, const glm\+::mat4 $\ast$\+\_\+rigid\+Transforms, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+field\+Funcs, const uint \+\_\+num\+Fields, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+comp\+Ops, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+theta, const uint \+\_\+num\+Ops, const \hyperlink{classComposedFieldCuda}{Composed\+Field\+Cuda} $\ast$\+\_\+comp\+Fields, const uint \+\_\+num\+Comp\+Fields)\hypertarget{namespaceisgw_a604bf029583becf2202af2d10f70f6a0}{}\label{namespaceisgw_a604bf029583becf2202af2d10f70f6a0}
+
+\begin{DoxyCompactList}\small\item\em Function to launch C\+U\+DA Kernel to evaluate the global field. \end{DoxyCompactList}\item 
+void {\bfseries Eval\+Grad\+Global\+Field} (float $\ast$\+\_\+output, glm\+::vec3 $\ast$\+\_\+outputG, const glm\+::vec3 $\ast$\+\_\+sample\+Point, const uint \+\_\+num\+Samples, const glm\+::mat4 $\ast$\+\_\+texture\+Space, const glm\+::mat4 $\ast$\+\_\+rigid\+Transforms, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+field\+Funcs, const uint \+\_\+num\+Fields, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+comp\+Ops, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+theta, const uint \+\_\+num\+Ops, const \hyperlink{classComposedFieldCuda}{Composed\+Field\+Cuda} $\ast$\+\_\+comp\+Fields, const uint \+\_\+num\+Comp\+Fields)\hypertarget{namespaceisgw_acd335360a97886a51e3a34ba242ae4e2}{}\label{namespaceisgw_acd335360a97886a51e3a34ba242ae4e2}
+
+\item 
+void \hyperlink{namespaceisgw_a2949156312b4162caa9551f1213bf131}{Simple\+Implicit\+Skin} (glm\+::vec3 $\ast$\+\_\+deformed\+Vert, const glm\+::vec3 $\ast$\+\_\+normal, const float $\ast$\+\_\+orig\+Iso\+Value, glm\+::vec3 $\ast$\+\_\+prev\+Iso\+Grad, const uint \+\_\+num\+Verts, const glm\+::mat4 $\ast$\+\_\+texture\+Space, const glm\+::mat4 $\ast$\+\_\+rigid\+Transforms, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+field\+Funcs, const uint \+\_\+num\+Fields, const int $\ast$\+\_\+one\+Ring\+Neigh, const float $\ast$\+\_\+centroid\+Weights, const int $\ast$\+\_\+num\+Neighs, const int $\ast$\+\_\+neigh\+Scatter\+Addr)\hypertarget{namespaceisgw_a2949156312b4162caa9551f1213bf131}{}\label{namespaceisgw_a2949156312b4162caa9551f1213bf131}
+
+\begin{DoxyCompactList}\small\item\em Function to launch C\+U\+DA Kernel to perform implicit skinning. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceisgw_a267fc0628a2245c86afb303701f45ddc}{Generate\+Scatter\+Address} (int $\ast$begin, int $\ast$end, int $\ast$scattered\+Addr)\hypertarget{namespaceisgw_a267fc0628a2245c86afb303701f45ddc}{}\label{namespaceisgw_a267fc0628a2245c86afb303701f45ddc}
+
+\begin{DoxyCompactList}\small\item\em Method to generate scatter address. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceisgw_a7040283f07b5b646a4b7a17c1932d930}{Generate\+One\+Ring\+Centroid\+Weights} (glm\+::vec3 $\ast$d\+\_\+verts, const glm\+::vec3 $\ast$d\+\_\+normals, const uint \+\_\+num\+Verts, float $\ast$\+\_\+centroid\+Weights, const int $\ast$\+\_\+one\+Ring\+Ids, const glm\+::vec3 $\ast$\+\_\+one\+Ring\+Verts, const int $\ast$\+\_\+num\+Neighs\+Per\+Vert, const int $\ast$\+\_\+one\+Ring\+Scatter\+Addr)\hypertarget{namespaceisgw_a7040283f07b5b646a4b7a17c1932d930}{}\label{namespaceisgw_a7040283f07b5b646a4b7a17c1932d930}
+
+\begin{DoxyCompactList}\small\item\em Method to generate the one ring centroid weights for each mesh vertex. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+, Implicit Skin G\+PU Wrapper (isgw), wraps up Implicit Skinining C\+U\+DA kernals in a C\+PP interface 
+
+\begin{DoxyAuthor}{Author}
+Idris Miles 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1.\+0  18/04/2017 
+\end{DoxyVersion}
+
+
+\subsection{Function Documentation}
+\index{isgw@{isgw}!i\+Div\+Up@{i\+Div\+Up}}
+\index{i\+Div\+Up@{i\+Div\+Up}!isgw@{isgw}}
+\subsubsection[{\texorpdfstring{i\+Div\+Up(uint a, uint b)}{iDivUp(uint a, uint b)}}]{\setlength{\rightskip}{0pt plus 5cm}uint isgw\+::i\+Div\+Up (
+\begin{DoxyParamCaption}
+\item[{uint}]{a, }
+\item[{uint}]{b}
+\end{DoxyParamCaption}
+)}\hypertarget{namespaceisgw_a2e4ac5beae0fbbe25749f7ba5a85805e}{}\label{namespaceisgw_a2e4ac5beae0fbbe25749f7ba5a85805e}
+
+
+Function to divide a by b and add 1 if there is a remainder, useful for generatinig the number of C\+U\+DA blocks from size of data and number of threads. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em a} & \+: unsigned integer numerator \\
+\hline
+{\em b} & \+: unsigned integer denominator \\
+\hline
+\end{DoxyParams}
+\index{isgw@{isgw}!Linear\+Blend\+Weight\+Skin@{Linear\+Blend\+Weight\+Skin}}
+\index{Linear\+Blend\+Weight\+Skin@{Linear\+Blend\+Weight\+Skin}!isgw@{isgw}}
+\subsubsection[{\texorpdfstring{Linear\+Blend\+Weight\+Skin(glm\+::vec3 $\ast$\+\_\+deformed\+Vert, const glm\+::vec3 $\ast$\+\_\+orig\+Vert, glm\+::vec3 $\ast$\+\_\+deformed\+Norms, const glm\+::vec3 $\ast$\+\_\+orig\+Norms, const glm\+::mat4 $\ast$\+\_\+transform, const uint $\ast$\+\_\+bone\+Id, const float $\ast$\+\_\+weight, const uint \+\_\+num\+Verts, const uint \+\_\+num\+Bones)}{LinearBlendWeightSkin(glm::vec3 *_deformedVert, const glm::vec3 *_origVert, glm::vec3 *_deformedNorms, const glm::vec3 *_origNorms, const glm::mat4 *_transform, const uint *_boneId, const float *_weight, const uint _numVerts, const uint _numBones)}}]{\setlength{\rightskip}{0pt plus 5cm}void isgw\+::\+Linear\+Blend\+Weight\+Skin (
+\begin{DoxyParamCaption}
+\item[{glm\+::vec3 $\ast$}]{\+\_\+deformed\+Vert, }
+\item[{const glm\+::vec3 $\ast$}]{\+\_\+orig\+Vert, }
+\item[{glm\+::vec3 $\ast$}]{\+\_\+deformed\+Norms, }
+\item[{const glm\+::vec3 $\ast$}]{\+\_\+orig\+Norms, }
+\item[{const glm\+::mat4 $\ast$}]{\+\_\+transform, }
+\item[{const uint $\ast$}]{\+\_\+bone\+Id, }
+\item[{const float $\ast$}]{\+\_\+weight, }
+\item[{const uint}]{\+\_\+num\+Verts, }
+\item[{const uint}]{\+\_\+num\+Bones}
+\end{DoxyParamCaption}
+)}\hypertarget{namespaceisgw_a39bc6d7899858b8364613ca9485fad73}{}\label{namespaceisgw_a39bc6d7899858b8364613ca9485fad73}
+
+
+Function to launch C\+U\+DA Kernel to perform linear blend weight skinning. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+deformed\+Vert} & \+: Device pointer to the deformed vertices, this is the pointer that is mapped to the vertex buffer object \\
+\hline
+{\em \+\_\+orig\+Vert} & \+: Const device pointer to the original mesh vertices \\
+\hline
+{\em \+\_\+deformed\+Norms} & \+: Device pointer to the deformed normals, this is the pointer that is mapped to the normal buffer object \\
+\hline
+{\em \+\_\+orig\+Norms} & \+: Const device pointer to the original mesh normals \\
+\hline
+{\em \+\_\+transforms} & \+: Const device pointer to the bone transforms \\
+\hline
+{\em \+\_\+bone\+Id} & \+: const device pointer to the vertex bone I\+Ds \\
+\hline
+{\em \+\_\+weights} & \+: const device pointer to the vertex bone weights \\
+\hline
+{\em \+\_\+num\+Verts} & \+: The number of vertices in the mesh \\
+\hline
+{\em \+\_\+num\+Bones} & \+: The number of bones \\
+\hline
+\end{DoxyParams}
+\index{isgw@{isgw}!Simple\+Eval\+Global\+Field@{Simple\+Eval\+Global\+Field}}
+\index{Simple\+Eval\+Global\+Field@{Simple\+Eval\+Global\+Field}!isgw@{isgw}}
+\subsubsection[{\texorpdfstring{Simple\+Eval\+Global\+Field(float $\ast$\+\_\+output, const glm\+::vec3 $\ast$\+\_\+sample\+Point, const uint \+\_\+num\+Samples, const glm\+::mat4 $\ast$\+\_\+texture\+Space, const glm\+::mat4 $\ast$\+\_\+rigid\+Transforms, const cuda\+Texture\+Object\+\_\+t $\ast$\+\_\+field\+Funcs, const uint \+\_\+num\+Fields)}{SimpleEvalGlobalField(float *_output, const glm::vec3 *_samplePoint, const uint _numSamples, const glm::mat4 *_textureSpace, const glm::mat4 *_rigidTransforms, const cudaTextureObject_t *_fieldFuncs, const uint _numFields)}}]{\setlength{\rightskip}{0pt plus 5cm}void isgw\+::\+Simple\+Eval\+Global\+Field (
+\begin{DoxyParamCaption}
+\item[{float $\ast$}]{\+\_\+output, }
+\item[{const glm\+::vec3 $\ast$}]{\+\_\+sample\+Point, }
+\item[{const uint}]{\+\_\+num\+Samples, }
+\item[{const glm\+::mat4 $\ast$}]{\+\_\+texture\+Space, }
+\item[{const glm\+::mat4 $\ast$}]{\+\_\+rigid\+Transforms, }
+\item[{const cuda\+Texture\+Object\+\_\+t $\ast$}]{\+\_\+field\+Funcs, }
+\item[{const uint}]{\+\_\+num\+Fields}
+\end{DoxyParamCaption}
+)}\hypertarget{namespaceisgw_a9ae47979d1bf1fae8efed62f8b9f91b6}{}\label{namespaceisgw_a9ae47979d1bf1fae8efed62f8b9f91b6}
+
+
+Function to launch C\+U\+DA Kernel to evaluate the global field. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+output} & \+: Device pointer to the output \\
+\hline
+{\em \+\_\+sample\+Point} & \+: Const device pointer to the sample points \\
+\hline
+{\em \+\_\+num\+Samples} & The number of samples \\
+\hline
+{\em \+\_\+texture\+Space} & \+: Const device pointer to the texture space transform matrices, transform world space to texture space \\
+\hline
+{\em \+\_\+rigid\+Transform} & \+: Const device pointer to the rigid bone transform matrices \\
+\hline
+{\em \+\_\+field\+Funcs} & \+: Const device pointer to an array of textures holding the individual field functions \\
+\hline
+{\em \+\_\+num\+Fields} & \+: The number of field function textures \\
+\hline
+\end{DoxyParams}

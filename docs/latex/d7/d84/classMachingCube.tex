@@ -1,0 +1,57 @@
+\hypertarget{classMachingCube}{}\section{Maching\+Cube Class Reference}
+\label{classMachingCube}\index{Maching\+Cube@{Maching\+Cube}}
+
+
+basic maching cube algorithm  
+
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classMachingCube_a47dca85496623aab6ee3ff0913db7d31}{Maching\+Cube} ()\hypertarget{classMachingCube_a47dca85496623aab6ee3ff0913db7d31}{}\label{classMachingCube_a47dca85496623aab6ee3ff0913db7d31}
+
+\begin{DoxyCompactList}\small\item\em default constructor \end{DoxyCompactList}\item 
+\hyperlink{classMachingCube_ab5b708b039b62182c2dc526a6ac6a181}{$\sim$\+Maching\+Cube} ()\hypertarget{classMachingCube_ab5b708b039b62182c2dc526a6ac6a181}{}\label{classMachingCube_ab5b708b039b62182c2dc526a6ac6a181}
+
+\begin{DoxyCompactList}\small\item\em default destructor \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \hyperlink{classMachingCube_a5d38039696b93a4d555be3a2a49f684f}{Polygonize} (std\+::vector$<$ glm\+::vec3 $>$ \&\+\_\+verts, std\+::vector$<$ glm\+::vec3 $>$ \&\+\_\+norms, float $\ast$\+\_\+volume\+Data, const float \&\+\_\+isolevel, const int \&\+\_\+w, const int \&\+\_\+h, const int \&\+\_\+d, const float \&\+\_\+voxelW=1.\+0f, const float \&\+\_\+voxel\+H=1.\+0f, const float \&\+\_\+voxel\+D=1.\+0f)\hypertarget{classMachingCube_a5d38039696b93a4d555be3a2a49f684f}{}\label{classMachingCube_a5d38039696b93a4d555be3a2a49f684f}
+
+\begin{DoxyCompactList}\small\item\em polygonize the iso surface \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \hyperlink{classMachingCube_a03fe138d339db08d8f8deec1adb9eaef}{create\+Verts} (std\+::vector$<$ glm\+::vec3 $>$ \&\+\_\+verts, std\+::vector$<$ glm\+::vec3 $>$ \&\+\_\+norms, float $\ast$\+\_\+volume\+Data, const float \&\+\_\+isolevel, const int \&\+\_\+w, const int \&\+\_\+h, const int \&\+\_\+d, const float \&\+\_\+voxelW, const float \&\+\_\+voxelH, const float \&\+\_\+voxelD)\hypertarget{classMachingCube_a03fe138d339db08d8f8deec1adb9eaef}{}\label{classMachingCube_a03fe138d339db08d8f8deec1adb9eaef}
+
+\begin{DoxyCompactList}\small\item\em Generate vertices and normals. \end{DoxyCompactList}\item 
+static unsigned int \hyperlink{classMachingCube_a7a07c3e38877815f4bbe3d010b869e5c}{Maching\+Triangles} (\hyperlink{structVoxel}{Voxel} g, float iso, std\+::vector$<$ \hyperlink{structTriangle}{Triangle} $>$ \&tri\+List)\hypertarget{classMachingCube_a7a07c3e38877815f4bbe3d010b869e5c}{}\label{classMachingCube_a7a07c3e38877815f4bbe3d010b869e5c}
+
+\begin{DoxyCompactList}\small\item\em extract triangles from each voxel, add the triangles into tri vector \end{DoxyCompactList}\item 
+static glm\+::vec3 \hyperlink{classMachingCube_a09743e696d8b28797bafbfdb55df415c}{Vertex\+Interp} (float isolevel, glm\+::vec3 p1, glm\+::vec3 p2, float valp1, float valp2)\hypertarget{classMachingCube_a09743e696d8b28797bafbfdb55df415c}{}\label{classMachingCube_a09743e696d8b28797bafbfdb55df415c}
+
+\begin{DoxyCompactList}\small\item\em intepolate the intersection point from the level value \end{DoxyCompactList}\item 
+static glm\+::vec3 \hyperlink{classMachingCube_a96ce7dcf9383947e09c9bcb61302f2f7}{compute\+Triangle\+Normal} (\hyperlink{structTriangle}{Triangle} \&itr)\hypertarget{classMachingCube_a96ce7dcf9383947e09c9bcb61302f2f7}{}\label{classMachingCube_a96ce7dcf9383947e09c9bcb61302f2f7}
+
+\begin{DoxyCompactList}\small\item\em compute the normal from the three vertices \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+basic maching cube algorithm 
+
+\begin{DoxyAuthor}{Author}
+Xiaosong Yang, Idris Miles 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+14/01/13, 18/04/2017 
+\end{DoxyDate}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/\+Machingcube/Maching\+Cube.\+h\item 
+src/\+Machingcube/\hyperlink{MachingCube_8cpp}{Maching\+Cube.\+cpp}\end{DoxyCompactItemize}

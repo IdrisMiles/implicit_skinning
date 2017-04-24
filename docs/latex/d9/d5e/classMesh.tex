@@ -1,0 +1,100 @@
+\hypertarget{classMesh}{}\section{Mesh Class Reference}
+\label{classMesh}\index{Mesh@{Mesh}}
+
+
+\hyperlink{classMesh}{Mesh} data structure, holds vertices, triangle indices, normals, vertex colours, mesh colour, vertex U\+Vs, vertex bone weights (for skinning).  
+
+
+
+
+{\ttfamily \#include $<$mesh.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classMesh_a2af137f1571af89172b9c102302c416b}{Mesh} ()\hypertarget{classMesh_a2af137f1571af89172b9c102302c416b}{}\label{classMesh_a2af137f1571af89172b9c102302c416b}
+
+\begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
+bool \hyperlink{classMesh_a933629b3306bc2fe4a7b6e9eaaecdd06}{Get\+One\+Ring\+Neighours} (std\+::vector$<$ std\+::vector$<$ int $>$$>$ \&\+\_\+one\+Ring) const 
+\begin{DoxyCompactList}\small\item\em Method to get the one ring neighbourhoods. \end{DoxyCompactList}\item 
+void \hyperlink{classMesh_a9228b41d6b37367e655b6fd5e719c42f}{Compute\+One\+Ring} ()\hypertarget{classMesh_a9228b41d6b37367e655b6fd5e719c42f}{}\label{classMesh_a9228b41d6b37367e655b6fd5e719c42f}
+
+\begin{DoxyCompactList}\small\item\em Method to compute the one ring neighbourhood. \end{DoxyCompactList}\item 
+void \hyperlink{classMesh_a9f8c0578b4a766b0e3cbe3df5fe42311}{Compute\+B\+Box} (const bool \&\+\_\+recompute=false)
+\begin{DoxyCompactList}\small\item\em Method to internally compute the axis aligned bounding box of this mesh. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ glm\+::vec3 $>$ \hyperlink{classMesh_aa409beb8a6df4709baf7b47beac9581d}{m\+\_\+mesh\+Verts}\hypertarget{classMesh_aa409beb8a6df4709baf7b47beac9581d}{}\label{classMesh_aa409beb8a6df4709baf7b47beac9581d}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+mesh\+Verts, a vector containing all vertices of the mesh. \end{DoxyCompactList}\item 
+std\+::vector$<$ glm\+::vec3 $>$ \hyperlink{classMesh_afdd4c5d1d7e19176a1919cc6890db137}{m\+\_\+mesh\+Norms}\hypertarget{classMesh_afdd4c5d1d7e19176a1919cc6890db137}{}\label{classMesh_afdd4c5d1d7e19176a1919cc6890db137}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+mesh\+Norms, a vector containing all normals of the mesh. \end{DoxyCompactList}\item 
+std\+::vector$<$ glm\+::ivec3 $>$ \hyperlink{classMesh_ab69b200bd81cee173a6226b290c5e3a6}{m\+\_\+mesh\+Tris}\hypertarget{classMesh_ab69b200bd81cee173a6226b290c5e3a6}{}\label{classMesh_ab69b200bd81cee173a6226b290c5e3a6}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+mesh\+Tris, a vector containing all the triangle indices of the mesh. \end{DoxyCompactList}\item 
+std\+::vector$<$ \hyperlink{structVertexBoneData}{Vertex\+Bone\+Data} $>$ \hyperlink{classMesh_aa7d497de323ddfe418e4b8cf5ee9d549}{m\+\_\+mesh\+Bone\+Weights}\hypertarget{classMesh_aa7d497de323ddfe418e4b8cf5ee9d549}{}\label{classMesh_aa7d497de323ddfe418e4b8cf5ee9d549}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+mesh\+Bone\+Weights, a vector containing all the vertices bone weight data. \end{DoxyCompactList}\item 
+std\+::vector$<$ glm\+::vec3 $>$ \hyperlink{classMesh_a0ef923278d71ec31675d8bc2c16e2ab5}{m\+\_\+mesh\+Vert\+Colours}\hypertarget{classMesh_a0ef923278d71ec31675d8bc2c16e2ab5}{}\label{classMesh_a0ef923278d71ec31675d8bc2c16e2ab5}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+mesh\+Vert\+Colours, a vector containing all the vertex colours of the mesh. \end{DoxyCompactList}\item 
+std\+::vector$<$ glm\+::vec2 $>$ \hyperlink{classMesh_af7ceb87d2dcde9aff06e0b986de9640e}{m\+\_\+mesh\+U\+Vs}\hypertarget{classMesh_af7ceb87d2dcde9aff06e0b986de9640e}{}\label{classMesh_af7ceb87d2dcde9aff06e0b986de9640e}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+mesh\+U\+Vs, a vector containing all the vertex UV\textquotesingle{}s of the mesh. \end{DoxyCompactList}\item 
+glm\+::vec3 \hyperlink{classMesh_a4778512cc7163a50aad277ff4f6b8ec8}{m\+\_\+colour}\hypertarget{classMesh_a4778512cc7163a50aad277ff4f6b8ec8}{}\label{classMesh_a4778512cc7163a50aad277ff4f6b8ec8}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+colour, a base colour of the whole mesh, used for simple rendering. \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::vector$<$ int $>$ $>$ \hyperlink{classMesh_a80d54fe600d1a19d40315d6f0d4d42f1}{m\+\_\+mesh\+Verts\+One\+Ring}\hypertarget{classMesh_a80d54fe600d1a19d40315d6f0d4d42f1}{}\label{classMesh_a80d54fe600d1a19d40315d6f0d4d42f1}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+mesh\+Verts\+One\+Ring, the one ring neighbourhood for each vertex by id \end{DoxyCompactList}\item 
+glm\+::vec3 \hyperlink{classMesh_a4d45309b6e6500312ebfc4e9ac44a477}{m\+\_\+min\+B\+Box}\hypertarget{classMesh_a4d45309b6e6500312ebfc4e9ac44a477}{}\label{classMesh_a4d45309b6e6500312ebfc4e9ac44a477}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+min\+B\+Box, the min half of the axis aligned bounding box \end{DoxyCompactList}\item 
+glm\+::vec3 \hyperlink{classMesh_ad6f161331138fbf12fce54efd5c0a212}{m\+\_\+max\+B\+Box}\hypertarget{classMesh_ad6f161331138fbf12fce54efd5c0a212}{}\label{classMesh_ad6f161331138fbf12fce54efd5c0a212}
+
+\begin{DoxyCompactList}\small\item\em m\+\_\+max\+B\+Box, the max half of the axis aligned bounding box \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{classMesh}{Mesh} data structure, holds vertices, triangle indices, normals, vertex colours, mesh colour, vertex U\+Vs, vertex bone weights (for skinning). 
+
+\subsection{Member Function Documentation}
+\index{Mesh@{Mesh}!Compute\+B\+Box@{Compute\+B\+Box}}
+\index{Compute\+B\+Box@{Compute\+B\+Box}!Mesh@{Mesh}}
+\subsubsection[{\texorpdfstring{Compute\+B\+Box(const bool \&\+\_\+recompute=false)}{ComputeBBox(const bool &_recompute=false)}}]{\setlength{\rightskip}{0pt plus 5cm}void Mesh\+::\+Compute\+B\+Box (
+\begin{DoxyParamCaption}
+\item[{const bool \&}]{\+\_\+recompute = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\hypertarget{classMesh_a9f8c0578b4a766b0e3cbe3df5fe42311}{}\label{classMesh_a9f8c0578b4a766b0e3cbe3df5fe42311}
+
+
+Method to internally compute the axis aligned bounding box of this mesh. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+recompute} & \+: boolean to recompute this if it has previously been computed but the mesh may have changed since \\
+\hline
+\end{DoxyParams}
+\index{Mesh@{Mesh}!Get\+One\+Ring\+Neighours@{Get\+One\+Ring\+Neighours}}
+\index{Get\+One\+Ring\+Neighours@{Get\+One\+Ring\+Neighours}!Mesh@{Mesh}}
+\subsubsection[{\texorpdfstring{Get\+One\+Ring\+Neighours(std\+::vector$<$ std\+::vector$<$ int $>$$>$ \&\+\_\+one\+Ring) const }{GetOneRingNeighours(std::vector< std::vector< int >> &_oneRing) const }}]{\setlength{\rightskip}{0pt plus 5cm}bool Mesh\+::\+Get\+One\+Ring\+Neighours (
+\begin{DoxyParamCaption}
+\item[{std\+::vector$<$ std\+::vector$<$ int $>$$>$ \&}]{\+\_\+one\+Ring}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\hypertarget{classMesh_a933629b3306bc2fe4a7b6e9eaaecdd06}{}\label{classMesh_a933629b3306bc2fe4a7b6e9eaaecdd06}
+
+
+Method to get the one ring neighbourhoods. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+one\+Ring} & \+: This is a vector of vectors of ints and holds the one ring neighbourhood for each vertex by their Id \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+include/mesh.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,181 @@
+\hypertarget{classImplicitSkinDeformer}{}\section{Implicit\+Skin\+Deformer Class Reference}
+\label{classImplicitSkinDeformer}\index{Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}}
+
+
+This class deforms a mesh using the implicit skinning technique.  
+
+
+
+
+{\ttfamily \#include $<$implicitskindeformer.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classImplicitSkinDeformer_af9d0d9156addcf96d6102bc96d0773b5}{Implicit\+Skin\+Deformer} ()\hypertarget{classImplicitSkinDeformer_af9d0d9156addcf96d6102bc96d0773b5}{}\label{classImplicitSkinDeformer_af9d0d9156addcf96d6102bc96d0773b5}
+
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\hyperlink{classImplicitSkinDeformer_a2ff4a36f4ea1c50a6694c9f24b59fb39}{$\sim$\+Implicit\+Skin\+Deformer} ()\hypertarget{classImplicitSkinDeformer_a2ff4a36f4ea1c50a6694c9f24b59fb39}{}\label{classImplicitSkinDeformer_a2ff4a36f4ea1c50a6694c9f24b59fb39}
+
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_a9254d0b0fe0d7879bbe255ae450a5f6c}{Attach\+Mesh} (const \hyperlink{classMesh}{Mesh} \+\_\+orig\+Mesh, const G\+Luint \+\_\+mesh\+V\+BO, const G\+Luint \+\_\+mesh\+N\+BO, const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transform)
+\begin{DoxyCompactList}\small\item\em Method to attach a mesh to the deformer, and upload data to the G\+PU. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_aac11f0d7043bf72417506e3f2d1e6115}{Generate\+Global\+Field\+Function} (const std\+::vector$<$ \hyperlink{classMesh}{Mesh} $>$ \&\+\_\+mesh\+Parts, const std\+::vector$<$ std\+::pair$<$ glm\+::vec3, glm\+::vec3 $>$$>$ \&\+\_\+bone\+Ends, const int \+\_\+num\+Hrbf\+Centres=50)
+\begin{DoxyCompactList}\small\item\em Method to generate the global function from the various mesh parts. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_ae52a185239c8423afa3203ab6a3b73ee}{Deform} ()\hypertarget{classImplicitSkinDeformer_ae52a185239c8423afa3203ab6a3b73ee}{}\label{classImplicitSkinDeformer_ae52a185239c8423afa3203ab6a3b73ee}
+
+\begin{DoxyCompactList}\small\item\em Method to deform mesh. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_accd43f7784e9c7499b3a735416d1d3ed}{Perform\+L\+B\+W\+Skinning} ()
+\begin{DoxyCompactList}\small\item\em Method to perform L\+BW skinning. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_a92e13917cbab98dac1459c22f4b9830d}{Perform\+Implicit\+Skinning} ()\hypertarget{classImplicitSkinDeformer_a92e13917cbab98dac1459c22f4b9830d}{}\label{classImplicitSkinDeformer_a92e13917cbab98dac1459c22f4b9830d}
+
+\begin{DoxyCompactList}\small\item\em Method to perform Implicit skinning. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_a20c918023dd46eb0d3b4df7f9873686c}{Set\+Rigid\+Transforms} (const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transforms)
+\begin{DoxyCompactList}\small\item\em Method to update bone transforms. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_a53fe153bdf7345773a2b1d2ad4b2698e}{Eval\+Global\+Field} (std\+::vector$<$ float $>$ \&\+\_\+output, const std\+::vector$<$ glm\+::vec3 $>$ \&\+\_\+sample\+Points)
+\begin{DoxyCompactList}\small\item\em Method to evaluate the global field function at a set of given sasmple points. \end{DoxyCompactList}\item 
+void \hyperlink{classImplicitSkinDeformer_a8b9c5d17557ec3cf44ed982a8930e890}{Eval\+Global\+Field\+In\+Cube} (std\+::vector$<$ float $>$ \&\+\_\+output, const int res, const float dim)
+\begin{DoxyCompactList}\small\item\em Method to evaluate the global field function at regular uniform intervals within a cube. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This class deforms a mesh using the implicit skinning technique. 
+
+\begin{DoxyAuthor}{Author}
+Idris Miles 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+18/04/2017 
+\end{DoxyDate}
+
+
+\subsection{Member Function Documentation}
+\index{Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}!Attach\+Mesh@{Attach\+Mesh}}
+\index{Attach\+Mesh@{Attach\+Mesh}!Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}}
+\subsubsection[{\texorpdfstring{Attach\+Mesh(const Mesh \+\_\+orig\+Mesh, const G\+Luint \+\_\+mesh\+V\+B\+O, const G\+Luint \+\_\+mesh\+N\+B\+O, const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transform)}{AttachMesh(const Mesh _origMesh, const GLuint _meshVBO, const GLuint _meshNBO, const std::vector< glm::mat4 > &_transform)}}]{\setlength{\rightskip}{0pt plus 5cm}void Implicit\+Skin\+Deformer\+::\+Attach\+Mesh (
+\begin{DoxyParamCaption}
+\item[{const {\bf Mesh}}]{\+\_\+orig\+Mesh, }
+\item[{const G\+Luint}]{\+\_\+mesh\+V\+BO, }
+\item[{const G\+Luint}]{\+\_\+mesh\+N\+BO, }
+\item[{const std\+::vector$<$ glm\+::mat4 $>$ \&}]{\+\_\+transform}
+\end{DoxyParamCaption}
+)}\hypertarget{classImplicitSkinDeformer_a9254d0b0fe0d7879bbe255ae450a5f6c}{}\label{classImplicitSkinDeformer_a9254d0b0fe0d7879bbe255ae450a5f6c}
+
+
+Method to attach a mesh to the deformer, and upload data to the G\+PU. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+orig\+Mesh} & \+: \hyperlink{classMesh}{Mesh} holding vertices, normals, bone weight and ids \\
+\hline
+{\em \+\_\+mesh\+V\+BO} & \+: The meshes vertex buffer object, need this to map resources so we can directly deform mesh vertices in C\+U\+DA \\
+\hline
+{\em \+\_\+mesh\+N\+BO} & \+: The meshes normal buffer object, need this to map resources so we can directly deform mesh normals in C\+U\+DA \\
+\hline
+{\em \+\_\+transform} & \+: The rest bone transforms. \\
+\hline
+\end{DoxyParams}
+\index{Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}!Eval\+Global\+Field@{Eval\+Global\+Field}}
+\index{Eval\+Global\+Field@{Eval\+Global\+Field}!Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}}
+\subsubsection[{\texorpdfstring{Eval\+Global\+Field(std\+::vector$<$ float $>$ \&\+\_\+output, const std\+::vector$<$ glm\+::vec3 $>$ \&\+\_\+sample\+Points)}{EvalGlobalField(std::vector< float > &_output, const std::vector< glm::vec3 > &_samplePoints)}}]{\setlength{\rightskip}{0pt plus 5cm}void Implicit\+Skin\+Deformer\+::\+Eval\+Global\+Field (
+\begin{DoxyParamCaption}
+\item[{std\+::vector$<$ float $>$ \&}]{\+\_\+output, }
+\item[{const std\+::vector$<$ glm\+::vec3 $>$ \&}]{\+\_\+sample\+Points}
+\end{DoxyParamCaption}
+)}\hypertarget{classImplicitSkinDeformer_a53fe153bdf7345773a2b1d2ad4b2698e}{}\label{classImplicitSkinDeformer_a53fe153bdf7345773a2b1d2ad4b2698e}
+
+
+Method to evaluate the global field function at a set of given sasmple points. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+output} & \+: The output values of the evaulated field at the sampel points. \\
+\hline
+{\em \+\_\+sample\+Points} & \+: A vector of positions in 3D space to sample the global field function. \\
+\hline
+\end{DoxyParams}
+\index{Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}!Eval\+Global\+Field\+In\+Cube@{Eval\+Global\+Field\+In\+Cube}}
+\index{Eval\+Global\+Field\+In\+Cube@{Eval\+Global\+Field\+In\+Cube}!Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}}
+\subsubsection[{\texorpdfstring{Eval\+Global\+Field\+In\+Cube(std\+::vector$<$ float $>$ \&\+\_\+output, const int res, const float dim)}{EvalGlobalFieldInCube(std::vector< float > &_output, const int res, const float dim)}}]{\setlength{\rightskip}{0pt plus 5cm}void Implicit\+Skin\+Deformer\+::\+Eval\+Global\+Field\+In\+Cube (
+\begin{DoxyParamCaption}
+\item[{std\+::vector$<$ float $>$ \&}]{\+\_\+output, }
+\item[{const int}]{res, }
+\item[{const float}]{dim}
+\end{DoxyParamCaption}
+)}\hypertarget{classImplicitSkinDeformer_a8b9c5d17557ec3cf44ed982a8930e890}{}\label{classImplicitSkinDeformer_a8b9c5d17557ec3cf44ed982a8930e890}
+
+
+Method to evaluate the global field function at regular uniform intervals within a cube. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+output} & \+: The output values of the evaulated field at the sampel points. \\
+\hline
+{\em res} & \+: The resolution of the cube volume to sample, number of sample points = res$\ast$res$\ast$res \\
+\hline
+{\em dim} & \+: The dimension of the cube volume to sample. \\
+\hline
+\end{DoxyParams}
+\index{Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}!Generate\+Global\+Field\+Function@{Generate\+Global\+Field\+Function}}
+\index{Generate\+Global\+Field\+Function@{Generate\+Global\+Field\+Function}!Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}}
+\subsubsection[{\texorpdfstring{Generate\+Global\+Field\+Function(const std\+::vector$<$ Mesh $>$ \&\+\_\+mesh\+Parts, const std\+::vector$<$ std\+::pair$<$ glm\+::vec3, glm\+::vec3 $>$$>$ \&\+\_\+bone\+Ends, const int \+\_\+num\+Hrbf\+Centres=50)}{GenerateGlobalFieldFunction(const std::vector< Mesh > &_meshParts, const std::vector< std::pair< glm::vec3, glm::vec3 >> &_boneEnds, const int _numHrbfCentres=50)}}]{\setlength{\rightskip}{0pt plus 5cm}void Implicit\+Skin\+Deformer\+::\+Generate\+Global\+Field\+Function (
+\begin{DoxyParamCaption}
+\item[{const std\+::vector$<$ {\bf Mesh} $>$ \&}]{\+\_\+mesh\+Parts, }
+\item[{const std\+::vector$<$ std\+::pair$<$ glm\+::vec3, glm\+::vec3 $>$$>$ \&}]{\+\_\+bone\+Ends, }
+\item[{const int}]{\+\_\+num\+Hrbf\+Centres = {\ttfamily 50}}
+\end{DoxyParamCaption}
+)}\hypertarget{classImplicitSkinDeformer_aac11f0d7043bf72417506e3f2d1e6115}{}\label{classImplicitSkinDeformer_aac11f0d7043bf72417506e3f2d1e6115}
+
+
+Method to generate the global function from the various mesh parts. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+mesh\+Parts} & \+: A vector of meshes containing individual mesh parts, for example\+: left lower leg, left upper leg etc.. \\
+\hline
+{\em \+\_\+bone\+Starts} & \+: A vector of the positions in 3D space of the start and end of the bones corresponding to the mesh parts. \\
+\hline
+{\em \+\_\+num\+Hrbf\+Centres} & \+: The numbere of Hermite Radial Basis Function (H\+R\+BF) centres used to generate the field function. \\
+\hline
+\end{DoxyParams}
+\index{Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}!Perform\+L\+B\+W\+Skinning@{Perform\+L\+B\+W\+Skinning}}
+\index{Perform\+L\+B\+W\+Skinning@{Perform\+L\+B\+W\+Skinning}!Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}}
+\subsubsection[{\texorpdfstring{Perform\+L\+B\+W\+Skinning()}{PerformLBWSkinning()}}]{\setlength{\rightskip}{0pt plus 5cm}void Implicit\+Skin\+Deformer\+::\+Perform\+L\+B\+W\+Skinning (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{classImplicitSkinDeformer_accd43f7784e9c7499b3a735416d1d3ed}{}\label{classImplicitSkinDeformer_accd43f7784e9c7499b3a735416d1d3ed}
+
+
+Method to perform L\+BW skinning. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+transform} & \+: a vector of joint transform matrices. \\
+\hline
+\end{DoxyParams}
+\index{Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}!Set\+Rigid\+Transforms@{Set\+Rigid\+Transforms}}
+\index{Set\+Rigid\+Transforms@{Set\+Rigid\+Transforms}!Implicit\+Skin\+Deformer@{Implicit\+Skin\+Deformer}}
+\subsubsection[{\texorpdfstring{Set\+Rigid\+Transforms(const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transforms)}{SetRigidTransforms(const std::vector< glm::mat4 > &_transforms)}}]{\setlength{\rightskip}{0pt plus 5cm}void Implicit\+Skin\+Deformer\+::\+Set\+Rigid\+Transforms (
+\begin{DoxyParamCaption}
+\item[{const std\+::vector$<$ glm\+::mat4 $>$ \&}]{\+\_\+transforms}
+\end{DoxyParamCaption}
+)}\hypertarget{classImplicitSkinDeformer_a20c918023dd46eb0d3b4df7f9873686c}{}\label{classImplicitSkinDeformer_a20c918023dd46eb0d3b4df7f9873686c}
+
+
+Method to update bone transforms. 
+
+This is seperated from the deform method as animation and visualisation maybe on different timers. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+transforms} & \+: Updated bone transforms \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/implicitskindeformer.\+h\item 
+src/Implicit\+Skin\+Deformer.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,128 @@
+\hypertarget{classFieldFunction}{}\section{Field\+Function Class Reference}
+\label{classFieldFunction}\index{Field\+Function@{Field\+Function}}
+
+
+This class.  
+
+
+
+
+{\ttfamily \#include $<$fieldfunction.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classFieldFunction_a75fecafa59098d45b5d4898c897ea511}{Field\+Function} ()\hypertarget{classFieldFunction_a75fecafa59098d45b5d4898c897ea511}{}\label{classFieldFunction_a75fecafa59098d45b5d4898c897ea511}
+
+\begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
+\hyperlink{classFieldFunction_a866216b73f8c9d3bfc6288df11d8c40e}{$\sim$\+Field\+Function} ()\hypertarget{classFieldFunction_a866216b73f8c9d3bfc6288df11d8c40e}{}\label{classFieldFunction_a866216b73f8c9d3bfc6288df11d8c40e}
+
+\begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
+void \hyperlink{classFieldFunction_aaf3f6f95b7e94dfa2862b86371e27aed}{Fit} (const std\+::vector$<$ glm\+::vec3 $>$ \&points, const std\+::vector$<$ glm\+::vec3 $>$ \&normals, const float \+\_\+r=1.\+0f)
+\begin{DoxyCompactList}\small\item\em Method to fit the field function given a set of points and normals. \end{DoxyCompactList}\item 
+void \hyperlink{classFieldFunction_aaa8aa14a1d293a8a97c88099f4c5eba3}{Precompute\+Field} (const unsigned int \+\_\+res=32, const float \+\_\+dim=8.\+0f)\hypertarget{classFieldFunction_aaa8aa14a1d293a8a97c88099f4c5eba3}{}\label{classFieldFunction_aaa8aa14a1d293a8a97c88099f4c5eba3}
+
+\begin{DoxyCompactList}\small\item\em Method to precompute field values and store them in m\+\_\+field attribute. \end{DoxyCompactList}\item 
+void \hyperlink{classFieldFunction_ae15deaf7aa376b9855cf67997974ced0}{Set\+Support\+Radius} (const float \+\_\+r)\hypertarget{classFieldFunction_ae15deaf7aa376b9855cf67997974ced0}{}\label{classFieldFunction_ae15deaf7aa376b9855cf67997974ced0}
+
+\begin{DoxyCompactList}\small\item\em Method to set the support radius in order to remap the distance field to a compact field function with range \mbox{[}0\+:1\mbox{]}. \end{DoxyCompactList}\item 
+void \hyperlink{classFieldFunction_a78aea31d711f0dad495aa1ab9c842203}{Set\+Transform} (glm\+::mat4 \+\_\+transform)\hypertarget{classFieldFunction_a78aea31d711f0dad495aa1ab9c842203}{}\label{classFieldFunction_a78aea31d711f0dad495aa1ab9c842203}
+
+\begin{DoxyCompactList}\small\item\em Method to set transform for this field. \end{DoxyCompactList}\item 
+glm\+::mat4 \hyperlink{classFieldFunction_af0d5784f34000520636f74f5b5cb32e6}{Get\+Transform} () const \hypertarget{classFieldFunction_af0d5784f34000520636f74f5b5cb32e6}{}\label{classFieldFunction_af0d5784f34000520636f74f5b5cb32e6}
+
+\begin{DoxyCompactList}\small\item\em Method to get the transform associated with this field. \end{DoxyCompactList}\item 
+glm\+::mat4 \hyperlink{classFieldFunction_aa6aacd61b070c344d21f7f2d6915a125}{Get\+Texture\+Space\+Transform} () const \hypertarget{classFieldFunction_aa6aacd61b070c344d21f7f2d6915a125}{}\label{classFieldFunction_aa6aacd61b070c344d21f7f2d6915a125}
+
+\begin{DoxyCompactList}\small\item\em Method to get the texture space transform associated with this field. \end{DoxyCompactList}\item 
+float \hyperlink{classFieldFunction_a3ebf983af67f0911d617f7a478c78e9e}{Eval} (const glm\+::vec3 \&\+\_\+x)
+\begin{DoxyCompactList}\small\item\em Method to evaluate this field. \end{DoxyCompactList}\item 
+float \hyperlink{classFieldFunction_a0e41ea0b392ce837a60612877a1cfc13}{Eval\+Dist} (const glm\+::vec3 \&x)
+\begin{DoxyCompactList}\small\item\em Method to evaluate the underlying distance field function. \end{DoxyCompactList}\item 
+glm\+::vec3 \hyperlink{classFieldFunction_ae97e058aee362726896d8a6461ead04f}{Grad} (const glm\+::vec3 \&x)
+\begin{DoxyCompactList}\small\item\em Method to evaluate the gradient of the field. \end{DoxyCompactList}\item 
+cuda\+Texture\+Object\+\_\+t \& \hyperlink{classFieldFunction_a886866186fe0ee38dbb80e3996981797}{Get\+Field\+Func\+Cuda\+Texture\+Object} ()\hypertarget{classFieldFunction_a886866186fe0ee38dbb80e3996981797}{}\label{classFieldFunction_a886866186fe0ee38dbb80e3996981797}
+
+\begin{DoxyCompactList}\small\item\em Method to Get the cuda texture object holding the field function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This class. 
+
+\subsection{Member Function Documentation}
+\index{Field\+Function@{Field\+Function}!Eval@{Eval}}
+\index{Eval@{Eval}!Field\+Function@{Field\+Function}}
+\subsubsection[{\texorpdfstring{Eval(const glm\+::vec3 \&\+\_\+x)}{Eval(const glm::vec3 &_x)}}]{\setlength{\rightskip}{0pt plus 5cm}float Field\+Function\+::\+Eval (
+\begin{DoxyParamCaption}
+\item[{const glm\+::vec3 \&}]{\+\_\+x}
+\end{DoxyParamCaption}
+)}\hypertarget{classFieldFunction_a3ebf983af67f0911d617f7a478c78e9e}{}\label{classFieldFunction_a3ebf983af67f0911d617f7a478c78e9e}
+
+
+Method to evaluate this field. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+x} & \+: sample point \\
+\hline
+\end{DoxyParams}
+\index{Field\+Function@{Field\+Function}!Eval\+Dist@{Eval\+Dist}}
+\index{Eval\+Dist@{Eval\+Dist}!Field\+Function@{Field\+Function}}
+\subsubsection[{\texorpdfstring{Eval\+Dist(const glm\+::vec3 \&x)}{EvalDist(const glm::vec3 &x)}}]{\setlength{\rightskip}{0pt plus 5cm}float Field\+Function\+::\+Eval\+Dist (
+\begin{DoxyParamCaption}
+\item[{const glm\+::vec3 \&}]{x}
+\end{DoxyParamCaption}
+)}\hypertarget{classFieldFunction_a0e41ea0b392ce837a60612877a1cfc13}{}\label{classFieldFunction_a0e41ea0b392ce837a60612877a1cfc13}
+
+
+Method to evaluate the underlying distance field function. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+x} & \+: sample point \\
+\hline
+\end{DoxyParams}
+\index{Field\+Function@{Field\+Function}!Fit@{Fit}}
+\index{Fit@{Fit}!Field\+Function@{Field\+Function}}
+\subsubsection[{\texorpdfstring{Fit(const std\+::vector$<$ glm\+::vec3 $>$ \&points, const std\+::vector$<$ glm\+::vec3 $>$ \&normals, const float \+\_\+r=1.\+0f)}{Fit(const std::vector< glm::vec3 > &points, const std::vector< glm::vec3 > &normals, const float _r=1.0f)}}]{\setlength{\rightskip}{0pt plus 5cm}void Field\+Function\+::\+Fit (
+\begin{DoxyParamCaption}
+\item[{const std\+::vector$<$ glm\+::vec3 $>$ \&}]{points, }
+\item[{const std\+::vector$<$ glm\+::vec3 $>$ \&}]{normals, }
+\item[{const float}]{\+\_\+r = {\ttfamily 1.0f}}
+\end{DoxyParamCaption}
+)}\hypertarget{classFieldFunction_aaf3f6f95b7e94dfa2862b86371e27aed}{}\label{classFieldFunction_aaf3f6f95b7e94dfa2862b86371e27aed}
+
+
+Method to fit the field function given a set of points and normals. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em points} & \+: H\+R\+BF centres used to generate field function \\
+\hline
+{\em normals} & \+: H\+R\+BF normals used to generate field function \\
+\hline
+{\em \+\_\+r} & \+: support radius of field function \\
+\hline
+\end{DoxyParams}
+\index{Field\+Function@{Field\+Function}!Grad@{Grad}}
+\index{Grad@{Grad}!Field\+Function@{Field\+Function}}
+\subsubsection[{\texorpdfstring{Grad(const glm\+::vec3 \&x)}{Grad(const glm::vec3 &x)}}]{\setlength{\rightskip}{0pt plus 5cm}glm\+::vec3 Field\+Function\+::\+Grad (
+\begin{DoxyParamCaption}
+\item[{const glm\+::vec3 \&}]{x}
+\end{DoxyParamCaption}
+)}\hypertarget{classFieldFunction_ae97e058aee362726896d8a6461ead04f}{}\label{classFieldFunction_ae97e058aee362726896d8a6461ead04f}
+
+
+Method to evaluate the gradient of the field. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+x} & \+: sample point \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/\+Scalar\+Field/fieldfunction.\+h\item 
+src/\+Scalar\+Field/fieldfunction.\+cpp\end{DoxyCompactItemize}

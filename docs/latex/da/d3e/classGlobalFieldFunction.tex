@@ -1,0 +1,114 @@
+\hypertarget{classGlobalFieldFunction}{}\section{Global\+Field\+Function Class Reference}
+\label{classGlobalFieldFunction}\index{Global\+Field\+Function@{Global\+Field\+Function}}
+
+
+{\ttfamily \#include $<$globalfieldfunction.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classGlobalFieldFunction_a0271c773597d0f768efaf377bd0fe38b}{Global\+Field\+Function} ()\hypertarget{classGlobalFieldFunction_a0271c773597d0f768efaf377bd0fe38b}{}\label{classGlobalFieldFunction_a0271c773597d0f768efaf377bd0fe38b}
+
+\begin{DoxyCompactList}\small\item\em Default constructor. \end{DoxyCompactList}\item 
+\hyperlink{classGlobalFieldFunction_adfe8046eb7a49ca76d50ce461b8fccde}{$\sim$\+Global\+Field\+Function} ()\hypertarget{classGlobalFieldFunction_adfe8046eb7a49ca76d50ce461b8fccde}{}\label{classGlobalFieldFunction_adfe8046eb7a49ca76d50ce461b8fccde}
+
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+float \hyperlink{classGlobalFieldFunction_a9226a98fa5f63736dae4155d99dec240}{Eval} (const glm\+::vec3 \&\+\_\+x)
+\begin{DoxyCompactList}\small\item\em Public method to evaluate global field function at a sample point. \end{DoxyCompactList}\item 
+glm\+::vec3 \hyperlink{classGlobalFieldFunction_a49bffb060b34cb87706aa0fc3884174a}{Grad} (const glm\+::vec3 \&\+\_\+x)
+\begin{DoxyCompactList}\small\item\em Public method to evaluate gradient of global field function at a sample point. \end{DoxyCompactList}\item 
+void {\bfseries Fit} (const int \+\_\+num\+Mesh\+Parts)\hypertarget{classGlobalFieldFunction_ad243a639230c57d507710c117751f5ab}{}\label{classGlobalFieldFunction_ad243a639230c57d507710c117751f5ab}
+
+\item 
+void {\bfseries Generate\+H\+R\+B\+F\+Centres} (const \hyperlink{classMesh}{Mesh} \&\+\_\+mesh\+Part, const glm\+::vec3 \&\+\_\+start\+Joint, const glm\+::vec3 \&\+\_\+end\+Joint, const int \+\_\+num\+Points, \hyperlink{classMesh}{Mesh} \&\+\_\+hrbf\+Centres)\hypertarget{classGlobalFieldFunction_a4e3740f30ea28bb9b6fe1cdd92f0706b}{}\label{classGlobalFieldFunction_a4e3740f30ea28bb9b6fe1cdd92f0706b}
+
+\item 
+void {\bfseries Generate\+Field\+Funcs} (const \hyperlink{classMesh}{Mesh} \&\+\_\+hrbf\+Centres, const \hyperlink{classMesh}{Mesh} \&\+\_\+mesh\+Part, const int \+\_\+id)\hypertarget{classGlobalFieldFunction_a32583dc655877c87063c28363fddf675}{}\label{classGlobalFieldFunction_a32583dc655877c87063c28363fddf675}
+
+\item 
+void {\bfseries Precompute\+Field\+Func} (const int \+\_\+id, const int \+\_\+res, const float \+\_\+dim)\hypertarget{classGlobalFieldFunction_ac670342d15dbc08ede726af118e7ac7a}{}\label{classGlobalFieldFunction_ac670342d15dbc08ede726af118e7ac7a}
+
+\item 
+void {\bfseries Generate\+Global\+Field\+Func} ()\hypertarget{classGlobalFieldFunction_a359ad40bd85555529a05f4ba8c52dea5}{}\label{classGlobalFieldFunction_a359ad40bd85555529a05f4ba8c52dea5}
+
+\item 
+void {\bfseries Add\+Composed\+Field} (std\+::shared\+\_\+ptr$<$ \hyperlink{classComposedField}{Composed\+Field} $>$ \+\_\+composed\+Field)\hypertarget{classGlobalFieldFunction_a9e22015664f10286c786f96dccb24ed4}{}\label{classGlobalFieldFunction_a9e22015664f10286c786f96dccb24ed4}
+
+\item 
+void {\bfseries Add\+Field\+Function} (std\+::shared\+\_\+ptr$<$ \hyperlink{classFieldFunction}{Field\+Function} $>$ \+\_\+field\+Func)\hypertarget{classGlobalFieldFunction_a8fbdf65e403f123aa8e8c7b6e2fad13d}{}\label{classGlobalFieldFunction_a8fbdf65e403f123aa8e8c7b6e2fad13d}
+
+\item 
+void {\bfseries Add\+Composition\+Op} (std\+::shared\+\_\+ptr$<$ \hyperlink{classCompositionOp}{Composition\+Op} $>$ \+\_\+comp\+Op)\hypertarget{classGlobalFieldFunction_a04591e62e352ff472d2b5c6c8ea1f876}{}\label{classGlobalFieldFunction_a04591e62e352ff472d2b5c6c8ea1f876}
+
+\item 
+void {\bfseries Set\+Rigid\+Transforms} (const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transforms)\hypertarget{classGlobalFieldFunction_aa1a3835c54b9b701f65f53c3ffd7f3b6}{}\label{classGlobalFieldFunction_aa1a3835c54b9b701f65f53c3ffd7f3b6}
+
+\item 
+std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classFieldFunction}{Field\+Function} $>$ $>$ \& {\bfseries Get\+Field\+Funcs} ()\hypertarget{classGlobalFieldFunction_ad8bbd29e40c1c71e5756813df01842b5}{}\label{classGlobalFieldFunction_ad8bbd29e40c1c71e5756813df01842b5}
+
+\item 
+std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classCompositionOp}{Composition\+Op} $>$ $>$ \& {\bfseries Get\+Comp\+Ops} ()\hypertarget{classGlobalFieldFunction_a4ebe578648d6b852f90c2aab151bfa0a}{}\label{classGlobalFieldFunction_a4ebe578648d6b852f90c2aab151bfa0a}
+
+\item 
+std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classComposedField}{Composed\+Field} $>$ $>$ \& {\bfseries Get\+Comp\+Fields} ()\hypertarget{classGlobalFieldFunction_a8e2de1aaa09f16e7aa8337e74a456454}{}\label{classGlobalFieldFunction_a8e2de1aaa09f16e7aa8337e74a456454}
+
+\item 
+std\+::vector$<$ \hyperlink{classComposedFieldCuda}{Composed\+Field\+Cuda} $>$ \& {\bfseries Get\+Comp\+Fields\+Cuda} ()\hypertarget{classGlobalFieldFunction_a2b5afb30913aede665c40442ba25d8b3}{}\label{classGlobalFieldFunction_a2b5afb30913aede665c40442ba25d8b3}
+
+\item 
+std\+::vector$<$ cuda\+Texture\+Object\+\_\+t $>$ {\bfseries Get\+Field\+Func3\+D\+Textures} ()\hypertarget{classGlobalFieldFunction_a312f448c044ddc61bab523d3b1b20e8a}{}\label{classGlobalFieldFunction_a312f448c044ddc61bab523d3b1b20e8a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyAuthor}{Author}
+Idris Miles 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+18/04/2017 
+\end{DoxyDate}
+
+
+\subsection{Member Function Documentation}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Eval@{Eval}}
+\index{Eval@{Eval}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Eval(const glm\+::vec3 \&\+\_\+x)}{Eval(const glm::vec3 &_x)}}]{\setlength{\rightskip}{0pt plus 5cm}float Global\+Field\+Function\+::\+Eval (
+\begin{DoxyParamCaption}
+\item[{const glm\+::vec3 \&}]{\+\_\+x}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_a9226a98fa5f63736dae4155d99dec240}{}\label{classGlobalFieldFunction_a9226a98fa5f63736dae4155d99dec240}
+
+
+Public method to evaluate global field function at a sample point. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em glm\+::vec3} & \+\_\+x \+: Sample point to evaulate in global field. \mbox{]} float \+: Value of field at sample point. \\
+\hline
+\end{DoxyParams}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Grad@{Grad}}
+\index{Grad@{Grad}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Grad(const glm\+::vec3 \&\+\_\+x)}{Grad(const glm::vec3 &_x)}}]{\setlength{\rightskip}{0pt plus 5cm}glm\+::vec3 Global\+Field\+Function\+::\+Grad (
+\begin{DoxyParamCaption}
+\item[{const glm\+::vec3 \&}]{\+\_\+x}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_a49bffb060b34cb87706aa0fc3884174a}{}\label{classGlobalFieldFunction_a49bffb060b34cb87706aa0fc3884174a}
+
+
+Public method to evaluate gradient of global field function at a sample point. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em glm\+::vec3} & \+\_\+x \+: Sample point to evaulate in global field. \mbox{]} glm\+::vec3 \+: Gradient of field at sample point. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/\+Scalar\+Field/globalfieldfunction.\+h\item 
+src/\+Scalar\+Field/globalfieldfunction.\+cpp\end{DoxyCompactItemize}

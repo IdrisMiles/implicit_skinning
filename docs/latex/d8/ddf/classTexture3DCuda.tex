@@ -1,0 +1,57 @@
+\hypertarget{classTexture3DCuda}{}\section{Texture3\+D\+Cuda$<$ T $>$ Class Template Reference}
+\label{classTexture3DCuda}\index{Texture3\+D\+Cuda$<$ T $>$@{Texture3\+D\+Cuda$<$ T $>$}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classTexture3DCuda_a8eef6ee9a79d890dd330e46725a51a19}{Texture3\+D\+Cuda} ()\hypertarget{classTexture3DCuda_a8eef6ee9a79d890dd330e46725a51a19}{}\label{classTexture3DCuda_a8eef6ee9a79d890dd330e46725a51a19}
+
+\begin{DoxyCompactList}\small\item\em constructor. \end{DoxyCompactList}\item 
+\hyperlink{classTexture3DCuda_a0fc6c38fbd700136fa0886453319ca61}{$\sim$\+Texture3\+D\+Cuda} ()\hypertarget{classTexture3DCuda_a0fc6c38fbd700136fa0886453319ca61}{}\label{classTexture3DCuda_a0fc6c38fbd700136fa0886453319ca61}
+
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+void \hyperlink{classTexture3DCuda_ad4a9e8c50f737619d8ee407f00b54b49}{Create\+Cuda\+Texture} (unsigned int \+\_\+dim, T $\ast$\+\_\+data, cuda\+Texture\+Filter\+Mode \+\_\+filter\+Mode=cuda\+Filter\+Mode\+Point)
+\begin{DoxyCompactList}\small\item\em Method to create a 3D texture cuda\+Texture\+Object from host side array. \end{DoxyCompactList}\item 
+cuda\+Texture\+Object\+\_\+t \& \hyperlink{classTexture3DCuda_afe13d1c4d101b9e48fe0bc47d8cdd087}{Get\+Cuda\+Texture\+Object} ()
+\begin{DoxyCompactList}\small\item\em Methot to get the cuda\+Texture\+Object\+\_\+t for use within kernels. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\index{Texture3\+D\+Cuda@{Texture3\+D\+Cuda}!Create\+Cuda\+Texture@{Create\+Cuda\+Texture}}
+\index{Create\+Cuda\+Texture@{Create\+Cuda\+Texture}!Texture3\+D\+Cuda@{Texture3\+D\+Cuda}}
+\subsubsection[{\texorpdfstring{Create\+Cuda\+Texture(unsigned int \+\_\+dim, T $\ast$\+\_\+data, cuda\+Texture\+Filter\+Mode \+\_\+filter\+Mode=cuda\+Filter\+Mode\+Point)}{CreateCudaTexture(unsigned int _dim, T *_data, cudaTextureFilterMode _filterMode=cudaFilterModePoint)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ void {\bf Texture3\+D\+Cuda}$<$ T $>$\+::Create\+Cuda\+Texture (
+\begin{DoxyParamCaption}
+\item[{unsigned int}]{\+\_\+dim, }
+\item[{T $\ast$}]{\+\_\+data, }
+\item[{cuda\+Texture\+Filter\+Mode}]{\+\_\+filter\+Mode = {\ttfamily cudaFilterModePoint}}
+\end{DoxyParamCaption}
+)}\hypertarget{classTexture3DCuda_ad4a9e8c50f737619d8ee407f00b54b49}{}\label{classTexture3DCuda_ad4a9e8c50f737619d8ee407f00b54b49}
+
+
+Method to create a 3D texture cuda\+Texture\+Object from host side array. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+dim} & \+: the dimensions of the 3D texture. \\
+\hline
+{\em \+\_\+data} & \+: The host side array of data to fill 3D texture with. \\
+\hline
+\end{DoxyParams}
+\index{Texture3\+D\+Cuda@{Texture3\+D\+Cuda}!Get\+Cuda\+Texture\+Object@{Get\+Cuda\+Texture\+Object}}
+\index{Get\+Cuda\+Texture\+Object@{Get\+Cuda\+Texture\+Object}!Texture3\+D\+Cuda@{Texture3\+D\+Cuda}}
+\subsubsection[{\texorpdfstring{Get\+Cuda\+Texture\+Object()}{GetCudaTextureObject()}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T $>$ cuda\+Texture\+Object\+\_\+t \& {\bf Texture3\+D\+Cuda}$<$ T $>$\+::Get\+Cuda\+Texture\+Object (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{classTexture3DCuda_afe13d1c4d101b9e48fe0bc47d8cdd087}{}\label{classTexture3DCuda_afe13d1c4d101b9e48fe0bc47d8cdd087}
+
+
+Methot to get the cuda\+Texture\+Object\+\_\+t for use within kernels. 
+
+\begin{DoxyReturn}{Returns}
+cuda\+Texture\+Object\+\_\+t 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+include/Texture3\+D\+Cuda.\+h\end{DoxyCompactItemize}

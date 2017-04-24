@@ -1,0 +1,95 @@
+\hypertarget{classHRBF__fit}{}\section{H\+R\+B\+F\+\_\+fit$<$ \+\_\+\+Scalar, \+\_\+\+Dim, Rbf $>$ Class Template Reference}
+\label{classHRBF__fit}\index{H\+R\+B\+F\+\_\+fit$<$ \+\_\+\+Scalar, \+\_\+\+Dim, Rbf $>$@{H\+R\+B\+F\+\_\+fit$<$ \+\_\+\+Scalar, \+\_\+\+Dim, Rbf $>$}}
+
+
+fitting surface on a cloud point and evaluating the implicit surface  
+
+
+
+
+{\ttfamily \#include $<$hrbf\+\_\+core.\+h$>$}
+
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \{ {\bfseries Dim} = \+\_\+\+Dim
+ \}\hypertarget{classHRBF__fit_ab6855a48623c9635a81f9363f27bff70}{}\label{classHRBF__fit_ab6855a48623c9635a81f9363f27bff70}
+
+\item 
+typedef \+\_\+\+Scalar {\bfseries Scalar}\hypertarget{classHRBF__fit_abd2a27baecfdd3613849eb42d9099e40}{}\label{classHRBF__fit_abd2a27baecfdd3613849eb42d9099e40}
+
+\item 
+typedef Eigen\+::\+Matrix$<$ Scalar, Dim, Dim $>$ {\bfseries Matrix\+DD}\hypertarget{classHRBF__fit_a280703141c1690df98cac85dc1e5c572}{}\label{classHRBF__fit_a280703141c1690df98cac85dc1e5c572}
+
+\item 
+typedef Eigen\+::\+Matrix$<$ Scalar, Dim, 1 $>$ {\bfseries Vector}\hypertarget{classHRBF__fit_ae8435f72ad3b66e35f7adf91387a056c}{}\label{classHRBF__fit_ae8435f72ad3b66e35f7adf91387a056c}
+
+\item 
+typedef Eigen\+::\+Matrix$<$ Scalar, Dim, Eigen\+::\+Dynamic $>$ {\bfseries Matrix\+DX}\hypertarget{classHRBF__fit_ae911329cb505e26d69bdec9f7ad91510}{}\label{classHRBF__fit_ae911329cb505e26d69bdec9f7ad91510}
+
+\item 
+typedef Eigen\+::\+Matrix$<$ Scalar, Eigen\+::\+Dynamic, Eigen\+::\+Dynamic $>$ {\bfseries Matrix\+XX}\hypertarget{classHRBF__fit_a36e8ad0f9cc046cb075e6b540c85e513}{}\label{classHRBF__fit_a36e8ad0f9cc046cb075e6b540c85e513}
+
+\item 
+typedef Eigen\+::\+Matrix$<$ Scalar, Eigen\+::\+Dynamic, 1 $>$ {\bfseries VectorX}\hypertarget{classHRBF__fit_ab2625bfd338440602efd1166d2c48cc8}{}\label{classHRBF__fit_ab2625bfd338440602efd1166d2c48cc8}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classHRBF__fit_a6eaa6526a09baebf2ea7f627d396a47a}{hermite\+\_\+fit} (const std\+::vector$<$ Vector $>$ \&points, const std\+::vector$<$ Vector $>$ \&normals)
+\item 
+Scalar \hyperlink{classHRBF__fit_af1db985505c2bda3c4593d05b87f4e05}{eval} (const Vector \&x) const \hypertarget{classHRBF__fit_af1db985505c2bda3c4593d05b87f4e05}{}\label{classHRBF__fit_af1db985505c2bda3c4593d05b87f4e05}
+
+\begin{DoxyCompactList}\small\item\em Evaluate potential f() at position \textquotesingle{}x\textquotesingle{}. \end{DoxyCompactList}\item 
+Vector \hyperlink{classHRBF__fit_adb496c6d20f791517c67981f380020b6}{grad} (const Vector \&x) const \hypertarget{classHRBF__fit_adb496c6d20f791517c67981f380020b6}{}\label{classHRBF__fit_adb496c6d20f791517c67981f380020b6}
+
+\begin{DoxyCompactList}\small\item\em Evaluate gradient nabla f() at position \textquotesingle{}x\textquotesingle{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Matrix\+DX \hyperlink{classHRBF__fit_aca721d9bee4f4e3da2afe74a7b99bd25}{\+\_\+node\+\_\+centers}\hypertarget{classHRBF__fit_aca721d9bee4f4e3da2afe74a7b99bd25}{}\label{classHRBF__fit_aca721d9bee4f4e3da2afe74a7b99bd25}
+
+\begin{DoxyCompactList}\small\item\em Each column represents p\+\_\+i\+: VectorX pi = \+\_\+node\+\_\+centers.\+col(i);. \end{DoxyCompactList}\item 
+VectorX \hyperlink{classHRBF__fit_a146905d5332c833c1d6a9c1bb44ab0c1}{\+\_\+alphas}\hypertarget{classHRBF__fit_a146905d5332c833c1d6a9c1bb44ab0c1}{}\label{classHRBF__fit_a146905d5332c833c1d6a9c1bb44ab0c1}
+
+\begin{DoxyCompactList}\small\item\em Vector of scalar values alpha. \end{DoxyCompactList}\item 
+Matrix\+DX \hyperlink{classHRBF__fit_a1867c893d3e24b8d9ae1a07a99bdbde7}{\+\_\+betas}\hypertarget{classHRBF__fit_a1867c893d3e24b8d9ae1a07a99bdbde7}{}\label{classHRBF__fit_a1867c893d3e24b8d9ae1a07a99bdbde7}
+
+\begin{DoxyCompactList}\small\item\em Each column represents beta\+\_\+i\+: VectorX bi = \+\_\+betas.\+col(i);. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename \+\_\+\+Scalar, int \+\_\+\+Dim, typename Rbf$>$\\*
+class H\+R\+B\+F\+\_\+fit$<$ \+\_\+\+Scalar, \+\_\+\+Dim, Rbf $>$}
+
+fitting surface on a cloud point and evaluating the implicit surface 
+
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em \+\_\+\+Scalar} & \+: a base type float, double etc. \\
+\hline
+{\em \+\_\+\+Dim} & \+: integer of the dimension of the ambient space (for a implicit surface == 3) \\
+\hline
+{\em Rbf} & \+: the class of a the radial basis must implement float Rbf\+::f(float) float Rbf\+::df(float) float Rbf\+::ddf(float) (see \hyperlink{hrbf__phi__funcs_8h}{hrbf\+\_\+phi\+\_\+funcs.\+h} for an example) \\
+\hline
+\end{DoxyTemplParams}
+\begin{DoxyNote}{Note}
+Please go see \href{http://eigen.tuxfamily.org}{\tt http\+://eigen.\+tuxfamily.\+org} to use matrix and vectors types of this lib. The documentation is pretty good. 
+\end{DoxyNote}
+
+
+\subsection{Member Function Documentation}
+\index{H\+R\+B\+F\+\_\+fit@{H\+R\+B\+F\+\_\+fit}!hermite\+\_\+fit@{hermite\+\_\+fit}}
+\index{hermite\+\_\+fit@{hermite\+\_\+fit}!H\+R\+B\+F\+\_\+fit@{H\+R\+B\+F\+\_\+fit}}
+\subsubsection[{\texorpdfstring{hermite\+\_\+fit(const std\+::vector$<$ Vector $>$ \&points, const std\+::vector$<$ Vector $>$ \&normals)}{hermite_fit(const std::vector< Vector > &points, const std::vector< Vector > &normals)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \+\_\+\+Scalar, int \+\_\+\+Dim, typename Rbf$>$ void {\bf H\+R\+B\+F\+\_\+fit}$<$ \+\_\+\+Scalar, \+\_\+\+Dim, Rbf $>$\+::hermite\+\_\+fit (
+\begin{DoxyParamCaption}
+\item[{const std\+::vector$<$ Vector $>$ \&}]{points, }
+\item[{const std\+::vector$<$ Vector $>$ \&}]{normals}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\hypertarget{classHRBF__fit_a6eaa6526a09baebf2ea7f627d396a47a}{}\label{classHRBF__fit_a6eaa6526a09baebf2ea7f627d396a47a}
+Compute surface interpolation given a set of points and normals. This solve the linear system of equation to find alpha scalars and beta beta vectors stored in \textquotesingle{}\+\_\+alphas\textquotesingle{} and \textquotesingle{}\+\_\+betas\textquotesingle{} attributes. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+include/\+Scalar\+Field/\+Hrbf/hrbf\+\_\+core.\+h\end{DoxyCompactItemize}

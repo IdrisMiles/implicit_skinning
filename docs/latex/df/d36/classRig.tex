@@ -1,0 +1,91 @@
+\hypertarget{classRig}{}\section{Rig Class Reference}
+\label{classRig}\index{Rig@{Rig}}
+
+
+The class hold an animated rig.  
+
+
+
+
+{\ttfamily \#include $<$rig.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classRig_a24197b6817aa84decfd45be248a2b7d5}{Rig} ()\hypertarget{classRig_a24197b6817aa84decfd45be248a2b7d5}{}\label{classRig_a24197b6817aa84decfd45be248a2b7d5}
+
+\begin{DoxyCompactList}\small\item\em defualt constructor \end{DoxyCompactList}\item 
+\hyperlink{classRig_a7e295b408d71a2969ecf9d6e2fafea4d}{$\sim$\+Rig} ()\hypertarget{classRig_a7e295b408d71a2969ecf9d6e2fafea4d}{}\label{classRig_a7e295b408d71a2969ecf9d6e2fafea4d}
+
+\begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
+void \hyperlink{classRig_a7fcb3b1e9e344ffb52df977724459bc2}{Animate} (const float \+\_\+animation\+Time)
+\begin{DoxyCompactList}\small\item\em Animate method, animates all the bones in the rig hierarchy at the specified time. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{classRig_a42b95662302d17e8ab047ea080322031}{m\+\_\+anim\+Exists}\hypertarget{classRig_a42b95662302d17e8ab047ea080322031}{}\label{classRig_a42b95662302d17e8ab047ea080322031}
+
+\begin{DoxyCompactList}\small\item\em A boolean to check whether animation exists in this rig. \end{DoxyCompactList}\item 
+float \hyperlink{classRig_a8373e42ca0a664328a934337b696b488}{m\+\_\+ticks\+Per\+Second}\hypertarget{classRig_a8373e42ca0a664328a934337b696b488}{}\label{classRig_a8373e42ca0a664328a934337b696b488}
+
+\begin{DoxyCompactList}\small\item\em The number of ticks (frames) per second. \end{DoxyCompactList}\item 
+float \hyperlink{classRig_a88fdee096d1a8288ddae1501218589e0}{m\+\_\+animation\+Duration}\hypertarget{classRig_a88fdee096d1a8288ddae1501218589e0}{}\label{classRig_a88fdee096d1a8288ddae1501218589e0}
+
+\begin{DoxyCompactList}\small\item\em The duration of the aimation in ticks. \end{DoxyCompactList}\item 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classBone}{Bone} $>$ \hyperlink{classRig_a024e1df72177a5526f5bffcf48490205}{m\+\_\+root\+Bone}\hypertarget{classRig_a024e1df72177a5526f5bffcf48490205}{}\label{classRig_a024e1df72177a5526f5bffcf48490205}
+
+\begin{DoxyCompactList}\small\item\em The root bone of the rig. \end{DoxyCompactList}\item 
+std\+::unordered\+\_\+map$<$ std\+::string, std\+::shared\+\_\+ptr$<$ \hyperlink{classBone}{Bone} $>$ $>$ \hyperlink{classRig_a5be73cd6723167c92dd1d4fd1fc574cc}{m\+\_\+bones}\hypertarget{classRig_a5be73cd6723167c92dd1d4fd1fc574cc}{}\label{classRig_a5be73cd6723167c92dd1d4fd1fc574cc}
+
+\begin{DoxyCompactList}\small\item\em A map of bone names and pointers to the corresponding bone. \end{DoxyCompactList}\item 
+std\+::unordered\+\_\+map$<$ std\+::string, \hyperlink{structBoneAnim}{Bone\+Anim} $>$ \hyperlink{classRig_a909d3789ddcfa23ee5fd2f500bfa315d}{m\+\_\+bone\+Anims}\hypertarget{classRig_a909d3789ddcfa23ee5fd2f500bfa315d}{}\label{classRig_a909d3789ddcfa23ee5fd2f500bfa315d}
+
+\begin{DoxyCompactList}\small\item\em A map of bone names and the corresponding bones animations. \end{DoxyCompactList}\item 
+std\+::vector$<$ glm\+::mat4 $>$ \hyperlink{classRig_a7ec3cb81dbcbecde100a56c89e07cf6b}{m\+\_\+bone\+Transforms}\hypertarget{classRig_a7ec3cb81dbcbecde100a56c89e07cf6b}{}\label{classRig_a7ec3cb81dbcbecde100a56c89e07cf6b}
+
+\begin{DoxyCompactList}\small\item\em A vector of bone transforms. \end{DoxyCompactList}\item 
+std\+::unordered\+\_\+map$<$ std\+::string, unsigned int $>$ \hyperlink{classRig_aa35d3e63ffb0f51931cc846c040ccc7b}{m\+\_\+bone\+Name\+Id\+Mapping}\hypertarget{classRig_aa35d3e63ffb0f51931cc846c040ccc7b}{}\label{classRig_aa35d3e63ffb0f51931cc846c040ccc7b}
+
+\begin{DoxyCompactList}\small\item\em A map of bone names and their bone Ids from A\+S\+S\+I\+MP. \end{DoxyCompactList}\item 
+glm\+::mat4 \hyperlink{classRig_aae508831344e13ec86fdb10081d87130}{m\+\_\+global\+Inverse\+Transform}\hypertarget{classRig_aae508831344e13ec86fdb10081d87130}{}\label{classRig_aae508831344e13ec86fdb10081d87130}
+
+\begin{DoxyCompactList}\small\item\em This rigs inverse global transform. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The class hold an animated rig. 
+
+\begin{DoxyAuthor}{Author}
+Idris Miles 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+18/04/2017 Many of the concepts used here are from\+: \href{http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html}{\tt http\+://ogldev.\+atspace.\+co.\+uk/www/tutorial38/tutorial38.\+html} 
+\end{DoxyDate}
+
+
+\subsection{Member Function Documentation}
+\index{Rig@{Rig}!Animate@{Animate}}
+\index{Animate@{Animate}!Rig@{Rig}}
+\subsubsection[{\texorpdfstring{Animate(const float \+\_\+animation\+Time)}{Animate(const float _animationTime)}}]{\setlength{\rightskip}{0pt plus 5cm}void Rig\+::\+Animate (
+\begin{DoxyParamCaption}
+\item[{const float}]{\+\_\+animation\+Time}
+\end{DoxyParamCaption}
+)}\hypertarget{classRig_a7fcb3b1e9e344ffb52df977724459bc2}{}\label{classRig_a7fcb3b1e9e344ffb52df977724459bc2}
+
+
+Animate method, animates all the bones in the rig hierarchy at the specified time. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+animation\+Time} & \+: current time to evaluate the rigs animation \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/rig.\+h\item 
+src/rig.\+cpp\end{DoxyCompactItemize}
