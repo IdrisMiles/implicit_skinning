@@ -20,8 +20,10 @@ doxygen Doxyfile
 ```
 
 ## Supported Platforms
-This project has been tested on the following platforms
+This project has been tested on the following Platforms
+
 | **OS** | **Version** |
+| ---- | ------- |
 | Ubuntu | 16.04 |
 | RedHat | 7.2 |
 
@@ -56,8 +58,11 @@ cd ImplicitSkinning/bin
 Load in an aniimatio file.
 ### Accepted Animation Files Format
 * .dae (COLLADA) - tested
+
+
 ### Key Operations
 | **Key** | **Operation** |
+| ---- | ------- |
 | **W** | Toggle skinned mesh wireframe |
 | **E** | Toggle rendering skinned mesh |
 | **R** | Toggle rendering Iso-Surface of global field |
