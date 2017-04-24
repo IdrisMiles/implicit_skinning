@@ -18,7 +18,8 @@
 //-------------------------------------------------------------------------------
 
 
-/// @class
+/// @class CompositionOp
+/// @brief A class to operate on 2 field and compose them into a new field.
 class CompositionOp
 {
 public:
