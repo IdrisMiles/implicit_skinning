@@ -197,9 +197,8 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
                                 d_transformPtr,
                                 d_fieldsPtr,
                                 m_numFields,
-                                d_oneRingIdPtr,
+                                d_oneRingVertPtr,
                                 d_centroidWeightsPtr,
-                                d_numNeighsPerVertPtr,
                                 d_oneRingScatterAddrPtr);
 
 

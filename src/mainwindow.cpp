@@ -7,10 +7,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_scene = new OpenGLScene(this);
-    ui->gridLayout->addWidget(m_scene, 1, 1, 1, 1);
+    ui->gridLayout->addWidget(ui->glScene, 0, 0, 2, 1);
 
-    connect(ui->s_loadModel, &QPushButton::clicked, this, &MainWindow::LoadModel);
+    connect(ui->loadModel, &QPushButton::clicked, this, &MainWindow::LoadModel);
 
 }
 
@@ -19,11 +18,6 @@ MainWindow::~MainWindow()
     if(ui != nullptr)
     {
         delete ui;
-    }
-
-    if(m_scene != nullptr)
-    {
-        delete m_scene;
     }
 }
 
@@ -37,5 +31,6 @@ void MainWindow::LoadModel()
         return;
     }
 
-    m_scene->AddModel(file.toStdString());
+
+    ui->glScene->AddModel(file.toStdString());
 }

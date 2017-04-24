@@ -15,12 +15,15 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QPushButton" name="s_loadModel">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="loadModel">
       <property name="text">
        <string>PushButton</string>
       </property>
      </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="OpenGLScene" name="glScene"/>
     </item>
    </layout>
   </widget>
@@ -45,6 +48,13 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>OpenGLScene</class>
+   <extends>QOpenGLWidget</extends>
+   <header>openglscene.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -33,7 +33,6 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
-    OpenGLScene *m_scene;
 };
 
 #endif // MAINWINDOW_H

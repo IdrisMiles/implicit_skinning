@@ -17,11 +17,10 @@ __device__ void VertexProjection(glm::vec3 &_deformedVert,
     float angle = _gradAngle = glm::degrees(glm::angle(glm::normalize(_newIsoGrad), glm::normalize(_prevIsoGrad)));
 //    printf("%f\n",angle);
 
-    if((angle) < _contactAngle)
+    if(angle < _contactAngle)
     {
         glm::vec3 displacement = ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
         _deformedVert = _deformedVert + displacement;
-        _prevIsoGrad = _newIsoGrad;
     }
 }
 
@@ -36,10 +35,9 @@ __device__ void TangentialRelaxation(glm::vec3 &_deformedVert,
                                      const glm::vec3 &_normal,
                                      const float &_origIso,
                                      const float &_newIso,
-                                     const int *_oneRingNeigh,
+                                     const glm::vec3 *_oneRingNeigh,
                                      const float *_centroidWeights,
-                                     const int _numNeighs,
-                                     const glm::vec3 *_verts)
+                                     const int _numNeighs)
 {
     float mu = 1.0f - (float)pow(fabs(_newIso- _origIso) - 1.0f, 4.0f);
     mu = mu < 0.0f ? 0.0f : mu;
@@ -48,7 +46,7 @@ __device__ void TangentialRelaxation(glm::vec3 &_deformedVert,
 
     for(int i=0; i<_numNeighs; i++)
     {
-        glm::vec3 neighVert = _verts[_oneRingNeigh[i]];
+        glm::vec3 neighVert = _oneRingNeigh[i];
         glm::vec3 projNeighVert = ProjectPointOnToPlane(neighVert, _deformedVert, _normal);
         float barycentricCoord = _centroidWeights[i];
         sumWeightedCentroid += barycentricCoord * projNeighVert;
@@ -425,19 +423,15 @@ __global__ void LinearBlendWeightSkin_Kernel(glm::vec3 *_deformedVert,
 
 //------------------------------------------------------------------------------------------------
 
-__global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
-                                          const glm::vec3 *_normal,
-                                          const float *_origIsoValue,
-                                          glm::vec3 *_prevIsoGrad,
-                                          const uint _numVerts,
-                                          const glm::mat4 *_textureSpace,
-                                          const glm::mat4 *_rigidTransforms,
-                                          const cudaTextureObject_t *_fieldFuncs,
-                                          const uint _numFields,
-                                          const int *_oneRingNeigh,
-                                          const float *_centroidWeights,
-                                          const int *_numNeighs,
-                                          const int *_neighScatterAddr)
+__global__ void VertexProjection_Kernel(glm::vec3 *_deformedVert,
+                                        const glm::vec3 *_normal,
+                                        const float *_origIsoValue,
+                                        glm::vec3 *_prevIsoGrad,
+                                        const uint _numVerts,
+                                        const glm::mat4 *_textureSpace,
+                                        const glm::mat4 *_rigidTransforms,
+                                        const cudaTextureObject_t *_fieldFuncs,
+                                        const uint _numFields)
 {
 
     int tid = threadIdx.x + (blockIdx.x * blockDim.x);
@@ -451,7 +445,7 @@ __global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
     // Get iso value from global field
     glm::vec3 deformedVert = _deformedVert[tid];
     float origIsoValue = _origIsoValue[tid];
-    glm::vec3 prevGrad = _prevIsoGrad[tid];//
+    glm::vec3 prevGrad = _prevIsoGrad[tid];
     glm::vec3 newGrad;
     float newIsoValue;
 
@@ -469,17 +463,73 @@ __global__ void SimpleImplicitSkin_Kernel(glm::vec3 *_deformedVert,
     float gradAngle;
     float sigma = 0.35f;
     float contactAngle = 55.0f;
+
     VertexProjection(deformedVert, origIsoValue, newIsoValue, newGrad, prevGrad, gradAngle, sigma, contactAngle);
+    prevGrad = newGrad;
 
     _deformedVert[tid] = deformedVert;
     _prevIsoGrad[tid] = newGrad;
 
+}
+
+//------------------------------------------------------------------------------------------------
+
+__global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
+                                          const glm::vec3 *_normal,
+                                          const float *_origIsoValue,
+                                          glm::vec3 *_prevIsoGrad,
+                                          const uint _numVerts,
+                                          const glm::mat4 *_textureSpace,
+                                          const glm::mat4 *_rigidTransforms,
+                                          const cudaTextureObject_t *_fieldFuncs,
+                                          const uint _numFields,
+                                          const glm::vec3 *_oneRingVerts,
+                                          const float *_centroidWeights,
+                                          const int *_oneRingScatterAddr)
+{
+
+    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
+
+    if(tid >= _numVerts)
+    {
+        return;
+    }
+
 
     //----------------------------------------------------
-    __syncthreads();
+    // initialise variables
+    glm::vec3 deformedVert = _deformedVert[tid];
+    glm::vec3 deformedNorm = _normal[tid];
+    float origIsoValue = _origIsoValue[tid];
+    int startNeighAddr = _oneRingScatterAddr[tid];
+    int numNeighs = _oneRingScatterAddr[tid+1] - startNeighAddr;
+    glm::vec3 newGrad;
+    float newIsoValue;
+
+
+    //----------------------------------------------------
+    // Get iso value from global field
+    SimpleEvalGradGlobalField(newIsoValue,
+                              newGrad,
+                              deformedVert,
+                              _numVerts,
+                              _textureSpace,
+                              _rigidTransforms,
+                              _fieldFuncs,
+                              _numFields);
+
     //----------------------------------------------------
     // Perform Tangential Relaxation
-//    const int *oneRing = (_oneRingNeigh + _neighScatterAddr[tid]);
+    const glm::vec3 *oneRing = (_oneRingVerts + startNeighAddr);
+
+    TangentialRelaxation(deformedVert, deformedNorm, origIsoValue, newIsoValue, oneRing, _centroidWeights, numNeighs);
+
+
+    //----------------------------------------------------
+    // Update data
+    _deformedVert[tid] = deformedVert;
+    _prevIsoGrad[tid] = newGrad;
+
 }
 
 
@@ -750,19 +800,26 @@ void isgw::SimpleImplicitSkin(glm::vec3 *_deformedVert,
                                  const glm::mat4 *_rigidTransforms,
                                  const cudaTextureObject_t *_fieldFuncs,
                                  const uint _numFields,
-                                 const int *_oneRingNeigh,
+                                 const glm::vec3 *_oneRingVerts,
                                  const float *_centroidWeights,
-                                 const int *_numNeighs,
                                  const int *_neighScatterAddr)
 {
     uint numThreads = 1024u;
     uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
 
-    SimpleImplicitSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
-                                                         _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
-                                                         _oneRingNeigh, _centroidWeights, _numNeighs, _neighScatterAddr);
+    for(int i=0; i<10; i++)
+    {
+        VertexProjection_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
+                                                             _textureSpace, _rigidTransforms, _fieldFuncs, _numFields);
 
-    cudaThreadSynchronize();
+        cudaThreadSynchronize();
+
+        TangentialRelaxation_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
+                                                               _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
+                                                               _oneRingVerts, _centroidWeights, _neighScatterAddr);
+
+        cudaThreadSynchronize();
+    }
 
 }
 

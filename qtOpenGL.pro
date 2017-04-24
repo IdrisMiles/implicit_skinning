@@ -22,27 +22,27 @@ QMAKE_CXXFLAGS += -std=c++11 -g
 #QMAKE_LFLAGS_DEBUG *= -pg
 
 
-SOURCES +=  src/*.cpp \
-            src/ScalarField/*.cpp \
-            src/Machingcube/*.cpp \
+SOURCES +=  src/*.cpp               \
+            src/ScalarField/*.cpp   \
+            src/Machingcube/*.cpp   \
             src/MeshSampler/*.cpp
 
-HEADERS  += include/*.h \
-            include/ScalarField/*.h \
-            include/ScalarField/Hrbf/*.h \
-            include/Machingcube/*.h \
+HEADERS  += include/*.h                     \
+            include/ScalarField/*.h         \
+            include/ScalarField/Hrbf/*.h    \
+            include/Machingcube/*.h         \
             include/MeshSampler/*.h
 
 OTHER_FILES += shader/*
 
 
 
-INCLUDEPATH +=  $$PWD/include \
-                /usr/local/include \
-                /usr/include \
-                /home/idris/dev/include \
-                /home/idris/dev/eigen/include/eigen3 \
-                /usr/local/include/eigen3/
+INCLUDEPATH +=  $$PWD/include                       \
+                /usr/local/include                  \
+                /usr/include                        \
+                /usr/local/include/eigen3/          \
+                /home/idris/dev/include             \
+                /home/idris/dev/eigen/include/eigen3
 
 LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW \
         -L${HOME}/dev/lib -L/usr/local/lib -lassimp

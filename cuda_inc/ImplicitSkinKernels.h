@@ -120,9 +120,8 @@ void SimpleImplicitSkin(glm::vec3 *_deformedVert,
                           const glm::mat4 *_rigidTransforms,
                           const cudaTextureObject_t *_fieldFuncs,
                           const uint _numFields,
-                          const int *_oneRingNeigh,
+                          const glm::vec3 *_oneRingVerts,
                           const float *_centroidWeights,
-                          const int *_numNeighs,
                           const int *_neighScatterAddr);
 
 /// @brief Method to generate scatter address
