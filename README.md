@@ -14,6 +14,7 @@ We apply some smoothing and eventually are left with
 
 
 ## Docs
+[Documentation](docs/html/index.html)
 To build the documentation using Doxygen, run:
 ```bash
 doxygen Doxyfile
