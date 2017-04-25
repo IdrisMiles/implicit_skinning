@@ -66,9 +66,9 @@ public :
     //------------------------------------------------------------------------------------
 
     /// @brief Method to compute the one ring neighbourhood
-    void ComputeOneRing()
+    void ComputeOneRing(const bool ccw=true)
     {
-        if(m_oneRingComputed){return;}
+        if(m_oneRingComputed && m_oneRingCCW==ccw){return;}
 
         // make sure one ring container is empty and correct size
         m_meshVertsOneRing.clear();
@@ -112,9 +112,10 @@ public :
         // Sort and compress our one ring neighbours to just the verts in order and not faces
         for(int v=0; v<m_meshVerts.size(); ++v)
         {
-            SortNeighbours(m_meshVertsOneRing[v],  oneRingFaces[v], vertexHashIds);
+            SortNeighbours(m_meshVertsOneRing[v],  oneRingFaces[v], vertexHashIds, ccw);
         }
 
+        m_oneRingCCW = ccw;
         m_oneRingComputed = true;
     }
 
@@ -360,6 +361,8 @@ private:
 
     /// @brief Boolean to check whether the one ring has been computed yet as it's an expensive operation
     bool m_oneRingComputed;
+
+    bool m_oneRingCCW;
 
     /// @brief boolean to check whether the axis aligned bounding box has been computed yet.
     bool m_bboxComputed;
