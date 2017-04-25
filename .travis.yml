@@ -6,6 +6,8 @@ compiler: g++
 
 os: linux
 
+dist: trusty
+
 before_install: sudo sh scripts/install-dependencies.sh
 
 script: sh scripts/build-tests.sh
