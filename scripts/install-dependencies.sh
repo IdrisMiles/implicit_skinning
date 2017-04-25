@@ -5,11 +5,11 @@
 
 # sudo apt-get install g++-4.8 -y
 
-sudo apt-get install libstdc++6
+sudo apt-get install libstdc++6 -y
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y 
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get dist-upgrade
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
 
 sudo apt-get install libgtest-dev
 sudo apt-get install cmake
