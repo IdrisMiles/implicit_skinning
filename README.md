@@ -1,4 +1,6 @@
-[![Build Status - Test](https://travis-ci.org/IdrisMiles/ImplicitSkinning.svg?branch=master)](https://travis-ci.org/IdrisMiles/ImplicitSkinning)
+| **Platform** | **Tests** |
+| -------- | ----- |
+| Linux | [![Build Status](https://travis-ci.org/IdrisMiles/ImplicitSkinning.svg?branch=master)](https://travis-ci.org/IdrisMiles/ImplicitSkinning) |
 
 # Implicit Skinning
 This is my Advanced Graphics Software Development Techniques assignment for Bournemouth University.
