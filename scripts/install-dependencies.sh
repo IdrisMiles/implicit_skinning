@@ -5,7 +5,12 @@ sudo apt-get update -q
 
 sudo apt-get install g++-5 -y
 
-sudo apt-get install libgtest-dev 
+sudo apt-get install libgtest-dev
+sudo apt-get install cmake # install cmake
+cd /usr/src/gtest
+sudo cmake CMakeLists.txt
+sudo make
+sudo cp *.a /usr/lib 
 
 git clone https://github.com/g-truc/glm.git
 cd glm
