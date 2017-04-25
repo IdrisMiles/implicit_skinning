@@ -1,0 +1,6 @@
+language: cpp
+sudo: required
+compiler: g++
+os: linux
+install: ./scripts/install-dependencies.sh
+script: ./scripts/build-tests.sh
