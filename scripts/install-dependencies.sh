@@ -9,6 +9,3 @@ cmake ..
 make
 make install
 cd ../../
-
-sudo apt-get update
-sudo apt-get install -y qt5-qmake

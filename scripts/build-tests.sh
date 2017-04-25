@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 cd test/Mesh
-qmake
+# qmake
 make clean
 make
 cd ../bin
