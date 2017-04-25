@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+sudo apt-get install g++-5 
+
 git clone https://github.com/g-truc/glm.git
 cd glm
 git checkout 0.9.8.0 -b glm

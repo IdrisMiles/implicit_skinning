@@ -4,9 +4,3 @@ compiler: g++
 os: linux
 before_install: sudo sh scripts/install-dependencies.sh
 script: sh scripts/build-tests.sh
-addons:
-    apt:
-        packages:
-            - clang-3.7
-            - g++-5
-            - gcc-5
