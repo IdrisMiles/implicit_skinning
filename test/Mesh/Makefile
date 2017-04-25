@@ -24,7 +24,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = TestMesh1.0.0
-DISTDIR = test/Mesh/obj/TestMesh1.0.0
+DISTDIR = test/Mesh/TestMesh1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) -L/usr/local/lib -L/usr/lib -lgtest -lpthread 
@@ -33,9 +33,6 @@ RANLIB        =
 SED           = sed
 STRIP         = strip
 
-####### Output directory
-
-OBJECTS_DIR   = obj/
 
 ####### Files
 
