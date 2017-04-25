@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-sudo apt-get install g++-5 
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+sudo apt-get update -q
+sudo apt-get install g++-5 -y 
 
 git clone https://github.com/g-truc/glm.git
 cd glm
