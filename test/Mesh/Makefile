@@ -41,8 +41,7 @@ OBJECTS_DIR   = ./
 
 SOURCES       = main.cpp 
 OBJECTS       = ./main.o
-DIST          = test.pro *.h \
-		../../include/mesh.h main.cpp
+DIST          = ../../include/mesh.h main.cpp
 DESTDIR       = ../bin/
 TARGET        = ../bin/TestMesh
 
