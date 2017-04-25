@@ -327,9 +327,14 @@ private:
             }
 
             currFace = *currFaceIt;
-            if(std::find(vertNeighs.begin(), vertNeighs.end(), currFace.second) == vertNeighs.end())
+            auto secondVertPos = std::find(vertNeighs.begin(), vertNeighs.end(), currFace.second);
+            if(secondVertPos == vertNeighs.end())
             {
                 vertNeighs.push_back(currFace.second);
+            }
+            else if(std::find(vertNeighs.begin(), vertNeighs.end(), currFace.first) == vertNeighs.end())
+            {
+                vertNeighs.insert(secondVertPos, currFace.first);
             }
             faceNeighs.erase(currFaceIt);
 

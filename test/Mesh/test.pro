@@ -15,7 +15,8 @@ QMAKE_CXXFLAGS += -std=c++11 -g
 
 SOURCES += main.cpp
 
-HEADERS += ../../include/mesh.h
+HEADERS +=  *.h                     \
+            ../../include/mesh.h
 
 INCLUDEPATH +=  ../../include                       \
                 /usr/local/include                  \
