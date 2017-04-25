@@ -6,12 +6,6 @@ compiler: g++
 
 os: linux
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-
-
 before_install: sudo sh scripts/install-dependencies.sh
 
 script: sh scripts/build-tests.sh
