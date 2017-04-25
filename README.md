@@ -39,7 +39,8 @@ Requires an NVIDIA CUDA enabled GPU to utilize parallel optimizations.
 | [ASSIMP](http://www.assimp.org/) | >= 3.3.1 |
 
 
-## Install and Build
+## Build
+### Linux
 ```bash
 git clone https://github.com/IdrisMiles/ImplicitSkinning.git
 cd ImplicitSkinning
@@ -49,14 +50,16 @@ make
 ```
 
 ## Run
+### Linux
 ```bash
 cd ImplicitSkinning/bin
 ./app
 ```
 
 ## Usage
-Load in an aniimatio file.
+Load in an animation file.
 ### Accepted Animation Files Format
+* In theory any formats ASSIMP can load
 * .dae (COLLADA) - tested
 
 
