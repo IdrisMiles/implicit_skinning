@@ -12,7 +12,7 @@
 # sudo apt-get upgrade -y
 # sudo apt-get dist-upgrade -y
 # sudo apt-get -qq install libstdc++6 -y
-sudo apt-get -f install
+# sudo apt-get -f install
 
 # if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 

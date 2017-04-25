@@ -2,7 +2,7 @@ language: cpp
 
 sudo: required
 
-compiler: g++-4.9
+compiler: g++
 
 os: linux
 
