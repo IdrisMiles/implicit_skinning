@@ -6,9 +6,9 @@
 # sudo apt-get install g++-4.8 -y
 
 sudo apt-get install libstdc++6 -y
-# sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y 
-# sudo apt-get update -y
-# sudo apt-get upgrade -y
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y 
+sudo apt-get -qq update -y
+sudo apt-get upgrade -y
 # sudo apt-get dist-upgrade -y
 
 sudo apt-get install libgtest-dev
