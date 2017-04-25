@@ -1,4 +1,4 @@
-| **Platform** | **Tests** |
+| **Platform** | **Status** |
 | -------- | ----- |
 | Linux | [![Build Status](https://travis-ci.org/IdrisMiles/ImplicitSkinning.svg?branch=master)](https://travis-ci.org/IdrisMiles/ImplicitSkinning) |
 
