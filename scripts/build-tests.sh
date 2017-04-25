@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-locate / | grep libgtest.
-
 cd test/Mesh
 # qmake
 make clean
