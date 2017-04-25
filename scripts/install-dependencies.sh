@@ -2,7 +2,10 @@
 
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 sudo apt-get update -q
-sudo apt-get install g++-5 -y 
+
+sudo apt-get install g++-5 -y
+
+sudo apt-get install libgtest-dev 
 
 git clone https://github.com/g-truc/glm.git
 cd glm
