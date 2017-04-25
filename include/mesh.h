@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <iostream>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
