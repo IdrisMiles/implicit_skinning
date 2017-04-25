@@ -10,4 +10,4 @@ dist: trusty
 
 before_install: sudo sh scripts/install-dependencies.sh
 
-script: sh scripts/build-tests.sh
+script: sudo sh scripts/build-tests.sh
