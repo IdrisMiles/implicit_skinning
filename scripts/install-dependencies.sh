@@ -27,7 +27,7 @@ sudo cp *.a /usr/lib
 
 git clone https://github.com/g-truc/glm.git
 cd glm
-git checkout 0.9.8.0 -b glm
+git checkout 0.9.8 -b glm
 mkdir build
 cd build
 cmake ..

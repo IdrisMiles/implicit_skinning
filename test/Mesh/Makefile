@@ -6,7 +6,7 @@ MAKEFILE      = Makefile
 CC            = gcc
 CXX           = g++
 CFLAGS        = -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -std=c++11 -g -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -std=c++0x -g -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I../../include -isystem /usr/local/include -isystem /usr/include 
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
