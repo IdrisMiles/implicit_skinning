@@ -1,3 +1,5 @@
+[![Build Status - Test](https://travis-ci.org/IdrisMiles/ImplicitSkinning.svg?branch=master)](https://travis-ci.org/IdrisMiles/ImplicitSkinning)
+
 # Implicit Skinning
 This is my Advanced Graphics Software Development Techniques assignment for Bournemouth University.
 This project is my implementation of implicit skinning based on ["Implicit Skinning: Real-Time Skin Deformation with Contact Modeling"](http://rodolphe-vaillant.fr/pivotx/templates/projects/implicit_skinning/implicit_skinning.pdf). 
