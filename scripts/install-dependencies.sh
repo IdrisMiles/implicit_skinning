@@ -7,6 +7,8 @@ mkdir build
 cd build
 cmake ..
 make
+make install
 cd ../../
 
+sudo apt-get update
 sudo apt-get install sudo apt-get install qt5-qmake
