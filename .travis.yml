@@ -2,5 +2,5 @@ language: cpp
 sudo: required
 compiler: g++
 os: linux
-install: sudo sh scripts/install-dependencies.sh
+before_install: sudo sh scripts/install-dependencies.sh
 script: sh scripts/build-tests.sh

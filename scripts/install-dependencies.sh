@@ -11,4 +11,4 @@ make install
 cd ../../
 
 sudo apt-get update
-sudo apt-get install sudo apt-get install qt5-qmake
+sudo apt-get install -y qt5-qmake
