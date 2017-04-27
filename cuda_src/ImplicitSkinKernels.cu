@@ -1,4 +1,5 @@
 #include "ImplicitSkinKernels.h"
+#include <cuda_runtime.h>
 
 
 //------------------------------------------------------------------------------------------------
@@ -15,10 +16,12 @@ __device__ void VertexProjection(glm::vec3 &_deformedVert,
                                  const float &_contactAngle)
 {
     float angle = _gradAngle = glm::degrees(glm::angle(glm::normalize(_newIsoGrad), glm::normalize(_prevIsoGrad)));
-//    printf("%f\n",angle);
 
-    if(angle < _contactAngle)
+    if(angle <= _contactAngle)
     {
+//        float a = _origIso;
+//        float b = _newIso;
+//        printf("orig %f, new %f\n", a, b);
         glm::vec3 displacement = ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
         _deformedVert = _deformedVert + displacement;
     }
@@ -31,23 +34,46 @@ __device__ glm::vec3 ProjectPointOnToPlane(const glm::vec3 &_point, const glm::v
     return (_point - (glm::dot(_point - _planeOrigin, _planeNormal) * _planeNormal));
 }
 
-__device__ void TangentialRelaxation(glm::vec3 &_deformedVert,
+//------------------------------------------------------------------------------------------------
+
+__device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
                                      const glm::vec3 &_normal,
-                                     const float &_origIso,
-                                     const float &_newIso,
-                                     const glm::vec3 *_oneRingNeigh,
+                                     const float _origIso,
+                                     const float _newIso,
+                                      glm::vec3 *_verts,
+                                     const int *_oneRingNeigh,
                                      const float *_centroidWeights,
                                      const int _numNeighs)
 {
-    float mu = 1.0f - (float)pow(fabs(_newIso- _origIso) - 1.0f, 4.0f);
-    mu = mu < 0.0f ? 0.0f : mu;
+    float mu = 1.0f - powf(fabs(_newIso- _origIso) - 1.0f, 4.0f);
+    mu = max(mu, 0.0f);
+//    mu = 0.0f;
 
-    glm::vec3 sumWeightedCentroid(0.0f);
+//    if(isnan(mu))
+//    {
+//        printf("ding");
+//        return;
+//    }
+//    printf("%f\n", mu);
 
+
+
+    glm::vec3 norm(0.0f, 0.0f, 0.0f);
     for(int i=0; i<_numNeighs; i++)
     {
-        glm::vec3 neighVert = _oneRingNeigh[i];
-        glm::vec3 projNeighVert = ProjectPointOnToPlane(neighVert, _deformedVert, _normal);
+        int nextNeigh = ((i+1)%_numNeighs);
+        glm::vec3 neighVert = _verts[_oneRingNeigh[i]];
+        glm::vec3 nextNeighVert = _verts[_oneRingNeigh[nextNeigh]];
+        glm::vec3 faceNorm = glm::cross(neighVert - _deformedVert, nextNeighVert-_deformedVert);
+        norm += faceNorm;
+    }
+    norm = glm::normalize(norm);
+
+    glm::vec3 sumWeightedCentroid(0.0f);
+    for(int i=0; i<_numNeighs; i++)
+    {
+        glm::vec3 neighVert = _verts[_oneRingNeigh[i]];
+        glm::vec3 projNeighVert = ProjectPointOnToPlane(neighVert, _deformedVert, norm);//_normal);
         float barycentricCoord = _centroidWeights[i];
         sumWeightedCentroid += barycentricCoord * projNeighVert;
     }
@@ -128,6 +154,7 @@ __device__ void EvalGlobalField(float &_outputF,
 
 
     _outputF = maxF;
+
 }
 
 //------------------------------------------------------------------------------------------------
@@ -196,83 +223,14 @@ __device__ void EvalGradGlobalField(float &_outputF,
 
     _outputF = maxF;
     _outputG = grad;
-}
-
-//------------------------------------------------------------------------------------------------
-
-__device__ void SimpleEvalGlobalField(float &_output,
-                                      const glm::vec3 &_samplePoint,
-                                      const uint _numSamples,
-                                      const glm::mat4 *_textureSpace,
-                                      const glm::mat4 *_rigidTransforms,
-                                      const cudaTextureObject_t *_fieldFuncs,
-                                      const uint _numFields)
-{
-    float maxF = FLT_MIN;
-    float f[100];
-
-    for(int i=0; i<_numFields; i++)
-    {
-        glm::mat4 rigidTrans = _rigidTransforms[i];
-        glm::mat4 textureSpace = _textureSpace[i];
-        glm::vec3 transformedPoint = glm::vec3(glm::inverse(rigidTrans) * glm::vec4(_samplePoint, 1.0f));
-        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
-        texturePoint = 1.015f*texturePoint;
-
-        f[i] = tex3D<float4>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z).w;
-
-        maxF = (f[i]>maxF) ? f[i] : maxF;
-    }
-
-    _output = maxF;
-}
-
-
-//------------------------------------------------------------------------------------------------
-
-__device__ void SimpleEvalGradGlobalField(float &_outputF,
-                                          glm::vec3 &_outputG,
-                                          const glm::vec3 &_samplePoint,
-                                          const uint _numSamples,
-                                          const glm::mat4 *_textureSpace,
-                                          const glm::mat4 *_rigidTransforms,
-                                          const cudaTextureObject_t *_fieldFuncs,
-                                          const uint _numFields)
-{
-    float maxF = FLT_MIN;
-    glm::vec3 grad;
-    float f[100];
-    glm::vec3 df[100];
-
-    for(int i=0; i<_numFields; i++)
-    {
-        glm::mat4 rigidTrans = _rigidTransforms[i];
-        glm::mat4 textureSpace = _textureSpace[i];
-        glm::vec3 transformedPoint = glm::vec3(glm::inverse(rigidTrans) * glm::vec4(_samplePoint, 1.0f));
-        glm::vec3 texturePoint = glm::vec3(textureSpace * glm::vec4(transformedPoint, 1.0f));
-        texturePoint = 1.015f*texturePoint;
-
-        float4 val = tex3D<float4>(_fieldFuncs[i], texturePoint.x, texturePoint.y, texturePoint.z);
-        f[i] = val.w;
-        df[i] = glm::vec3(val.x, val.y, val.z);
-
-//        grad += df[i];
-        grad = (f[i]>maxF) ? df[i] : grad;
-        maxF = (f[i]>maxF) ? f[i] : maxF;
-    }
-
-    _outputF = maxF;
-    _outputG = grad;
 
 }
 
-//------------------------------------------------------------------------------------------------
 
 
 //------------------------------------------------------------------------------------------------
 // CUDA Global Kernels
 //------------------------------------------------------------------------------------------------
-
 
 __global__ void EvalGlobalField_Kernel(float *_output,
                                        const glm::vec3 *_samplePoint,
@@ -329,62 +287,6 @@ __global__ void EvalGradGlobalField_Kernel(float *_output,
                         _compFields, _numCompFields);
 }
 
-//------------------------------------------------------------------------------------------------
-
-__global__ void SimpleEvalGlobalField_Kernel(float *_output,
-                                             const glm::vec3 *_samplePoint,
-                                             const uint _numSamples,
-                                             const glm::mat4 *_textureSpace,
-                                             const glm::mat4 *_rigidTransforms,
-                                             const cudaTextureObject_t *_fieldFuncs,
-                                             const uint _numFields)
-{
-    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
-
-    if(tid >= _numSamples)
-    {
-        return;
-    }
-
-    SimpleEvalGlobalField(_output[tid],
-                              _samplePoint[tid],
-                              _numSamples,
-                              _textureSpace,
-                              _rigidTransforms,
-                              _fieldFuncs,
-                              _numFields);
-
-}
-
-
-//------------------------------------------------------------------------------------------------
-
-__global__ void SimpleEvalGradGlobalField_Kernel(float *_outputF,
-                                                 glm::vec3 *_outputG,
-                                                 const glm::vec3 *_samplePoint,
-                                                 const uint _numSamples,
-                                                 const glm::mat4 *_textureSpace,
-                                                 const glm::mat4 *_rigidTransforms,
-                                                 const cudaTextureObject_t *_fieldFuncs,
-                                                 const uint _numFields)
-{
-    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
-
-    if(tid >= _numSamples)
-    {
-        return;
-    }
-
-    SimpleEvalGradGlobalField(_outputF[tid],
-                              _outputG[tid],
-                              _samplePoint[tid],
-                              _numSamples,
-                              _textureSpace,
-                              _rigidTransforms,
-                              _fieldFuncs,
-                              _numFields);
-
-}
 
 //------------------------------------------------------------------------------------------------
 
@@ -431,7 +333,12 @@ __global__ void VertexProjection_Kernel(glm::vec3 *_deformedVert,
                                         const glm::mat4 *_textureSpace,
                                         const glm::mat4 *_rigidTransforms,
                                         const cudaTextureObject_t *_fieldFuncs,
-                                        const uint _numFields)
+                                        const uint _numFields,
+                                        const cudaTextureObject_t *_compOps,
+                                        const cudaTextureObject_t *_theta,
+                                        const uint _numOps,
+                                        const ComposedFieldCuda *_compFields,
+                                        const uint _numCompFields)
 {
 
     int tid = threadIdx.x + (blockIdx.x * blockDim.x);
@@ -449,14 +356,11 @@ __global__ void VertexProjection_Kernel(glm::vec3 *_deformedVert,
     glm::vec3 newGrad;
     float newIsoValue;
 
-    SimpleEvalGradGlobalField(newIsoValue,
-                              newGrad,
-                              deformedVert,
-                              _numVerts,
-                              _textureSpace,
-                              _rigidTransforms,
-                              _fieldFuncs,
-                              _numFields);
+    EvalGradGlobalField(newIsoValue, newGrad, deformedVert, _numVerts,
+                        _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
+                        _compOps, _theta, _numOps,
+                        _compFields, _numCompFields);
+
 
     //----------------------------------------------------
     // Perform vertex projection along gradient of global field
@@ -483,7 +387,12 @@ __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
                                           const glm::mat4 *_rigidTransforms,
                                           const cudaTextureObject_t *_fieldFuncs,
                                           const uint _numFields,
-                                          const glm::vec3 *_oneRingVerts,
+                                            const cudaTextureObject_t *_compOps,
+                                            const cudaTextureObject_t *_theta,
+                                            const uint _numOps,
+                                            const ComposedFieldCuda *_compFields,
+                                            const uint _numCompFields,
+                                          const int *_oneRingVerts,
                                           const float *_centroidWeights,
                                           const int *_oneRingScatterAddr)
 {
@@ -509,26 +418,25 @@ __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
 
     //----------------------------------------------------
     // Get iso value from global field
-    SimpleEvalGradGlobalField(newIsoValue,
-                              newGrad,
-                              deformedVert,
-                              _numVerts,
-                              _textureSpace,
-                              _rigidTransforms,
-                              _fieldFuncs,
-                              _numFields);
+    EvalGradGlobalField(newIsoValue, newGrad, deformedVert, _numVerts,
+                        _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
+                        _compOps, _theta, _numOps,
+                        _compFields, _numCompFields);
+
+    _prevIsoGrad[tid] = newGrad;
 
     //----------------------------------------------------
     // Perform Tangential Relaxation
-    const glm::vec3 *oneRing = (_oneRingVerts + startNeighAddr);
+    const int *oneRing = (_oneRingVerts + startNeighAddr);
+    const float *centroid = (_centroidWeights + startNeighAddr);
 
-    TangentialRelaxation(deformedVert, deformedNorm, origIsoValue, newIsoValue, oneRing, _centroidWeights, numNeighs);
+    TangentialRelaxation(deformedVert, deformedNorm, origIsoValue, newIsoValue, _deformedVert, oneRing, centroid, numNeighs);
 
 
     //----------------------------------------------------
     // Update data
     _deformedVert[tid] = deformedVert;
-    _prevIsoGrad[tid] = newGrad;
+
 
 }
 
@@ -643,220 +551,4 @@ __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
             _centroidWeights[neighId] = w[i] / W;
         }
     }
-}
-
-//------------------------------------------------------------------------------------------------
-// Helper CPP Functions
-//------------------------------------------------------------------------------------------------
-
-uint isgw::iDivUp(uint a, uint b)
-{
-    uint c = a/b;
-    c += (a%b == 0) ? 0: 1;
-    return c;
-}
-
-
-
-//------------------------------------------------------------------------------------------------
-// CPP functions
-//------------------------------------------------------------------------------------------------
-
-void isgw::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
-                                   const glm::vec3 *_origVert,
-                                    glm::vec3 *_deformedNorms,
-                                    const glm::vec3 *_origNorms,
-                                   const glm::mat4 *_transform,
-                                   const uint *_boneId,
-                                   const float *_weight,
-                                   const uint _numVerts,
-                                   const uint _numBones)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
-
-
-    LinearBlendWeightSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert,
-                                                            _origVert,
-                                                            _deformedNorms,
-                                                            _origNorms,
-                                                            _transform,
-                                                            _boneId,
-                                                            _weight,
-                                                            _numVerts,
-                                                            _numBones);
-    cudaThreadSynchronize();
-}
-
-//------------------------------------------------------------------------------------------------
-
-void isgw::SimpleEvalGlobalField(float *_output,
-                                    const glm::vec3 *_samplePoint,
-                                    const uint _numSamples,
-                                    const glm::mat4* _textureSpace,
-                                    const glm::mat4 *_rigidTransforms,
-                                    const cudaTextureObject_t *_fieldFuncs,
-                                    const uint _numFields)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
-
-    SimpleEvalGlobalField_Kernel<<<numBlocks, numThreads>>>(_output,
-                                                                _samplePoint,
-                                                                _numSamples,
-                                                                _textureSpace,
-                                                                _rigidTransforms,
-                                                                _fieldFuncs,
-                                                                _numFields);
-    cudaThreadSynchronize();
-}
-
-//------------------------------------------------------------------------------------------------
-
-void isgw::SimpleEvalGradGlobalField(float *_outputF,
-                                        glm::vec3 *_outputG,
-                                        const glm::vec3 *_samplePoint,
-                                        const uint _numSamples,
-                                        const glm::mat4* _textureSpace,
-                                        const glm::mat4 *_rigidTransforms,
-                                        const cudaTextureObject_t *_fieldFuncs,
-                                        const uint _numFields)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
-
-    SimpleEvalGradGlobalField_Kernel<<<numBlocks, numThreads>>>(_outputF,
-                                                                _outputG,
-                                                                _samplePoint,
-                                                                _numSamples,
-                                                                _textureSpace,
-                                                                _rigidTransforms,
-                                                                _fieldFuncs,
-                                                                _numFields);
-    cudaThreadSynchronize();
-}
-
-//------------------------------------------------------------------------------------------------
-
-void isgw::EvalGlobalField(float *_output,
-                              const glm::vec3 *_samplePoint,
-                              const uint _numSamples,
-                              const glm::mat4 *_textureSpace,
-                              const glm::mat4 *_rigidTransforms,
-                              const cudaTextureObject_t *_fieldFuncs,
-                              const uint _numFields,
-                              const cudaTextureObject_t *_compOps,
-                              const cudaTextureObject_t *_theta,
-                              const uint _numOps,
-                              const ComposedFieldCuda *_compFields,
-                              const uint _numCompFields)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
-
-    EvalGlobalField_Kernel<<<numBlocks, numThreads>>>(_output, _samplePoint, _numSamples,
-                                                          _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
-                                                          _compOps, _theta, _numOps,
-                                                          _compFields, _numCompFields);
-
-    cudaThreadSynchronize();
-}
-
-//------------------------------------------------------------------------------------------------
-
-void isgw::EvalGradGlobalField(float *_output,
-                               glm::vec3 *_outputG,
-                              const glm::vec3 *_samplePoint,
-                              const uint _numSamples,
-                              const glm::mat4 *_textureSpace,
-                              const glm::mat4 *_rigidTransforms,
-                              const cudaTextureObject_t *_fieldFuncs,
-                              const uint _numFields,
-                              const cudaTextureObject_t *_compOps,
-                              const cudaTextureObject_t *_theta,
-                              const uint _numOps,
-                              const ComposedFieldCuda *_compFields,
-                              const uint _numCompFields)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
-
-    EvalGradGlobalField_Kernel<<<numBlocks, numThreads>>>(_output, _outputG, _samplePoint, _numSamples,
-                                                          _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
-                                                          _compOps, _theta, _numOps,
-                                                          _compFields, _numCompFields);
-
-    cudaThreadSynchronize();
-}
-
-//------------------------------------------------------------------------------------------------
-
-void isgw::SimpleImplicitSkin(glm::vec3 *_deformedVert,
-                                 const glm::vec3 *_normal,
-                                 const float *_origIsoValue,
-                                 glm::vec3 *_prevIsoGrad,
-                                 const uint _numVerts,
-                                 const glm::mat4 *_textureSpace,
-                                 const glm::mat4 *_rigidTransforms,
-                                 const cudaTextureObject_t *_fieldFuncs,
-                                 const uint _numFields,
-                                 const glm::vec3 *_oneRingVerts,
-                                 const float *_centroidWeights,
-                                 const int *_neighScatterAddr)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
-
-    for(int i=0; i<10; i++)
-    {
-        VertexProjection_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
-                                                             _textureSpace, _rigidTransforms, _fieldFuncs, _numFields);
-
-        cudaThreadSynchronize();
-
-        TangentialRelaxation_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
-                                                               _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
-                                                               _oneRingVerts, _centroidWeights, _neighScatterAddr);
-
-        cudaThreadSynchronize();
-    }
-
-}
-
-//------------------------------------------------------------------------------------------------
-
-void isgw::GenerateScatterAddress(int *begin,
-                                     int *end,
-                                     int *scatteredAddr)
-{
-    thrust::device_ptr<int> beginPtr = thrust::device_pointer_cast(begin);
-    thrust::device_ptr<int> endPtr = thrust::device_pointer_cast(end);
-    thrust::device_ptr<int> scatteredAddrPtr = thrust::device_pointer_cast(scatteredAddr);
-    thrust::exclusive_scan(beginPtr, endPtr, scatteredAddrPtr);
-}
-
-//------------------------------------------------------------------------------------------------
-
-void isgw::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
-                                             const glm::vec3 *d_normals,
-                                             const uint _numVerts,
-                                             float *_centroidWeights,
-                                             const int *_oneRingIds,
-                                             const glm::vec3 *_oneRingVerts,
-                                             const int *_numNeighsPerVert,
-                                             const int *_oneRingScatterAddr)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
-
-    GenerateOneRingCentroidWeights_Kernel<<<numBlocks, numThreads>>>(d_verts,
-                                                                     d_normals,
-                                                                     _numVerts,
-                                                                     _centroidWeights,
-                                                                     _oneRingIds,
-                                                                     _oneRingVerts,
-                                                                     _numNeighsPerVert,
-                                                                     _oneRingScatterAddr);
-
-    cudaThreadSynchronize();
 }

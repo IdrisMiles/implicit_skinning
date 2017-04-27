@@ -1,5 +1,6 @@
 #include "implicitskindeformer.h"
-#include "ImplicitSkinKernels.h"
+//#include "ImplicitSkinKernels.h"
+#include "ImplicitSkinGpuWrapper.h"
 #include "helper_cuda.h"
 
 
@@ -43,14 +44,12 @@ void ImplicitSkinDeformer::InitialiseIsoValues()
         glm::mat4 tmpTransform(1.0f);
         glm::mat4 * d_tmpTransform;
         checkCudaErrors(cudaMalloc(&d_tmpTransform, m_numTransforms * sizeof(glm::mat4)));
-        for(int i=0;i<m_numFields;i++)
+        for(int i=0;i<m_numTransforms;i++)
         {
-            checkCudaErrors(cudaMemcpy((void*)d_tmpTransform, &tmpTransform[0][0], m_numTransforms * sizeof(glm::mat4), cudaMemcpyHostToDevice));
+            checkCudaErrors(cudaMemcpy(d_tmpTransform+i, &tmpTransform[0][0], sizeof(glm::mat4), cudaMemcpyHostToDevice));
         }
 
         // run kernel
-//        isgw::SimpleEvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields);
-//        getLastCudaError("isgw::SimpleEvalGradGlobalField");
         isgw::EvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields, d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields);
         getLastCudaError("isgw::EvalGradGlobalField");
 
@@ -188,18 +187,10 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
     }
 
 
-    isgw::SimpleImplicitSkin(GetDeformedMeshVertsDevicePtr(),
-                                GetDeformedMeshNormsDevicePtr(),
-                                d_origVertIsoPtr,
-                                d_vertIsoGradPtr,
-                                m_numVerts,
-                                d_textureSpacePtr,
-                                d_transformPtr,
-                                d_fieldsPtr,
-                                m_numFields,
-                                d_oneRingVertPtr,
-                                d_centroidWeightsPtr,
-                                d_oneRingScatterAddrPtr);
+    isgw::SimpleImplicitSkin(GetDeformedMeshVertsDevicePtr(), GetDeformedMeshNormsDevicePtr(), d_origVertIsoPtr, d_vertIsoGradPtr, m_numVerts,
+                             d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields,
+                             d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields,
+                             d_oneRingIdPtr, d_centroidWeightsPtr, d_oneRingScatterAddrPtr);
 
 
 
@@ -353,8 +344,6 @@ void ImplicitSkinDeformer::EvalGlobalFieldGPU(std::vector<float> &_output, const
     checkCudaErrors(cudaMemcpy((void*)d_samplePoints, &_samplePoints[0], _samplePoints.size() * sizeof(glm::vec3), cudaMemcpyHostToDevice));
 
     // run kernel
-//    isgw::SimpleEvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields);
-//    getLastCudaError("isgw::SimpleEvalGlobalField");
     isgw::EvalGlobalField(d_output, d_samplePoints, _samplePoints.size(), d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields, d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields);
     getLastCudaError("isgw::EvalGlobalField");
 
