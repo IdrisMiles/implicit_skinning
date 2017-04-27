@@ -25,13 +25,18 @@ QMAKE_CXXFLAGS += -std=c++11 -g
 SOURCES +=  src/*.cpp               \
             src/ScalarField/*.cpp   \
             src/Machingcube/*.cpp   \
-            src/MeshSampler/*.cpp
+            src/MeshSampler/*.cpp   \
+            src/Model/*.cpp         \
+            src/GUI/*.cpp
 
 HEADERS  += include/*.h                     \
             include/ScalarField/*.h         \
             include/ScalarField/Hrbf/*.h    \
             include/Machingcube/*.h         \
-            include/MeshSampler/*.h
+            include/MeshSampler/*.h         \
+            include/Model/*.h               \
+            include/GUI/*.h                 \
+            include/Texture/.*h
 
 OTHER_FILES += shader/*
 
@@ -52,7 +57,7 @@ OBJECTS_DIR = ./obj
 
 MOC_DIR = ./moc
 
-FORMS    += ./form/mainwindow.ui
+FORMS    += ./form/*
 
 UI_DIR += ./ui
 

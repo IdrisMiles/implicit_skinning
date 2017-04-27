@@ -1,4 +1,4 @@
-#include "model.h"
+#include "Model/model.h"
 #include "MeshSampler/meshsampler.h"
 
 #include <QOpenGLContext>

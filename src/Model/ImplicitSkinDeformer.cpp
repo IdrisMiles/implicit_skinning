@@ -1,5 +1,4 @@
-#include "implicitskindeformer.h"
-//#include "ImplicitSkinKernels.h"
+#include "Model/implicitskindeformer.h"
 #include "ImplicitSkinGpuWrapper.h"
 #include "helper_cuda.h"
 
@@ -11,7 +10,10 @@ ImplicitSkinDeformer::ImplicitSkinDeformer():
     m_initFieldCudaMem(false),
     m_initGobalFieldFunc(false),
     m_deformedMeshVertsMapped(false),
-    m_deformedMeshNormsMapped(false)
+    m_deformedMeshNormsMapped(false),
+    m_sigma(0.35f),
+    m_contactAngle(55.0f),
+    m_numIterations(1)
 {
     m_threads.resize(std::thread::hardware_concurrency()-1);
     checkCudaErrors(cudaSetDevice(0));
@@ -190,7 +192,8 @@ void ImplicitSkinDeformer::PerformImplicitSkinning()
     isgw::SimpleImplicitSkin(GetDeformedMeshVertsDevicePtr(), GetDeformedMeshNormsDevicePtr(), d_origVertIsoPtr, d_vertIsoGradPtr, m_numVerts,
                              d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields,
                              d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields,
-                             d_oneRingIdPtr, d_centroidWeightsPtr, d_oneRingScatterAddrPtr);
+                             d_oneRingIdPtr, d_centroidWeightsPtr, d_oneRingScatterAddrPtr,
+                             m_sigma, m_contactAngle, m_numIterations);
 
 
 
@@ -237,6 +240,27 @@ void ImplicitSkinDeformer::SetRigidTransforms(const std::vector<glm::mat4> &_tra
         m_numTransforms = _transforms.size();
         checkCudaErrors(cudaMemcpy((void*)d_transformPtr, &_transforms[0][0][0], m_numTransforms * sizeof(glm::mat4), cudaMemcpyHostToDevice));
     }
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::SetSigma(float _sigma)
+{
+    m_sigma = _sigma;
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::SetContactAngle(float _contactAngle)
+{
+    m_contactAngle = _contactAngle;
+}
+
+//------------------------------------------------------------------------------------------------
+
+void ImplicitSkinDeformer::SetIterations(int _iterations)
+{
+    m_numIterations = _iterations;
 }
 
 //------------------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-#include "include/boneAnim.h"
+#include "Model/boneAnim.h"
 
 /// @author Idris Miles
 /// @version 1.0

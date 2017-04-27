@@ -1,4 +1,4 @@
-#include "include/ScalarField/globalfieldfunction.h"
+#include "ScalarField/globalfieldfunction.h"
 #include <algorithm>
 
 GlobalFieldFunction::GlobalFieldFunction()

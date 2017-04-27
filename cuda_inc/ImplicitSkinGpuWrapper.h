@@ -54,6 +54,29 @@ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const uint _numBones);
 
 
+/// @brief Function to launch CUDA Kernel to perform implicit skinning
+void SimpleImplicitSkin(glm::vec3 *_deformedVert,
+                        const glm::vec3 *_normal,
+                        const float *_origIsoValue,
+                        glm::vec3 *_prevIsoGrad,
+                        const uint _numVerts,
+                        const glm::mat4 *_textureSpace,
+                        const glm::mat4 *_rigidTransforms,
+                        const cudaTextureObject_t *_fieldFuncs,
+                        const uint _numFields,
+                        const cudaTextureObject_t *_compOps,
+                        const cudaTextureObject_t *_theta,
+                        const uint _numOps,
+                        const ComposedFieldCuda *_compFields,
+                        const uint _numCompFields,
+                        const int *_oneRingVerts,
+                        const float *_centroidWeights,
+                        const int *_neighScatterAddr,
+                        const float _sigma,
+                        const float _contactAngle,
+                        const int _iterations);
+
+
 /// @brief Function to launch CUDA Kernel to evaluate the global field
 /// @param _output : Device pointer to the output
 /// @param _samplePoint : Const device pointer to the sample points
@@ -75,6 +98,7 @@ void EvalGlobalField(float *_output,
                       const ComposedFieldCuda *_compFields,
                       const uint _numCompFields);
 
+
 ///// @brief Function to launch CUDA Kernel to evaluate gradient of global field
 void EvalGradGlobalField(float *_output,
                          glm::vec3 *_outputG,
@@ -90,29 +114,12 @@ void EvalGradGlobalField(float *_output,
                          const ComposedFieldCuda *_compFields,
                          const uint _numCompFields);
 
-/// @brief Function to launch CUDA Kernel to perform implicit skinning
-void SimpleImplicitSkin(glm::vec3 *_deformedVert,
-                          const glm::vec3 *_normal,
-                          const float *_origIsoValue,
-                        glm::vec3 *_prevIsoGrad,
-                          const uint _numVerts,
-                          const glm::mat4 *_textureSpace,
-                          const glm::mat4 *_rigidTransforms,
-                          const cudaTextureObject_t *_fieldFuncs,
-                          const uint _numFields,
-                        const cudaTextureObject_t *_compOps,
-                        const cudaTextureObject_t *_theta,
-                        const uint _numOps,
-                        const ComposedFieldCuda *_compFields,
-                        const uint _numCompFields,
-                          const int *_oneRingVerts,
-                          const float *_centroidWeights,
-                          const int *_neighScatterAddr);
 
 /// @brief Method to generate scatter address
 void GenerateScatterAddress(int *begin,
                             int *end,
                             int *scatteredAddr);
+
 
 /// @brief Method to generate the one ring centroid weights for each mesh vertex
 void GenerateOneRingCentroidWeights(glm::vec3 *d_verts, const glm::vec3 *d_normals,
@@ -122,6 +129,7 @@ void GenerateOneRingCentroidWeights(glm::vec3 *d_verts, const glm::vec3 *d_norma
                                     const glm::vec3 *_oneRingVerts,
                                     const int *_numNeighsPerVert,
                                     const int *_oneRingScatterAddr);
+
 
 }
 #endif //IMPLICITSKINGPUWRAPPER_H

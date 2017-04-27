@@ -16,7 +16,7 @@
 #include <glm/gtx/transform.hpp>
 
 #include <vector>
-#include "include/model.h"
+#include "Model/model.h"
 
 
 //-------------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 #include <ScalarField/composedfield.h>
 #include <ScalarField/composedfieldGPU.h>
 
-#include <mesh.h>
+#include <Model/mesh.h>
 #include <MeshSampler/meshsampler.h>
 
 #include <memory>

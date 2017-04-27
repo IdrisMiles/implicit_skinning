@@ -98,32 +98,36 @@ void isgw::EvalGradGlobalField(float *_output,
 //------------------------------------------------------------------------------------------------
 
 void isgw::SimpleImplicitSkin(glm::vec3 *_deformedVert,
-                                 const glm::vec3 *_normal,
-                                 const float *_origIsoValue,
-                                 glm::vec3 *_prevIsoGrad,
-                                 const uint _numVerts,
-                                 const glm::mat4 *_textureSpace,
-                                 const glm::mat4 *_rigidTransforms,
-                                 const cudaTextureObject_t *_fieldFuncs,
-                                 const uint _numFields,
+                              const glm::vec3 *_normal,
+                              const float *_origIsoValue,
+                              glm::vec3 *_prevIsoGrad,
+                              const uint _numVerts,
+                              const glm::mat4 *_textureSpace,
+                              const glm::mat4 *_rigidTransforms,
+                              const cudaTextureObject_t *_fieldFuncs,
+                              const uint _numFields,
                               const cudaTextureObject_t *_compOps,
                               const cudaTextureObject_t *_theta,
                               const uint _numOps,
                               const ComposedFieldCuda *_compFields,
                               const uint _numCompFields,
-                                 const int *_oneRingVerts,
-                                 const float *_centroidWeights,
-                                 const int *_neighScatterAddr)
+                              const int *_oneRingVerts,
+                              const float *_centroidWeights,
+                              const int *_neighScatterAddr,
+                              const float _sigma,
+                              const float _contactAngle,
+                              const int _iterations)
 {
     uint numThreads = 1024u;
     uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
 
-    for(int i=0; i<1; i++)
+    for(int i=0; i<_iterations; i++)
     {
         VertexProjection_Kernel<<<numBlocks, numThreads>>>(_deformedVert, _normal, _origIsoValue, _prevIsoGrad, _numVerts,
                                                              _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
                                                            _compOps, _theta, _numOps,
-                                                           _compFields, _numCompFields);
+                                                           _compFields, _numCompFields,
+                                                           _sigma, _contactAngle);
 
         cudaThreadSynchronize();
 
@@ -131,7 +135,8 @@ void isgw::SimpleImplicitSkin(glm::vec3 *_deformedVert,
                                                                _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
                                                                _compOps, _theta, _numOps,
                                                                _compFields, _numCompFields,
-                                                               _oneRingVerts, _centroidWeights, _neighScatterAddr);
+                                                               _oneRingVerts, _centroidWeights, _neighScatterAddr,
+                                                               _sigma, _contactAngle);
 
         cudaThreadSynchronize();
     }

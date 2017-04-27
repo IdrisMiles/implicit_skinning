@@ -1,9 +1,9 @@
-#include "include/openglscene.h"
+#include "GUI/openglscene.h"
 #include <iostream>
 #include <QMouseEvent>
 #include <math.h>
 
-#include "modelloader.h"
+#include "Model/modelloader.h"
 
 //-----------------------------------------------------------------------------------------------------
 OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),

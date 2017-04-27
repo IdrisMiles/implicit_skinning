@@ -144,26 +144,30 @@ __global__ void VertexProjection_Kernel(glm::vec3 *_deformedVert,
                                         const cudaTextureObject_t *_theta,
                                         const uint _numOps,
                                         const ComposedFieldCuda *_compFields,
-                                        const uint _numCompFields);
+                                        const uint _numCompFields,
+                                        const float _sigma,
+                                        const float _contactAngle);
 
 
 __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
-                                          const glm::vec3 *_normal,
-                                          const float *_origIsoValue,
-                                          glm::vec3 *_prevIsoGrad,
-                                          const uint _numVerts,
-                                          const glm::mat4 *_textureSpace,
-                                          const glm::mat4 *_rigidTransforms,
-                                          const cudaTextureObject_t *_fieldFuncs,
-                                          const uint _numFields,
+                                            const glm::vec3 *_normal,
+                                            const float *_origIsoValue,
+                                            glm::vec3 *_prevIsoGrad,
+                                            const uint _numVerts,
+                                            const glm::mat4 *_textureSpace,
+                                            const glm::mat4 *_rigidTransforms,
+                                            const cudaTextureObject_t *_fieldFuncs,
+                                            const uint _numFields,
                                             const cudaTextureObject_t *_compOps,
                                             const cudaTextureObject_t *_theta,
                                             const uint _numOps,
                                             const ComposedFieldCuda *_compFields,
                                             const uint _numCompFields,
-                                          const int *_oneRingVerts,
-                                          const float *_centroidWeights,
-                                          const int *_oneRingScatterAddr);
+                                            const int *_oneRingVerts,
+                                            const float *_centroidWeights,
+                                            const int *_oneRingScatterAddr,
+                                            const float _sigma,
+                                            const float _contactAngle);
 
 
 __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,

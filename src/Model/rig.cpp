@@ -1,4 +1,4 @@
-#include "include/rig.h"
+#include "Model/rig.h"
 #include <glm/gtx/transform.hpp>
 
 Rig::Rig()

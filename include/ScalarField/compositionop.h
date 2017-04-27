@@ -7,8 +7,8 @@
 
 #include <cuda.h>
 
-#include "Texture3DCuda.h"
-#include "Texture3DCpu.h"
+#include "Texture/Texture3DCuda.h"
+#include "Texture/Texture3DCpu.h"
 
 
 //-------------------------------------------------------------------------------

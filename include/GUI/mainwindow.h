@@ -5,7 +5,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 
-#include "openglscene.h"
+#include "GUI/openglscene.h"
 
 
 //-------------------------------------------------------------------------------
@@ -26,10 +26,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
-public slots:
-    void LoadModel();
-
 
 private:
     Ui::MainWindow *ui;

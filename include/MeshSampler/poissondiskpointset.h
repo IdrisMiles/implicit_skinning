@@ -1,7 +1,7 @@
 #ifndef POISSONDISKPOINTSET_H
 #define POISSONDISKPOINTSET_H
 
-#include "mesh.h"
+#include "Model/mesh.h"
 
 
 namespace MeshSampler

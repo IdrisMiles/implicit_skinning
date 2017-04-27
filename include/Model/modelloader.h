@@ -6,7 +6,7 @@
 #include <assimp/scene.h>
 #include <assimp/matrix4x4.h>
 
-#include "include/model.h"
+#include "Model/model.h"
 
 
 //-------------------------------------------------------------------------------

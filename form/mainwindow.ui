@@ -16,9 +16,9 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="1">
-     <widget class="QPushButton" name="loadModel">
-      <property name="text">
-       <string>PushButton</string>
+     <widget class="ImplicitSkinSettings" name="implicitSkinSettings">
+      <property name="title">
+       <string>Implicit Skinining Settings</string>
       </property>
      </widget>
     </item>
@@ -52,7 +52,13 @@
   <customwidget>
    <class>OpenGLScene</class>
    <extends>QOpenGLWidget</extends>
-   <header>openglscene.h</header>
+   <header>include/GUI/openglscene.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ImplicitSkinSettings</class>
+   <extends>QGroupBox</extends>
+   <header>include/GUI/implicitskinsettings.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

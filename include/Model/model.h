@@ -13,8 +13,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "include/rig.h"
-#include "include/mesh.h"
+#include "Model/rig.h"
+#include "Model/mesh.h"
 
 #include "ScalarField/Hrbf/hrbf_core.h"
 #include "ScalarField/Hrbf/hrbf_phi_funcs.h"

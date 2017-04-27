@@ -7,7 +7,7 @@
 #include <cuda.h>
 #include <cuda_gl_interop.h>
 
-#include "mesh.h"
+#include "Model/mesh.h"
 #include "ScalarField/globalfieldfunction.h"
 
 
@@ -65,6 +65,15 @@ public:
     /// @brief This is seperated from the deform method as animation and visualisation maybe on different timers.
     /// @param _transforms : Updated bone transforms
     void SetRigidTransforms(const std::vector<glm::mat4> &_transforms);
+
+    /// @brief Method to set sigma
+    void SetSigma(float _sigma);
+
+    /// @brief Method to set contact angle
+    void SetContactAngle(float _contactAngle);
+
+    /// @brief Method to set number of iterations
+    void SetIterations(int _iterations);
 
     //--------------------------------------------------------------------
 
@@ -192,10 +201,15 @@ private:
 
     /// @brief The number of primitive fields that our global field is composed of.
     uint m_numFields;
+
     uint m_numCompOps;
+
     uint m_numCompFields;
+
     int m_numTransforms;
+
     glm::vec3 m_minBBox;
+
     glm::vec3 m_maxBBox;
 
     /// @brief
@@ -209,6 +223,13 @@ private:
 
     /// @brief
     bool m_initGobalFieldFunc;
+
+    float m_sigma;
+
+    float m_contactAngle;
+
+    int m_numIterations;
+
 
 
     //---------------------------------------------------------------------

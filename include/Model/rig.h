@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <memory>
 
-#include "include/boneAnim.h"
-#include "include/bone.h"
+#include "Model/boneAnim.h"
+#include "Model/bone.h"
 
 //---------------------------------------------------------------
 /// @author Idris Miles
