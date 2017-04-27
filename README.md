@@ -14,7 +14,18 @@ The project is written in C++ and uses CUDA to speed up evaluation of field func
 * The transformed field functions are combined using composition operators that combines two field functions into one.
 * Once all the fields are composed together we are left with the global field, whose 0.5 iso-surface approximates the whole mesh.
 * During the skinining process we initially apply LBW skinning, then we march the deformed vertices along the gradient of the global field.
-* We apply some smoothing and eventually are left with an implicit skinned mesh.  
+* We apply some smoothing and eventually are left with an implicit skinned mesh.
+
+## Status
+### Completed
+* Generate fields for each mesh part.
+* Pre-compute fields into 3D textures.
+* Generate global field on the GPU.
+* Evaluate global field on the GPU.
+* Visualise Iso-Surface.
+* Implemented Max composition operator.
+### Issues - TODO
+* Implement gradient based composition operator.
 
 
 ## Docs
