@@ -41,7 +41,7 @@ OBJECTS_DIR   = ./
 
 SOURCES       = main.cpp 
 OBJECTS       = ./main.o
-DIST          = ../../include/mesh.h main.cpp
+DIST          = ../../include/Model/mesh.h main.cpp
 DESTDIR       = ../bin/
 TARGET        = ../bin/TestMesh
 
@@ -91,7 +91,7 @@ compiler_clean:
 
 ./main.o: main.cpp OneRingTest.h \
 		MeshShared.h \
-		../../include/mesh.h
+		../../include/Model/mesh.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ./main.o main.cpp
 
 
