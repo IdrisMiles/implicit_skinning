@@ -6,6 +6,15 @@
 // CUDA Device Functions
 //------------------------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------------------------
+
+__device__ glm::vec3 ProjectPointOnToPlane(const glm::vec3 &_point, const glm::vec3 &_planeOrigin, const glm::vec3 &_planeNormal)
+{
+    return (_point - (glm::dot(_point - _planeOrigin, _planeNormal) * _planeNormal));
+}
+
+//------------------------------------------------------------------------------------------------
+
 __device__ void VertexProjection(glm::vec3 &_deformedVert,
                                  const float &_origIso,
                                  const float &_newIso,
@@ -19,19 +28,9 @@ __device__ void VertexProjection(glm::vec3 &_deformedVert,
 
     if(angle <= _contactAngle)
     {
-//        float a = _origIso;
-//        float b = _newIso;
-//        printf("orig %f, new %f\n", a, b);
         glm::vec3 displacement = ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
         _deformedVert = _deformedVert + displacement;
     }
-}
-
-//------------------------------------------------------------------------------------------------
-
-__device__ glm::vec3 ProjectPointOnToPlane(const glm::vec3 &_point, const glm::vec3 &_planeOrigin, const glm::vec3 &_planeNormal)
-{
-    return (_point - (glm::dot(_point - _planeOrigin, _planeNormal) * _planeNormal));
 }
 
 //------------------------------------------------------------------------------------------------
@@ -47,16 +46,6 @@ __device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
 {
     float mu = 1.0f - powf(fabs(_newIso- _origIso) - 1.0f, 4.0f);
     mu = max(mu, 0.0f);
-//    mu = 0.0f;
-
-//    if(isnan(mu))
-//    {
-//        printf("ding");
-//        return;
-//    }
-//    printf("%f\n", mu);
-
-
 
     glm::vec3 norm(0.0f, 0.0f, 0.0f);
     for(int i=0; i<_numNeighs; i++)
