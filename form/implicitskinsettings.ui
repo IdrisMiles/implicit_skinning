@@ -75,6 +75,9 @@
         <property name="text">
          <string>Implicit</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="1" column="0">
@@ -98,6 +101,9 @@
     <widget class="QCheckBox" name="renderMesh">
      <property name="text">
       <string>Render Mesh</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -157,6 +163,9 @@
     <widget class="QCheckBox" name="isoSurface">
      <property name="text">
       <string>Iso-Surface</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

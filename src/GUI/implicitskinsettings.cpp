@@ -49,7 +49,6 @@ ImplicitSkinSettings::ImplicitSkinSettings(QWidget *parent) :
 
 
     connect(ui->renderMesh, &QCheckBox::clicked, this, [this](bool checked){
-        ui->wireframe->setEnabled(checked);
         emit RenderMeshChanged(checked);
     });
 
