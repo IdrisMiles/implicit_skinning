@@ -44,17 +44,22 @@ OpenGLScene::~OpenGLScene()
 
 //-----------------------------------------------------------------------------------------------------
 
-void OpenGLScene::AddModel(const std::string &_modelFile)
+std::shared_ptr<Model> OpenGLScene::AddModel(const std::string &_modelFile)
 {
 
     if(m_initGL)
     {
         makeCurrent();
-        m_models.push_back(std::shared_ptr<Model>(ModelLoader::LoadModel(_modelFile)));
+        auto model = std::shared_ptr<Model>(ModelLoader::LoadModel(_modelFile));
+        m_models.push_back(model);
         m_models.back()->Initialise();
         doneCurrent();
         update();
+
+        return model;
     }
+
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------------------------------------

@@ -360,6 +360,29 @@ void Model::ToggleIsoSurface()
 }
 
 
+
+void Model::SetWireframe(const bool set)
+{
+    m_wireframe = set;
+}
+
+void Model::SetSkinnedSurface(const bool set)
+{
+    m_drawSkin = set;
+}
+
+void Model::SetSkinnedImplicitSurface(const bool set)
+{
+    m_deformImplicitSkin = set;
+}
+
+void Model::SetIsoSurface(const bool set)
+{
+    m_drawIsoSurface = set;
+}
+
+
+
 void Model::CreateShaders()
 {
     // SKINNING Shader
@@ -817,6 +840,13 @@ Mesh &Model::GetMesh()
 Mesh &Model::GetRigMesh()
 {
     return m_rigMesh;
+}
+
+//---------------------------------------------------------------------------------
+
+ImplicitSkinDeformer *Model::GetImplicitDeformer()
+{
+    return m_implicitSkinner;
 }
 
 //---------------------------------------------------------------------------------

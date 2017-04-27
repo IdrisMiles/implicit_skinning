@@ -46,6 +46,28 @@ ImplicitSkinSettings::ImplicitSkinSettings(QWidget *parent) :
         ui->animationFileText->setText(text);
         emit AnimationFileChnaged(text.toStdString());
     });
+
+
+    connect(ui->renderMesh, &QCheckBox::clicked, this, [this](bool checked){
+        ui->wireframe->setEnabled(checked);
+        emit RenderMeshChanged(checked);
+    });
+
+    connect(ui->wireframe, &QCheckBox::clicked, this, [this](bool checked){
+        emit WireframeChanged(checked);
+    });
+
+    connect(ui->isoSurface, &QCheckBox::clicked, this, [this](bool checked){
+        emit IsoSurfaceChanged(checked);
+    });
+
+    connect(ui->implicitSkin, &QRadioButton::clicked, this, [this](bool checked){
+        emit ImplicitSkinChanged(checked);
+    });
+
+    connect(ui->lbwSkin, &QRadioButton::clicked, this, [this](bool checked){
+        emit LBWSkinChanged(checked);
+    });
 }
 
 //-------------------------------------------------------------------------------

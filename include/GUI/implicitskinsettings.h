@@ -53,10 +53,10 @@ signals:
     void IterationsChanged(int iterations);
 
     /// @brief Qt Signal emitted when sigma chanegd
-    void SigmaChanged(double sigma);
+    void SigmaChanged(float sigma);
 
     /// @brief Qt Signal emitted when contact angle changed
-    void ContactAngleChanged(double contactAngle);
+    void ContactAngleChanged(float contactAngle);
 
     /// @brief Qt Signal emitted when load animation button clicked
     void LoadAnimationClicked();
@@ -66,6 +66,16 @@ signals:
 
     /// @brief Qt Signal emitted when animation file name changed
     void AnimationFileChnaged(std::string file);
+
+    void RenderMeshChanged(bool checked);
+
+    void WireframeChanged(bool checked);
+
+    void IsoSurfaceChanged(bool checked);
+
+    void ImplicitSkinChanged(bool checked);
+
+    void LBWSkinChanged(bool checked);
 
 public slots:
 

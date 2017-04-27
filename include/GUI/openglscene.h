@@ -44,7 +44,7 @@ public:
 
     /// @brief Method to add a model into the scene
     /// @param _modelField : File to load into the scene
-    void AddModel(const std::string &_modelFile);
+    std::shared_ptr<Model> AddModel(const std::string &_modelFile);
 
 
 public slots:

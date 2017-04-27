@@ -19,7 +19,41 @@ MainWindow::MainWindow(QWidget *parent) :
 
         if(!file.empty())
         {
-            ui->glScene->AddModel(file);
+            auto model = ui->glScene->AddModel(file).get();
+            auto implicitDeformer = model->GetImplicitDeformer();
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::SigmaChanged, [this, implicitDeformer](float sigma){
+                implicitDeformer->SetSigma(sigma);
+            });
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::ContactAngleChanged, [this, implicitDeformer](float contactAngle){
+                implicitDeformer->SetContactAngle(contactAngle);
+            });
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::IterationsChanged, [this, implicitDeformer](float iterations){
+                implicitDeformer->SetIterations(iterations);
+            });
+
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::RenderMeshChanged, [this, model](bool checked){
+               model->SetSkinnedSurface(checked);
+            });
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::WireframeChanged, [this, model](bool checked){
+               model->SetWireframe(checked);
+            });
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::IsoSurfaceChanged, [this, model](bool checked){
+               model->SetIsoSurface(checked);
+            });
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::ImplicitSkinChanged, [this, model](bool checked){
+               model->SetSkinnedImplicitSurface(checked);
+            });
+
+            connect(ui->implicitSkinSettings, &ImplicitSkinSettings::LBWSkinChanged, [this, model](bool checked){
+               model->SetSkinnedImplicitSurface(!checked);
+            });
         }
     });
 

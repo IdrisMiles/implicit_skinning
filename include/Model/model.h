@@ -74,6 +74,24 @@ public:
     /// @brief Method to toggle rendering the iso surface of the global field from the implicit deformer
     void ToggleIsoSurface();
 
+
+
+
+    /// @brief Method to toggle rendering the skinned mesh in wireframe or filled
+    void SetWireframe(const bool set);
+
+    /// @brief Method to toggle rendering of the skinned mesh
+    void SetSkinnedSurface(const bool set);
+
+    /// @brief Method to toggle performing implicit or linear blend weight skinning
+    void SetSkinnedImplicitSurface(const bool set);
+
+    /// @brief Method to toggle rendering the iso surface of the global field from the implicit deformer
+    void SetIsoSurface(const bool set);
+
+
+
+
     /// @brief Method to set light position
     void SetLightPos(const glm::vec3 &_lightPos);
 
@@ -97,6 +115,9 @@ public:
 
     /// @brief Method to get the Rig Mesh
     Mesh &GetRigMesh();
+
+    /// @brief Method to get the implicit deformer
+    ImplicitSkinDeformer *GetImplicitDeformer();
 
 
 private:
