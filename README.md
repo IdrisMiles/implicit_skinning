@@ -18,16 +18,16 @@ The project is written in C++ and uses CUDA to speed up evaluation of field func
 
 ## Status
 ### Completed
-* Generate fields for each mesh part.
-* Pre-compute fields into 3D textures.
-* Generate global field on the GPU.
-* Evaluate global field on the GPU.
-* Visualise Iso-Surface.
-* Implemented Max composition operator.
-* Implemented Vertex Projection, Tangential Relaxation according to paper.
+* :white_check_mark: Generate fields for each mesh part.
+* :white_check_mark: Pre-compute fields into 3D textures.
+* :white_check_mark: Generate global field on the GPU.
+* :white_check_mark: Evaluate global field on the GPU.
+* :white_check_mark: Visualise Iso-Surface.
+* :white_check_mark: Implemented Max composition operator.
+* :white_check_mark: Implemented Vertex Projection, Tangential Relaxation according to paper.
 ### Issues
-* Still need to implement gradient based composition operator.
-* Vertex projection, marching vertex in global field producing strange results, think this is an issue with the evaluation of the global fields gradient. 
+* :x: Still need to implement gradient based composition operator.
+* :warning: Vertex projection, marching vertex in global field producing strange results, think this is an issue with the evaluation of the global fields gradient. 
 
 
 ## Docs
