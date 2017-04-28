@@ -7,7 +7,6 @@
 // CUDA Device Functions
 //------------------------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------------------------
 
 __device__ glm::vec3 ProjectPointOnToPlane(const glm::vec3 &_point, const glm::vec3 &_planeOrigin, const glm::vec3 &_planeNormal)
 {
@@ -149,6 +148,7 @@ __device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
     float mu = 1.0f - powf(fabs(_newIso- _origIso) - 1.0f, 4.0f);
     mu = max(mu, 0.0f);
 
+    // compute normal - don't trust my transformed normals
     glm::vec3 norm(0.0f, 0.0f, 0.0f);
     for(int i=0; i<_numNeighs; i++)
     {
@@ -160,6 +160,7 @@ __device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
     }
     norm = glm::normalize(norm);
 
+    // calculate centroid
     glm::vec3 sumWeightedCentroid(0.0f);
     for(int i=0; i<_numNeighs; i++)
     {
@@ -169,6 +170,7 @@ __device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
         sumWeightedCentroid += barycentricCoord * projNeighVert;
     }
 
+    // deform
     _deformedVert = ((1.0f - mu) * _deformedVert) + (mu * sumWeightedCentroid);
 }
 
@@ -191,6 +193,7 @@ __device__ void LaplacianSmoothing(glm::vec3 &_deformedVert,
 
     _deformedVert = ((1.0f - _beta) * _deformedVert) + (_beta * centroid);
 }
+
 
 
 //------------------------------------------------------------------------------------------------
@@ -251,9 +254,6 @@ __global__ void EvalGradGlobalField_Kernel(float *_output,
                             _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
                             _compOps, _theta, _numOps,
                             _compFields, _numCompFields);
-
-
-//        printf("%i\n",tid);
 
 
 
@@ -389,6 +389,7 @@ __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
     float origIsoValue = _origIsoValue[tid];
     int startNeighAddr = _oneRingScatterAddr[tid];
     int numNeighs = _oneRingScatterAddr[tid+1] - startNeighAddr;
+    glm::vec3 prevGrad = _prevIsoGrad[tid];
     glm::vec3 newGrad = glm::vec3(0.0f, 0.0f, 0.0f);
     float newIsoValue = 0.0f;
 
@@ -400,7 +401,6 @@ __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
                         _compOps, _theta, _numOps,
                         _compFields, _numCompFields);
 
-    _prevIsoGrad[tid] = newGrad;
 
     //----------------------------------------------------
     // Perform Tangential Relaxation
@@ -413,8 +413,7 @@ __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
     //----------------------------------------------------
     // Update data
     _deformedVert[tid] = deformedVert;
-
-
+    _prevIsoGrad[tid] = newGrad;
 }
 
 
@@ -443,7 +442,6 @@ __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
     glm::vec3 v = d_verts[tid];
     glm::vec3 n = d_normals[tid];
     int startNeighAddr = _oneRingScatterAddr[tid];
-//    int numNeighs = _numNeighsPerVert[tid];
     int numNeighs = _oneRingScatterAddr[tid+1] - startNeighAddr;
 
 

@@ -16,34 +16,6 @@ uint isgw::iDivUp(uint a, uint b)
 
 //------------------------------------------------------------------------------------------------
 
-void isgw::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
-                                   const glm::vec3 *_origVert,
-                                    glm::vec3 *_deformedNorms,
-                                    const glm::vec3 *_origNorms,
-                                   const glm::mat4 *_transform,
-                                   const uint *_boneId,
-                                   const float *_weight,
-                                   const int _numVerts,
-                                   const int _numBones)
-{
-    uint numThreads = 1024u;
-    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
-
-
-    LinearBlendWeightSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert,
-                                                            _origVert,
-                                                            _deformedNorms,
-                                                            _origNorms,
-                                                            _transform,
-                                                            _boneId,
-                                                            _weight,
-                                                            _numVerts,
-                                                            _numBones);
-    cudaThreadSynchronize();
-}
-
-//------------------------------------------------------------------------------------------------
-
 void isgw::EvalGlobalField(float *_output,
                               const glm::vec3 *_samplePoint,
                               const int _numSamples,
@@ -87,13 +59,39 @@ void isgw::EvalGradGlobalField(float *_output,
     uint numThreads = 1024u;
     uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
 
-    printf("%u\n",numBlocks);
-
     EvalGradGlobalField_Kernel<<<numBlocks, numThreads>>>(_output, _outputG, _samplePoint, _numSamples,
                                                           _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
                                                           _compOps, _theta, _numOps,
                                                           _compFields, _numCompFields);
 
+    cudaThreadSynchronize();
+}
+
+//------------------------------------------------------------------------------------------------
+
+void isgw::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
+                                   const glm::vec3 *_origVert,
+                                    glm::vec3 *_deformedNorms,
+                                    const glm::vec3 *_origNorms,
+                                   const glm::mat4 *_transform,
+                                   const uint *_boneId,
+                                   const float *_weight,
+                                   const int _numVerts,
+                                   const int _numBones)
+{
+    uint numThreads = 1024u;
+    uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
+
+
+    LinearBlendWeightSkin_Kernel<<<numBlocks, numThreads>>>(_deformedVert,
+                                                            _origVert,
+                                                            _deformedNorms,
+                                                            _origNorms,
+                                                            _transform,
+                                                            _boneId,
+                                                            _weight,
+                                                            _numVerts,
+                                                            _numBones);
     cudaThreadSynchronize();
 }
 
