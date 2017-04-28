@@ -8,8 +8,8 @@ CXX           = g++
 DEFINES       = -DQT_NO_DEBUG
 CFLAGS        = -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -std=c++11 -g -O2 -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -I../../include -isystem /usr/local/include -isystem /usr/include -I/home/idris/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++
-QMAKE         = /home/idris/Qt5.7.0/5.7/gcc_64/bin/qmake
+INCPATH       = -I. -I../../include -isystem /usr/local/include -isystem /usr/include 
+
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
 MKDIR         = mkdir -p
@@ -43,6 +43,8 @@ OBJECTS_DIR   = ./
 
 SOURCES       = main.cpp 
 OBJECTS       = ./main.o
+DIST          = ../../include/Model/mesh.h main.cpp
+QMAKE_TARGET  = TestMesh
 DESTDIR       = ../bin/
 TARGET        = ../bin/TestMesh
 
@@ -53,7 +55,6 @@ first: all
 $(TARGET):  $(OBJECTS)  
 	@test -d ../bin/ || mkdir -p ../bin/
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
-
 
 
 all: Makefile $(TARGET)
@@ -76,9 +77,32 @@ distclean: clean
 	-$(DEL_FILE) Makefile
 
 
+####### Sub-libraries
+
+check: first
+
+benchmark: first
+
+compiler_yacc_decl_make_all:
+compiler_yacc_decl_clean:
+compiler_yacc_impl_make_all:
+compiler_yacc_impl_clean:
+compiler_lex_make_all:
+compiler_lex_clean:
+compiler_clean: 
+
 ####### Compile
 
-obj/main.o: main.cpp OneRingTest.h \
+./main.o: main.cpp OneRingTest.h \
 		MeshShared.h \
 		../../include/Model/mesh.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ./main.o main.cpp
+
+####### Install
+
+install:  FORCE
+
+uninstall:  FORCE
+
+FORCE:
+
