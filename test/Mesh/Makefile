@@ -26,7 +26,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = TestMesh1.0.0
-DISTDIR = /home/idris/uni/programming/assignment/dev/test/Mesh/obj/TestMesh1.0.0
+DISTDIR = /home/idris/uni/programming/assignment/dev/test/Mesh/TestMesh1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) -L/usr/local/lib -L/usr/lib -lgtest -lpthread 
@@ -37,12 +37,12 @@ STRIP         = strip
 
 ####### Output directory
 
-OBJECTS_DIR   = obj/
+OBJECTS_DIR   = ./
 
 ####### Files
 
 SOURCES       = main.cpp 
-OBJECTS       = obj/main.o
+OBJECTS       = ./main.o
 DESTDIR       = ../bin/
 TARGET        = ../bin/TestMesh
 
@@ -81,4 +81,4 @@ distclean: clean
 obj/main.o: main.cpp OneRingTest.h \
 		MeshShared.h \
 		../../include/Model/mesh.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/main.o main.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ./main.o main.cpp
