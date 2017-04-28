@@ -23,8 +23,8 @@ void isgw::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                                    const glm::mat4 *_transform,
                                    const uint *_boneId,
                                    const float *_weight,
-                                   const uint _numVerts,
-                                   const uint _numBones)
+                                   const int _numVerts,
+                                   const int _numBones)
 {
     uint numThreads = 1024u;
     uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
@@ -46,16 +46,16 @@ void isgw::LinearBlendWeightSkin(glm::vec3 *_deformedVert,
 
 void isgw::EvalGlobalField(float *_output,
                               const glm::vec3 *_samplePoint,
-                              const uint _numSamples,
+                              const int _numSamples,
                               const glm::mat4 *_textureSpace,
                               const glm::mat4 *_rigidTransforms,
                               const cudaTextureObject_t *_fieldFuncs,
-                              const uint _numFields,
+                              const int _numFields,
                               const cudaTextureObject_t *_compOps,
                               const cudaTextureObject_t *_theta,
-                              const uint _numOps,
+                              const int _numOps,
                               const ComposedFieldCuda *_compFields,
-                              const uint _numCompFields)
+                              const int _numCompFields)
 {
     uint numThreads = 1024u;
     uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
@@ -73,19 +73,21 @@ void isgw::EvalGlobalField(float *_output,
 void isgw::EvalGradGlobalField(float *_output,
                                glm::vec3 *_outputG,
                               const glm::vec3 *_samplePoint,
-                              const uint _numSamples,
+                              const int _numSamples,
                               const glm::mat4 *_textureSpace,
                               const glm::mat4 *_rigidTransforms,
                               const cudaTextureObject_t *_fieldFuncs,
-                              const uint _numFields,
+                              const int _numFields,
                               const cudaTextureObject_t *_compOps,
                               const cudaTextureObject_t *_theta,
-                              const uint _numOps,
+                              const int _numOps,
                               const ComposedFieldCuda *_compFields,
-                              const uint _numCompFields)
+                              const int _numCompFields)
 {
     uint numThreads = 1024u;
     uint numBlocks = isgw::iDivUp(_numSamples, numThreads);
+
+    printf("%u\n",numBlocks);
 
     EvalGradGlobalField_Kernel<<<numBlocks, numThreads>>>(_output, _outputG, _samplePoint, _numSamples,
                                                           _textureSpace, _rigidTransforms, _fieldFuncs, _numFields,
@@ -101,16 +103,16 @@ void isgw::SimpleImplicitSkin(glm::vec3 *_deformedVert,
                               const glm::vec3 *_normal,
                               const float *_origIsoValue,
                               glm::vec3 *_prevIsoGrad,
-                              const uint _numVerts,
+                              const int _numVerts,
                               const glm::mat4 *_textureSpace,
                               const glm::mat4 *_rigidTransforms,
                               const cudaTextureObject_t *_fieldFuncs,
-                              const uint _numFields,
+                              const int _numFields,
                               const cudaTextureObject_t *_compOps,
                               const cudaTextureObject_t *_theta,
-                              const uint _numOps,
+                              const int _numOps,
                               const ComposedFieldCuda *_compFields,
-                              const uint _numCompFields,
+                              const int _numCompFields,
                               const int *_oneRingVerts,
                               const float *_centroidWeights,
                               const int *_neighScatterAddr,
@@ -159,7 +161,7 @@ void isgw::GenerateScatterAddress(int *begin,
 
 void isgw::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
                                              const glm::vec3 *d_normals,
-                                             const uint _numVerts,
+                                             const int _numVerts,
                                              float *_centroidWeights,
                                              const int *_oneRingIds,
                                              const glm::vec3 *_oneRingVerts,

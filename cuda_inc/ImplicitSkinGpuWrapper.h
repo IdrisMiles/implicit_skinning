@@ -50,8 +50,8 @@ void LinearBlendWeightSkin(glm::vec3 *_deformedVert,
                            const glm::mat4 *_transform,
                            const uint *_boneId,
                            const float *_weight,
-                           const uint _numVerts,
-                           const uint _numBones);
+                           const int _numVerts,
+                           const int _numBones);
 
 
 /// @brief Function to launch CUDA Kernel to perform implicit skinning
@@ -59,16 +59,16 @@ void SimpleImplicitSkin(glm::vec3 *_deformedVert,
                         const glm::vec3 *_normal,
                         const float *_origIsoValue,
                         glm::vec3 *_prevIsoGrad,
-                        const uint _numVerts,
+                        const int _numVerts,
                         const glm::mat4 *_textureSpace,
                         const glm::mat4 *_rigidTransforms,
                         const cudaTextureObject_t *_fieldFuncs,
-                        const uint _numFields,
+                        const int _numFields,
                         const cudaTextureObject_t *_compOps,
                         const cudaTextureObject_t *_theta,
-                        const uint _numOps,
+                        const int _numOps,
                         const ComposedFieldCuda *_compFields,
-                        const uint _numCompFields,
+                        const int _numCompFields,
                         const int *_oneRingVerts,
                         const float *_centroidWeights,
                         const int *_neighScatterAddr,
@@ -87,32 +87,32 @@ void SimpleImplicitSkin(glm::vec3 *_deformedVert,
 /// @param _numFields : The number of field function textures
 void EvalGlobalField(float *_output,
                       const glm::vec3 *_samplePoint,
-                      const uint _numSamples,
+                      const int _numSamples,
                       const glm::mat4 *_textureSpace,
                       const glm::mat4 *_rigidTransforms,
                       const cudaTextureObject_t *_fieldFuncs,
-                      const uint _numFields,
+                      const int _numFields,
                       const cudaTextureObject_t *_compOps,
                       const cudaTextureObject_t *_theta,
-                      const uint _numOps,
+                      const int _numOps,
                       const ComposedFieldCuda *_compFields,
-                      const uint _numCompFields);
+                      const int _numCompFields);
 
 
 ///// @brief Function to launch CUDA Kernel to evaluate gradient of global field
 void EvalGradGlobalField(float *_output,
                          glm::vec3 *_outputG,
                          const glm::vec3 *_samplePoint,
-                         const uint _numSamples,
+                         const int _numSamples,
                          const glm::mat4 *_textureSpace,
                          const glm::mat4 *_rigidTransforms,
                          const cudaTextureObject_t *_fieldFuncs,
-                         const uint _numFields,
+                         const int _numFields,
                          const cudaTextureObject_t *_compOps,
                          const cudaTextureObject_t *_theta,
-                         const uint _numOps,
+                         const int _numOps,
                          const ComposedFieldCuda *_compFields,
-                         const uint _numCompFields);
+                         const int _numCompFields);
 
 
 /// @brief Method to generate scatter address
@@ -123,7 +123,7 @@ void GenerateScatterAddress(int *begin,
 
 /// @brief Method to generate the one ring centroid weights for each mesh vertex
 void GenerateOneRingCentroidWeights(glm::vec3 *d_verts, const glm::vec3 *d_normals,
-                                    const uint _numVerts,
+                                    const int _numVerts,
                                     float *_centroidWeights,
                                     const int *_oneRingIds,
                                     const glm::vec3 *_oneRingVerts,

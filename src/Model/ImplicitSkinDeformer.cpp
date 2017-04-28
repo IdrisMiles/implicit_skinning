@@ -1,6 +1,7 @@
 #include "Model/implicitskindeformer.h"
 #include "ImplicitSkinGpuWrapper.h"
 #include "helper_cuda.h"
+#include <glm/gtx/string_cast.hpp>
 
 
 //------------------------------------------------------------------------
@@ -42,6 +43,7 @@ void ImplicitSkinDeformer::InitialiseIsoValues()
 {
     if(m_initFieldCudaMem && m_initMeshCudaMem & m_initGobalFieldFunc)
     {
+        std::cout<<"init iso\n";
         // allocate and initialise temporary device memory
         glm::mat4 tmpTransform(1.0f);
         glm::mat4 * d_tmpTransform;
@@ -50,6 +52,7 @@ void ImplicitSkinDeformer::InitialiseIsoValues()
         {
             checkCudaErrors(cudaMemcpy(d_tmpTransform+i, &tmpTransform[0][0], sizeof(glm::mat4), cudaMemcpyHostToDevice));
         }
+
 
         // run kernel
         isgw::EvalGradGlobalField(d_origVertIsoPtr, d_vertIsoGradPtr, d_origMeshVertsPtr, m_numVerts, d_textureSpacePtr, d_tmpTransform, d_fieldsPtr, m_numFields, d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields);
@@ -146,6 +149,25 @@ void ImplicitSkinDeformer::Deform()
 {
     PerformLBWSkinning();
     PerformImplicitSkinning();
+
+
+//    isgw::EvalGradGlobalField(d_newVertIsoPtr, d_vertIsoGradPtr, GetDeformedMeshVertsDevicePtr(), m_numVerts, d_textureSpacePtr, d_transformPtr, d_fieldsPtr, m_numFields, d_compOpPtr, d_thetaPtr, m_numCompOps, d_compFieldPtr, m_numCompFields);
+//    getLastCudaError("isgw::EvalGradGlobalField");
+//    ReleaseDeformedMeshVertsDevicePtr();
+
+//    float h_iso[m_numVerts];
+//    glm::vec3 h_grad[m_numVerts];
+//    checkCudaErrors(cudaMemcpy(h_iso, d_newVertIsoPtr, m_numVerts*sizeof(float), cudaMemcpyDeviceToHost));
+//    checkCudaErrors(cudaMemcpy(h_grad, d_vertIsoGradPtr, m_numVerts*sizeof(glm::vec3), cudaMemcpyDeviceToHost));
+//    for(int i=0;i<m_numVerts;i++)
+//    {
+//        if(h_iso[i] > 0.2f && h_iso[i] < 0.8f)
+//        {
+//            std::cout<<h_iso[i]<<", "<<glm::to_string(h_grad[i])<<"\n";
+//        }
+//    }
+//    std::cout<<"---------------------------------\n";
+
 }
 
 //------------------------------------------------------------------------------------------------
@@ -403,6 +425,8 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
 
     if(m_initMeshCudaMem) { return; }
 
+    std::cout<<"init mesh cuda\n";
+
     m_numVerts = _origMesh.m_meshVerts.size();
     m_numTransforms = _transform.size();
     m_minBBox = _origMesh.m_minBBox;
@@ -496,6 +520,7 @@ void ImplicitSkinDeformer::InitFieldCudaMem()
 {
     if(!m_initGobalFieldFunc || m_initFieldCudaMem) { return; }
 
+    std::cout<<"init field cuda\n";
 
     auto fieldFuncs = m_globalFieldFunction.GetFieldFuncs();
     auto compOps = m_globalFieldFunction.GetCompOps();

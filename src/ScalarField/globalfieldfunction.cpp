@@ -60,6 +60,20 @@ void GlobalFieldFunction::GenerateHRBFCentres(const Mesh &_meshPart,
     _hrbfCentres = MeshSampler::BaryCoord::SampleMesh(_meshPart, _numPoints);
 
 
+//    for(int i=0; i<_hrbfCentres.m_meshVerts.size(); i++)
+//    {
+//        glm::vec3 v = _hrbfCentres.m_meshVerts[i];
+//        float f = glm::dot(v-_startJoint, _endJoint-_startJoint) / glm::dot(_endJoint-_startJoint, _endJoint-_startJoint);
+//        float h = 0.05f;
+
+//        if(f < h && f > 1.0f-h)
+//        {
+//            _hrbfCentres.m_meshVerts.erase(_hrbfCentres.m_meshVerts.begin()+i);
+//            i--;
+//        }
+//    }
+
+
     // Determine distance of closest point to bone
     glm::vec3 edge = _endJoint - _startJoint;
     float minDist = FLT_MAX;

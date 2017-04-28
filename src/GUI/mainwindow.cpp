@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
             auto model = ui->glScene->AddModel(file).get();
             auto implicitDeformer = model->GetImplicitDeformer();
 
+            // Connect Implicit Skinning settings
             connect(ui->implicitSkinSettings, &ImplicitSkinSettings::SigmaChanged, [this, implicitDeformer](float sigma){
                 implicitDeformer->SetSigma(sigma);
             });
@@ -35,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
             });
 
 
+            // Connect Implicit Skinning rendering settings
             connect(ui->implicitSkinSettings, &ImplicitSkinSettings::RenderMeshChanged, [this, model](bool checked){
                model->SetSkinnedSurface(checked);
             });

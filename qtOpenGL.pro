@@ -29,14 +29,13 @@ SOURCES +=  src/*.cpp               \
             src/Model/*.cpp         \
             src/GUI/*.cpp
 
-HEADERS  += include/*.h                     \
-            include/ScalarField/*.h         \
+HEADERS  += include/ScalarField/*.h         \
             include/ScalarField/Hrbf/*.h    \
             include/Machingcube/*.h         \
             include/MeshSampler/*.h         \
             include/Model/*.h               \
             include/GUI/*.h                 \
-            include/Texture/.*h
+            include/Texture/*.h
 
 OTHER_FILES += shader/*
 
@@ -77,7 +76,7 @@ NVCC = $$CUDA_PATH/bin/nvcc
 SYSTEM_NAME = unix
 SYSTEM_TYPE = 64
 GENCODE_FLAGS += -arch=sm_50
-NVCC_OPTIONS = -std=c++11 -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-rdc=true
+NVCC_OPTIONS = -std=c++11 -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-G -g#-rdc=true -Xptxas -O1
 
 # include paths
 INCLUDEPATH += $(CUDA_PATH)/include $(CUDA_PATH)/include/cuda

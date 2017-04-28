@@ -13,7 +13,7 @@ The project is written in C++ and uses CUDA to speed up evaluation of field func
 * Durinig animation each mesh part is rigidly transformed by the corresponding bone. The field function is also transformed.
 * The transformed field functions are combined using composition operators that combines two field functions into one.
 * Once all the fields are composed together we are left with the global field, whose 0.5 iso-surface approximates the whole mesh.
-* During the skinining process we initially apply LBW skinning, then we march the deformed vertices along the gradient of the global field.
+* During the skinining process we initially apply Linaer Blend Weight (LBW) skinning, then we march the deformed vertices along the gradient of the global field.
 * We apply some smoothing and eventually are left with an implicit skinned mesh.
 
 ## Status
@@ -24,8 +24,10 @@ The project is written in C++ and uses CUDA to speed up evaluation of field func
 * Evaluate global field on the GPU.
 * Visualise Iso-Surface.
 * Implemented Max composition operator.
-### Issues - TODO
-* Implement gradient based composition operator.
+* Implemented Vertex Projection, Tangential Relaxation according to paper.
+### Issues
+* Still need to implement gradient based composition operator.
+* Vertex projection, marching vertex in global field producing strange results, think this is an issue with the evaluation of the global fields gradient. 
 
 
 ## Docs
