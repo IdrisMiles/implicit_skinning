@@ -25,9 +25,12 @@ The project is written in C++ and uses CUDA to speed up evaluation of field func
 * :white_check_mark: Visualise Iso-Surface.
 * :white_check_mark: Implemented Max composition operator.
 * :white_check_mark: Implemented Vertex Projection, Tangential Relaxation according to paper.
+* :white_check_mark: Implemented Onering neighbourhood
+* :white_check_mark: Implemented Mean Value Coordinates to generate onering weights for Tangential Relaxation.
 ### Issues
 * :x: Still need to implement gradient based composition operator.
-* :warning: Vertex projection, marching vertex in global field producing strange results, think this is an issue with the evaluation of the global fields gradient. 
+* :warning: Vertex projection, marching vertex in global field producing strange results, think this is an issue with the evaluation of the global fields gradient.
+* :warning: Tangential Relaxation, not producing smooth results. 
 
 
 ## Docs
@@ -70,7 +73,7 @@ make
 ### Linux
 ```bash
 cd ImplicitSkinning/bin
-./app
+./ImplicitSkinning
 ```
 
 ## Usage

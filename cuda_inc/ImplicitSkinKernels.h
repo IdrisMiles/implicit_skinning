@@ -170,6 +170,27 @@ __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
                                             const float _contactAngle);
 
 
+__global__ void LaplacianRelaxation_Kernel(glm::vec3 *_deformedVert,
+                                            const glm::vec3 *_normal,
+                                            const float *_origIsoValue,
+                                            glm::vec3 *_prevIsoGrad,
+                                            const int _numVerts,
+                                            const glm::mat4 *_textureSpace,
+                                            const glm::mat4 *_rigidTransforms,
+                                            const cudaTextureObject_t *_fieldFuncs,
+                                            const int _numFields,
+                                            const cudaTextureObject_t *_compOps,
+                                            const cudaTextureObject_t *_theta,
+                                            const int _numOps,
+                                            const ComposedFieldCuda *_compFields,
+                                            const int _numCompFields,
+                                            const int *_oneRingVerts,
+                                            const float *_centroidWeights,
+                                            const int *_oneRingScatterAddr,
+                                            const float _sigma,
+                                            const float _contactAngle);
+
+
 __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
                                                       const glm::vec3 *d_normals,
                                                       const int _numVerts,

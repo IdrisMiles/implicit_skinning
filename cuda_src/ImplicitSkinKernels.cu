@@ -129,7 +129,7 @@ __device__ void VertexProjection(glm::vec3 &_deformedVert,
 
     if(angle <= _contactAngle)
     {
-        glm::vec3 displacement = ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::length2(_newIsoGrad)));
+        glm::vec3 displacement = ( _sigma * (_newIso - _origIso) * (_newIsoGrad / glm::dot(_newIsoGrad, _newIsoGrad)));
         _deformedVert = _deformedVert + displacement;
     }
 }
@@ -145,8 +145,10 @@ __device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
                                      const float *_centroidWeights,
                                      const int _numNeighs)
 {
-    float mu = 1.0f - powf(fabs(_newIso- _origIso) - 1.0f, 4.0f);
-    mu = max(mu, 0.0f);
+    float tmp = fabs(_newIso- _origIso) - 1.0f;
+    float mu = 1.0f - (tmp*tmp*tmp*tmp);
+    mu = mu > 0.0f ? mu : 0.0f;
+
 
     // compute normal - don't trust my transformed normals
     glm::vec3 norm(0.0f, 0.0f, 0.0f);
@@ -165,7 +167,7 @@ __device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
     for(int i=0; i<_numNeighs; i++)
     {
         glm::vec3 neighVert = _verts[_oneRingNeigh[i]];
-        glm::vec3 projNeighVert = ProjectPointOnToPlane(neighVert, _deformedVert, norm);//_normal);
+        glm::vec3 projNeighVert = ProjectPointOnToPlane(neighVert, _deformedVert, norm);
         float barycentricCoord = _centroidWeights[i];
         sumWeightedCentroid += barycentricCoord * projNeighVert;
     }
@@ -344,7 +346,6 @@ __global__ void VertexProjection_Kernel(glm::vec3 *_deformedVert,
     float gradAngle;
 
     VertexProjection(deformedVert, origIsoValue, newIsoValue, newGrad, prevGrad, gradAngle, _sigma, _contactAngle);
-    prevGrad = newGrad;
 
     _deformedVert[tid] = deformedVert;
     _prevIsoGrad[tid] = newGrad;
@@ -418,6 +419,61 @@ __global__ void TangentialRelaxation_Kernel(glm::vec3 *_deformedVert,
 
 
 //------------------------------------------------------------------------------------------------
+
+__global__ void LaplacianRelaxation_Kernel(glm::vec3 *_deformedVert,
+                                            const glm::vec3 *_normal,
+                                            const float *_origIsoValue,
+                                            glm::vec3 *_prevIsoGrad,
+                                            const int _numVerts,
+                                            const glm::mat4 *_textureSpace,
+                                            const glm::mat4 *_rigidTransforms,
+                                            const cudaTextureObject_t *_fieldFuncs,
+                                            const int _numFields,
+                                            const cudaTextureObject_t *_compOps,
+                                            const cudaTextureObject_t *_theta,
+                                            const int _numOps,
+                                            const ComposedFieldCuda *_compFields,
+                                            const int _numCompFields,
+                                            const int *_oneRingVerts,
+                                            const float *_centroidWeights,
+                                            const int *_oneRingScatterAddr,
+                                            const float _sigma,
+                                            const float _contactAngle)
+{
+
+    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
+
+    if(tid >= _numVerts)
+    {
+        return;
+    }
+
+
+    //----------------------------------------------------
+    // initialise variables
+    glm::vec3 deformedVert = _deformedVert[tid];
+    glm::vec3 deformedNorm = _normal[tid];
+    int startNeighAddr = _oneRingScatterAddr[tid];
+    int numNeighs = _oneRingScatterAddr[tid+1] - startNeighAddr;
+
+
+    //----------------------------------------------------
+    // Perform Tangential Relaxation
+    const int *oneRing = (_oneRingVerts + startNeighAddr);
+    const float *centroid = (_centroidWeights + startNeighAddr);
+    float beta = 1.0f;
+
+    LaplacianSmoothing(deformedVert, deformedNorm, oneRing, centroid, numNeighs, _deformedVert, beta);
+
+
+    //----------------------------------------------------
+    // Update data
+    _deformedVert[tid] = deformedVert;
+}
+
+
+//------------------------------------------------------------------------------------------------
+
 
 __global__ void GenerateOneRingCentroidWeights_Kernel(glm::vec3 *d_verts,
                                                       const glm::vec3 *d_normals,
