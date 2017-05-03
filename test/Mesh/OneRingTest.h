@@ -9,16 +9,6 @@
 
 TEST(MeshTest, OneRingNeighbourOrderVertsCCW)
 {
-    // Initialise test data
-
-
-    std::vector<glm::ivec3> tris;
-    tris.push_back(glm::ivec3(0, 1, 2));
-    tris.push_back(glm::ivec3(0, 2, 4));
-    tris.push_back(glm::ivec3(0, 4, 3));
-    tris.push_back(glm::ivec3(0, 3, 1));
-
-
     // Set Mesh data
     Mesh mesh;
     mesh.m_meshVerts = verts;
@@ -56,18 +46,18 @@ TEST(MeshTest, OneRingNeighbourUnOrderVertsCCW)
     // Initialise test data
 
 
-    std::vector<glm::ivec3> tris;
-    tris.push_back(glm::ivec3(0, 3, 4));
-    tris.push_back(glm::ivec3(0, 2, 1));
-    tris.push_back(glm::ivec3(2, 0, 4));
-    tris.push_back(glm::ivec3(1, 3, 0));
+    std::vector<glm::ivec3> tris2;
+    tris2.push_back(glm::ivec3(0, 3, 4));
+    tris2.push_back(glm::ivec3(0, 2, 1));
+    tris2.push_back(glm::ivec3(2, 0, 4));
+    tris2.push_back(glm::ivec3(1, 3, 0));
 
 
     // Set Mesh data
     Mesh mesh;
     mesh.m_meshVerts = verts;
     mesh.m_meshNorms = norms;
-    mesh.m_meshTris = tris;
+    mesh.m_meshTris = tris2;
 
 
     // Get one ring neighbourhood
@@ -100,18 +90,18 @@ TEST(MeshTest, OneRingNeighbourOrderVertsCW)
     // Initialise test data
 
 
-    std::vector<glm::ivec3> tris;
-    tris.push_back(glm::ivec3(0, 1, 2));
-    tris.push_back(glm::ivec3(0, 2, 4));
-    tris.push_back(glm::ivec3(0, 4, 3));
-    tris.push_back(glm::ivec3(0, 3, 1));
+    std::vector<glm::ivec3> tris2;
+    tris2.push_back(glm::ivec3(0, 1, 2));
+    tris2.push_back(glm::ivec3(0, 2, 4));
+    tris2.push_back(glm::ivec3(0, 4, 3));
+    tris2.push_back(glm::ivec3(0, 3, 1));
 
 
     // Set Mesh data
     Mesh mesh;
     mesh.m_meshVerts = verts;
     mesh.m_meshNorms = norms;
-    mesh.m_meshTris = tris;
+    mesh.m_meshTris = tris2;
 
 
     // Get one ring neighbourhood
@@ -146,18 +136,18 @@ TEST(MeshTest, OneRingNeighbourUnOrderVertsCW)
     // Initialise test data
 
 
-    std::vector<glm::ivec3> tris;
-    tris.push_back(glm::ivec3(0, 3, 4));
-    tris.push_back(glm::ivec3(0, 2, 1));
-    tris.push_back(glm::ivec3(2, 0, 4));
-    tris.push_back(glm::ivec3(1, 3, 0));
+    std::vector<glm::ivec3> tris2;
+    tris2.push_back(glm::ivec3(0, 3, 4));
+    tris2.push_back(glm::ivec3(0, 2, 1));
+    tris2.push_back(glm::ivec3(2, 0, 4));
+    tris2.push_back(glm::ivec3(1, 3, 0));
 
 
     // Set Mesh data
     Mesh mesh;
     mesh.m_meshVerts = verts;
     mesh.m_meshNorms = norms;
-    mesh.m_meshTris = tris;
+    mesh.m_meshTris = tris2;
 
 
     // Get one ring neighbourhood

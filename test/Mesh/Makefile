@@ -5,9 +5,9 @@ MAKEFILE      = Makefile
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_NO_DEBUG
-CFLAGS        = -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -std=c++11 -g -O2 -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+DEFINES       = -DQT_QML_DEBUG
+CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -std=c++11 -g -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I../../include -isystem /usr/local/include -isystem /usr/include 
 
 DEL_FILE      = rm -f
@@ -28,7 +28,7 @@ COMPRESS      = gzip -9f
 DISTNAME      = TestMesh1.0.0
 DISTDIR = /home/idris/uni/programming/assignment/dev/test/Mesh/TestMesh1.0.0
 LINK          = g++
-LFLAGS        = -Wl,-O1
+LFLAGS        = 
 LIBS          = $(SUBLIBS) -L/usr/local/lib -L/usr/lib -lgtest -lpthread 
 AR            = ar cqs
 RANLIB        = 
@@ -55,6 +55,10 @@ first: all
 $(TARGET):  $(OBJECTS)  
 	@test -d ../bin/ || mkdir -p ../bin/
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
+
+Makefile: 
+
+qmake_all: FORCE
 
 
 all: Makefile $(TARGET)

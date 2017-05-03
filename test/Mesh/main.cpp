@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "OneRingTest.h"
+#include "BoundingBoxTest.h"
 
 
 int main(int argc, char **argv)

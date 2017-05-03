@@ -22,7 +22,10 @@ std::vector<glm::vec3> norms{   glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)),
                                 glm::normalize(glm::vec3(-1.0f, 1.0f, 1.0f)),
                                 glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f))     };
 
-std::vector<glm::ivec3> tris{};
+std::vector<glm::ivec3> tris{   glm::ivec3(0, 1, 2),
+                                glm::ivec3(0, 2, 4),
+                                glm::ivec3(0, 4, 3),
+                                glm::ivec3(0, 3, 1)};
 
 //  3-----4
 //  |\ 2 /|
