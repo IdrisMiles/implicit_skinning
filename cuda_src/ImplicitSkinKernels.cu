@@ -146,7 +146,7 @@ __device__ void TangentialRelaxation (glm::vec3 &_deformedVert,
                                      const int _numNeighs)
 {
     float tmp = fabs(_newIso- _origIso) - 1.0f;
-    float mu = 1.0f - (tmp*tmp*tmp*tmp);
+    float mu = 1.0f - pow(tmp,4.0f);
     mu = mu > 0.0f ? mu : 0.0f;
 
 

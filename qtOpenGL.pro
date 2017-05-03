@@ -76,7 +76,7 @@ NVCC = $$CUDA_PATH/bin/nvcc
 SYSTEM_NAME = unix
 SYSTEM_TYPE = 64
 GENCODE_FLAGS += -arch=sm_50
-NVCC_OPTIONS = -std=c++11 -ccbin g++ --use_fast_math --compiler-options -fno-strict-aliasing --ptxas-options=-v #-G -g#-rdc=true -Xptxas -O1
+NVCC_OPTIONS = -std=c++11 -ccbin g++ --compiler-options -fno-strict-aliasing --ptxas-options=-v #-G -g#-rdc=true -Xptxas -O1 --use_fast_math
 
 # include paths
 INCLUDEPATH += $(CUDA_PATH)/include $(CUDA_PATH)/include/cuda
