@@ -1,10 +1,11 @@
 <map id="include/ScalarField/Hrbf/hrbf_phi_funcs.h" name="include/ScalarField/Hrbf/hrbf_phi_funcs.h">
-<area shape="rect" id="node2" href="$dc/d51/model_8h_source.html" title="include/model.h" alt="" coords="109,437,223,464"/>
-<area shape="rect" id="node6" href="$d1/db1/fieldfunction_8h_source.html" title="include/ScalarField\l/fieldfunction.h" alt="" coords="127,95,259,136"/>
-<area shape="rect" id="node3" href="$d9/dd3/modelloader_8h_source.html" title="include/modelloader.h" alt="" coords="5,512,153,539"/>
-<area shape="rect" id="node4" href="$d3/de7/openglscene_8h_source.html" title="include/openglscene.h" alt="" coords="177,512,328,539"/>
-<area shape="rect" id="node5" href="$d9/d53/mainwindow_8h_source.html" title="include/mainwindow.h" alt="" coords="177,587,328,613"/>
-<area shape="rect" id="node7" href="$da/d74/globalfieldfunction_8h_source.html" title="include/ScalarField\l/globalfieldfunction.h" alt="" coords="201,273,342,315"/>
-<area shape="rect" id="node9" href="$d0/dea/composedfield_8h_source.html" title="include/ScalarField\l/composedfield.h" alt="" coords="229,184,361,225"/>
-<area shape="rect" id="node8" href="$dd/dff/implicitskindeformer_8h_source.html" title="include/implicitskindeformer.h" alt="" coords="229,363,423,389"/>
+<area shape="rect" id="node2" href="$dc/d51/model_8h_source.html" title="include/Model/model.h" alt="" coords="212,437,364,464"/>
+<area shape="rect" id="node7" href="$d1/db1/fieldfunction_8h_source.html" title="include/ScalarField\l/fieldfunction.h" alt="" coords="275,95,407,136"/>
+<area shape="rect" id="node3" href="$d3/de7/openglscene_8h_source.html" title="include/GUI/openglscene.h" alt="" coords="96,512,275,539"/>
+<area shape="rect" id="node6" href="$d9/dd3/modelloader_8h_source.html" title="include/Model/modelloader.h" alt="" coords="299,512,485,539"/>
+<area shape="rect" id="node4" href="$d9/d53/mainwindow_8h_source.html" title="include/GUI/mainwindow.h" alt="" coords="5,587,184,613"/>
+<area shape="rect" id="node5" href="$d4/d8d/ui__mainwindow_8h_source.html" title="ui/ui_mainwindow.h" alt="" coords="208,587,344,613"/>
+<area shape="rect" id="node8" href="$d0/dea/composedfield_8h_source.html" title="include/ScalarField\l/composedfield.h" alt="" coords="301,184,433,225"/>
+<area shape="rect" id="node9" href="$da/d74/globalfieldfunction_8h_source.html" title="include/ScalarField\l/globalfieldfunction.h" alt="" coords="348,273,489,315"/>
+<area shape="rect" id="node10" href="$dd/dff/implicitskindeformer_8h_source.html" title="include/Model/implicitskindeformer.h" alt="" coords="351,363,585,389"/>
 </map>

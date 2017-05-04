@@ -1,0 +1,4 @@
+<map id="Ui_MainWindow" name="Ui_MainWindow">
+<area shape="rect" id="node2" href="$d0/d14/classImplicitSkinSettings.html" title="This class inherits from QGroupBox, it is a widget for selecting an animation file to load as well as..." alt="" coords="5,81,144,108"/>
+<area shape="rect" id="node4" href="$df/df3/classOpenGLScene.html" title="This class is iniherited from QOpenGLWidget and acts as our scene. This is based on https://github..." alt="" coords="172,81,279,108"/>
+</map>
