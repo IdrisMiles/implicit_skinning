@@ -39,6 +39,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="../../pages.html"><span>Related&#160;Pages</span></a></li>
       <li class="current"><a href="../../namespaces.html"><span>Namespaces</span></a></li>
       <li><a href="../../annotated.html"><span>Classes</span></a></li>
       <li><a href="../../files.html"><span>Files</span></a></li>
@@ -100,24 +101,22 @@ Functions</h2></td></tr>
 <tr class="memitem:a9f9396298bae07477376b8fa48795327"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#a9f9396298bae07477376b8fa48795327">LinearBlendWeightSkin</a> (glm::vec3 *_deformedVert, const glm::vec3 *_origVert, glm::vec3 *_deformedNorms, const glm::vec3 *_origNorms, const glm::mat4 *_transform, const uint *_boneId, const float *_weight, const int _numVerts, const int _numBones)</td></tr>
 <tr class="memdesc:a9f9396298bae07477376b8fa48795327"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to launch CUDA Kernel to perform linear blend weight skinning.  <a href="#a9f9396298bae07477376b8fa48795327">More...</a><br /></td></tr>
 <tr class="separator:a9f9396298bae07477376b8fa48795327"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd11ec618e357fefdc8e530211339cdf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acd11ec618e357fefdc8e530211339cdf"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#acd11ec618e357fefdc8e530211339cdf">SimpleImplicitSkin</a> (glm::vec3 *_deformedVert, const glm::vec3 *_normal, const float *_origIsoValue, glm::vec3 *_prevIsoGrad, const int _numVerts, const glm::mat4 *_textureSpace, const glm::mat4 *_rigidTransforms, const cudaTextureObject_t *_fieldFuncs, const int _numFields, const cudaTextureObject_t *_compOps, const cudaTextureObject_t *_theta, const int _numOps, const <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> *_compFields, const int _numCompFields, const int *_oneRingVerts, const float *_centroidWeights, const int *_neighScatterAddr, const float _sigma, const float _contactAngle, const int _iterations)</td></tr>
-<tr class="memdesc:acd11ec618e357fefdc8e530211339cdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to launch CUDA Kernel to perform implicit skinning. <br /></td></tr>
+<tr class="memitem:acd11ec618e357fefdc8e530211339cdf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#acd11ec618e357fefdc8e530211339cdf">SimpleImplicitSkin</a> (glm::vec3 *_deformedVert, const glm::vec3 *_normal, const float *_origIsoValue, glm::vec3 *_prevIsoGrad, const int _numVerts, const glm::mat4 *_textureSpace, const glm::mat4 *_rigidTransforms, const cudaTextureObject_t *_fieldFuncs, const int _numFields, const cudaTextureObject_t *_compOps, const cudaTextureObject_t *_theta, const int _numOps, const <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> *_compFields, const int _numCompFields, const int *_oneRingVerts, const float *_centroidWeights, const int *_neighScatterAddr, const float _sigma, const float _contactAngle, const int _iterations)</td></tr>
+<tr class="memdesc:acd11ec618e357fefdc8e530211339cdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to launch CUDA Kernel to perform implicit skinning.  <a href="#acd11ec618e357fefdc8e530211339cdf">More...</a><br /></td></tr>
 <tr class="separator:acd11ec618e357fefdc8e530211339cdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8eed7cf9e253eaf6b3e9651fdc3deb28"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#a8eed7cf9e253eaf6b3e9651fdc3deb28">EvalGlobalField</a> (float *_output, const glm::vec3 *_samplePoint, const int _numSamples, const glm::mat4 *_textureSpace, const glm::mat4 *_rigidTransforms, const cudaTextureObject_t *_fieldFuncs, const int _numFields, const cudaTextureObject_t *_compOps, const cudaTextureObject_t *_theta, const int _numOps, const <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> *_compFields, const int _numCompFields)</td></tr>
 <tr class="memdesc:a8eed7cf9e253eaf6b3e9651fdc3deb28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to launch CUDA Kernel to evaluate the global field.  <a href="#a8eed7cf9e253eaf6b3e9651fdc3deb28">More...</a><br /></td></tr>
 <tr class="separator:a8eed7cf9e253eaf6b3e9651fdc3deb28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3f1a323ddd56e99eea0afe0d7fd42f0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad3f1a323ddd56e99eea0afe0d7fd42f0"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>EvalGradGlobalField</b> (float *_output, glm::vec3 *_outputG, const glm::vec3 *_samplePoint, const int _numSamples, const glm::mat4 *_textureSpace, const glm::mat4 *_rigidTransforms, const cudaTextureObject_t *_fieldFuncs, const int _numFields, const cudaTextureObject_t *_compOps, const cudaTextureObject_t *_theta, const int _numOps, const <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> *_compFields, const int _numCompFields)</td></tr>
+<tr class="memitem:ad3f1a323ddd56e99eea0afe0d7fd42f0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#ad3f1a323ddd56e99eea0afe0d7fd42f0">EvalGradGlobalField</a> (float *_output, glm::vec3 *_outputG, const glm::vec3 *_samplePoint, const int _numSamples, const glm::mat4 *_textureSpace, const glm::mat4 *_rigidTransforms, const cudaTextureObject_t *_fieldFuncs, const int _numFields, const cudaTextureObject_t *_compOps, const cudaTextureObject_t *_theta, const int _numOps, const <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> *_compFields, const int _numCompFields)</td></tr>
+<tr class="memdesc:ad3f1a323ddd56e99eea0afe0d7fd42f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to launch CUDA Kernel to evaluate gradient of global field.  <a href="#ad3f1a323ddd56e99eea0afe0d7fd42f0">More...</a><br /></td></tr>
 <tr class="separator:ad3f1a323ddd56e99eea0afe0d7fd42f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a267fc0628a2245c86afb303701f45ddc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a267fc0628a2245c86afb303701f45ddc"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#a267fc0628a2245c86afb303701f45ddc">GenerateScatterAddress</a> (int *begin, int *end, int *scatteredAddr)</td></tr>
-<tr class="memdesc:a267fc0628a2245c86afb303701f45ddc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to generate scatter address. <br /></td></tr>
+<tr class="memdesc:a267fc0628a2245c86afb303701f45ddc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to generate scatter address, runs an exclusive scan. <br /></td></tr>
 <tr class="separator:a267fc0628a2245c86afb303701f45ddc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae85bec13c1619427c06ad2e99b2e6d3b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae85bec13c1619427c06ad2e99b2e6d3b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#ae85bec13c1619427c06ad2e99b2e6d3b">GenerateOneRingCentroidWeights</a> (glm::vec3 *d_verts, const glm::vec3 *d_normals, const int _numVerts, float *_centroidWeights, const int *_oneRingIds, const glm::vec3 *_oneRingVerts, const int *_numNeighsPerVert, const int *_oneRingScatterAddr)</td></tr>
-<tr class="memdesc:ae85bec13c1619427c06ad2e99b2e6d3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to generate the one ring centroid weights for each mesh vertex. <br /></td></tr>
-<tr class="separator:ae85bec13c1619427c06ad2e99b2e6d3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89743f193a8a8203e343479029570309"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/namespaceisgw.html#a89743f193a8a8203e343479029570309">GenerateOneRingCentroidWeights</a> (glm::vec3 *_verts, const glm::vec3 *_normals, const int _numVerts, float *_centroidWeights, const int *_oneRingIds, const glm::vec3 *_oneRingVerts, const int *_numNeighsPerVert, const int *_oneRingScatterAddr)</td></tr>
+<tr class="memdesc:a89743f193a8a8203e343479029570309"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to generate the one ring centroid weights for each mesh vertex using Mean Value Coordinates method.  <a href="#a89743f193a8a8203e343479029570309">More...</a><br /></td></tr>
+<tr class="separator:a89743f193a8a8203e343479029570309"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>, Implicit Skin GPU Wrapper (isgw), wraps up Implicit Skinining CUDA kernals in a CPP interface </p>
@@ -218,6 +217,199 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../.
     <tr><td class="paramname">_rigidTransform</td><td>: Const device pointer to the rigid bone transform matrices </td></tr>
     <tr><td class="paramname">_fieldFuncs</td><td>: Const device pointer to an array of textures holding the individual field functions </td></tr>
     <tr><td class="paramname">_numFields</td><td>: The number of field function textures </td></tr>
+    <tr><td class="paramname">_compOps</td><td>: Device pointer to to composition operator 3D textures. </td></tr>
+    <tr><td class="paramname">_theta</td><td>: Device pointer to theta opening function 1D texture. </td></tr>
+    <tr><td class="paramname">_numOps</td><td>: Number of composition operators. </td></tr>
+    <tr><td class="paramname">_compFields</td><td>: Device pointer to composed fields, a structure that holds ids for primitive fields and their composition operator </td></tr>
+    <tr><td class="paramname">_numCompFields</td><td>: Number of composed fields </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ad3f1a323ddd56e99eea0afe0d7fd42f0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void isgw::EvalGradGlobalField </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>_output</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_outputG</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_samplePoint</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numSamples</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::mat4 *&#160;</td>
+          <td class="paramname"><em>_textureSpace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::mat4 *&#160;</td>
+          <td class="paramname"><em>_rigidTransforms</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const cudaTextureObject_t *&#160;</td>
+          <td class="paramname"><em>_fieldFuncs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numFields</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const cudaTextureObject_t *&#160;</td>
+          <td class="paramname"><em>_compOps</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const cudaTextureObject_t *&#160;</td>
+          <td class="paramname"><em>_theta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numOps</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> *&#160;</td>
+          <td class="paramname"><em>_compFields</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numCompFields</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Function to launch CUDA Kernel to evaluate gradient of global field. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_output</td><td>: Device pointer to the field output </td></tr>
+    <tr><td class="paramname">_outputG</td><td>: Device pointer to gradient output </td></tr>
+    <tr><td class="paramname">_samplePoint</td><td>: Const device pointer to the sample points </td></tr>
+    <tr><td class="paramname">_numSamples</td><td>The number of samples </td></tr>
+    <tr><td class="paramname">_textureSpace</td><td>: Const device pointer to the texture space transform matrices, transform world space to texture space </td></tr>
+    <tr><td class="paramname">_rigidTransform</td><td>: Const device pointer to the rigid bone transform matrices </td></tr>
+    <tr><td class="paramname">_fieldFuncs</td><td>: Const device pointer to an array of textures holding the individual field functions </td></tr>
+    <tr><td class="paramname">_numFields</td><td>: The number of field function textures </td></tr>
+    <tr><td class="paramname">_compOps</td><td>: Device pointer to to composition operator 3D textures. </td></tr>
+    <tr><td class="paramname">_theta</td><td>: Device pointer to theta opening function 1D texture. </td></tr>
+    <tr><td class="paramname">_numOps</td><td>: Number of composition operators. </td></tr>
+    <tr><td class="paramname">_compFields</td><td>: Device pointer to composed fields, a structure that holds ids for primitive fields and their composition operator </td></tr>
+    <tr><td class="paramname">_numCompFields</td><td>: Number of composed fields </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a89743f193a8a8203e343479029570309"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void isgw::GenerateOneRingCentroidWeights </td>
+          <td>(</td>
+          <td class="paramtype">glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_verts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_normals</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numVerts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>_centroidWeights</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int *&#160;</td>
+          <td class="paramname"><em>_oneRingIds</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_oneRingVerts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int *&#160;</td>
+          <td class="paramname"><em>_numNeighsPerVert</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int *&#160;</td>
+          <td class="paramname"><em>_oneRingScatterAddr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Method to generate the one ring centroid weights for each mesh vertex using Mean Value Coordinates method. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_verts</td><td>: Device pointer to vertices </td></tr>
+    <tr><td class="paramname">_normals</td><td>: Device pointer to normals </td></tr>
+    <tr><td class="paramname">_numVerts</td><td>: Numbe rof vertices </td></tr>
+    <tr><td class="paramname">_centroidWeights</td><td>: Device pointer to one ring centroid weights calculated using MVC. </td></tr>
+    <tr><td class="paramname">_oneRingVerts</td><td>: Device pointer to flat array of vertex ids of each vertices one ring nighbour. </td></tr>
+    <tr><td class="paramname">_numNeighsPerVert</td><td>: Device pointer to array holding number of neighbours per vertex. </td></tr>
+    <tr><td class="paramname">_neighScatterAddr</td><td>: Device pointer holding start index into _oneRingVerts for each vertex. </td></tr>
   </table>
   </dd>
 </dl>
@@ -337,6 +529,167 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../.
     <tr><td class="paramname">_weights</td><td>: const device pointer to the vertex bone weights </td></tr>
     <tr><td class="paramname">_numVerts</td><td>: The number of vertices in the mesh </td></tr>
     <tr><td class="paramname">_numBones</td><td>: The number of bones </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="acd11ec618e357fefdc8e530211339cdf"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void isgw::SimpleImplicitSkin </td>
+          <td>(</td>
+          <td class="paramtype">glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_deformedVert</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_normal</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>_origIsoValue</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">glm::vec3 *&#160;</td>
+          <td class="paramname"><em>_prevIsoGrad</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numVerts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::mat4 *&#160;</td>
+          <td class="paramname"><em>_textureSpace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const glm::mat4 *&#160;</td>
+          <td class="paramname"><em>_rigidTransforms</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const cudaTextureObject_t *&#160;</td>
+          <td class="paramname"><em>_fieldFuncs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numFields</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const cudaTextureObject_t *&#160;</td>
+          <td class="paramname"><em>_compOps</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const cudaTextureObject_t *&#160;</td>
+          <td class="paramname"><em>_theta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numOps</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> *&#160;</td>
+          <td class="paramname"><em>_compFields</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numCompFields</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int *&#160;</td>
+          <td class="paramname"><em>_oneRingVerts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>_centroidWeights</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int *&#160;</td>
+          <td class="paramname"><em>_neighScatterAddr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float&#160;</td>
+          <td class="paramname"><em>_sigma</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float&#160;</td>
+          <td class="paramname"><em>_contactAngle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_iterations</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Function to launch CUDA Kernel to perform implicit skinning. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_deformedVert</td><td>: Device pointer to the deformed vertices, this is the pointer that is mapped to the vertex buffer object </td></tr>
+    <tr><td class="paramname">_normal</td><td>: Device pointer to the deformed normals, this is the pointer that is mapped to the normals buffer object </td></tr>
+    <tr><td class="paramname">_origIsoValue</td><td>: Device pointer to iso values of each vertex in their original rest position. </td></tr>
+    <tr><td class="paramname">_prevIsoGrad</td><td>: Device pointer to the gradient of the field for each vertex from the previous frame. </td></tr>
+    <tr><td class="paramname">_numVerts</td><td>number of vertices. </td></tr>
+    <tr><td class="paramname">_textureSpace</td><td>: Device pointer to the texture space transformation required to transform the sample space into normalise texture space </td></tr>
+    <tr><td class="paramname">_rigidTransforms</td><td>: Device pointer to the inverse bone transforms, required to transform sample space before sampling transformed fields. </td></tr>
+    <tr><td class="paramname">_fieldFuncs</td><td>: Device pointer to field function 3D textures. </td></tr>
+    <tr><td class="paramname">_numFields</td><td>: Number of primitive fields. </td></tr>
+    <tr><td class="paramname">_compOps</td><td>: Device pointer to to composition operator 3D textures. </td></tr>
+    <tr><td class="paramname">_theta</td><td>: Device pointer to theta opening function 1D texture. </td></tr>
+    <tr><td class="paramname">_numOps</td><td>: Number of composition operators. </td></tr>
+    <tr><td class="paramname">_compFields</td><td>: Device pointer to composed fields, a structure that holds ids for primitive fields and their composition operator </td></tr>
+    <tr><td class="paramname">_numCompFields</td><td>: Number of composed fields </td></tr>
+    <tr><td class="paramname">_oneRingVerts</td><td>: Device pointer to flat array of vertex ids of each vertices one ring nighbour. </td></tr>
+    <tr><td class="paramname">_centroidWeights</td><td>: Device pointer to one ring centroid weights calculated using MVC. </td></tr>
+    <tr><td class="paramname">_neighScatterAddr</td><td>: Device pointer holding start index into _oneRingVerts for each vertex. </td></tr>
+    <tr><td class="paramname">_sigma</td><td>: scaling value for vertex projection step. </td></tr>
+    <tr><td class="paramname">_contactAngle</td><td>: threshold for running vertex projection step </td></tr>
+    <tr><td class="paramname">_iterations</td><td>: max number of iterations of vertex projection and tengential relaxations. </td></tr>
   </table>
   </dd>
 </dl>

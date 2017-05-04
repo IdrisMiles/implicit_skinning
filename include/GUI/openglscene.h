@@ -2,6 +2,7 @@
 #define OPENGLSCENE_H
 
 //-------------------------------------------------------------------------------
+
 #include <GL/glew.h>
 
 #include <QOpenGLWidget>
@@ -119,7 +120,8 @@ private:
 
     std::vector<std::shared_ptr<Model>> m_models;
 
-
 };
+
+//-------------------------------------------------------------------------------
 
 #endif // OPENGLSCENE_H

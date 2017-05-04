@@ -27,6 +27,8 @@
 typedef HRBF_fit<float, 3, Rbf_pow3<float> > DistanceField;
 
 
+//-------------------------------------------------------------------------------
+
 /// @class FieldFunction
 /// @brief This class
 class FieldFunction
@@ -76,9 +78,6 @@ public:
     /// @brief Method to Get the cuda texture object holding the field function
     cudaTextureObject_t &GetFieldFuncCudaTextureObject();
 
-    /// @brief Method to Get the cuda texture object holding the gradiet of the field function
-//    cudaTextureObject_t &GetFieldGradCudaTextureObject();
-
 
 
 private:
@@ -124,10 +123,8 @@ private:
     /// @brief A GPU based 3D texture to store precomputed field value
     Texture3DCuda<float4> d_field;
 
-    /// @brief A GPU based 3D texture to store precomputed gradient value
-//    Texture3DCuda<float4> d_grad;
-
-
 };
+
+//-------------------------------------------------------------------------------
 
 #endif // FIELDFUNCTION_H

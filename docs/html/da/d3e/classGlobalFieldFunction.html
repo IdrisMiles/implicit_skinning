@@ -39,6 +39,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="../../pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="../../namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="../../annotated.html"><span>Classes</span></a></li>
       <li><a href="../../files.html"><span>Files</span></a></li>
@@ -111,53 +112,136 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a49bffb060b34cb87706aa0fc3884174a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Public method to evaluate gradient of global field function at a sample point.  <a href="#a49bffb060b34cb87706aa0fc3884174a">More...</a><br /></td></tr>
 <tr class="separator:a49bffb060b34cb87706aa0fc3884174a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad243a639230c57d507710c117751f5ab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad243a639230c57d507710c117751f5ab"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Fit</b> (const int _numMeshParts)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#ad243a639230c57d507710c117751f5ab">Fit</a> (const int _numMeshParts)</td></tr>
+<tr class="memdesc:ad243a639230c57d507710c117751f5ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to initlise size of _fieldFuncs array <br /></td></tr>
 <tr class="separator:ad243a639230c57d507710c117751f5ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e3740f30ea28bb9b6fe1cdd92f0706b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4e3740f30ea28bb9b6fe1cdd92f0706b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateHRBFCentres</b> (const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_meshPart, const glm::vec3 &amp;_startJoint, const glm::vec3 &amp;_endJoint, const int _numPoints, <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_hrbfCentres)</td></tr>
-<tr class="separator:a4e3740f30ea28bb9b6fe1cdd92f0706b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32583dc655877c87063c28363fddf675"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a32583dc655877c87063c28363fddf675"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateFieldFuncs</b> (const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_hrbfCentres, const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_meshPart, const int _id)</td></tr>
+<tr class="memitem:ac7b6f9c16ac3ad7dc1200bafa1a4649d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#ac7b6f9c16ac3ad7dc1200bafa1a4649d">GenerateHRBFCentres</a> (const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_meshPart, const std::pair&lt; glm::vec3, glm::vec3 &gt; &amp;_boneEnds, const int _numPoints, <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_hrbfCentres)</td></tr>
+<tr class="memdesc:ac7b6f9c16ac3ad7dc1200bafa1a4649d"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to generate HRBF centres from mesh and bone joints, stores results in _hrbfCentres  <a href="#ac7b6f9c16ac3ad7dc1200bafa1a4649d">More...</a><br /></td></tr>
+<tr class="separator:ac7b6f9c16ac3ad7dc1200bafa1a4649d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32583dc655877c87063c28363fddf675"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a32583dc655877c87063c28363fddf675">GenerateFieldFuncs</a> (const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_hrbfCentres, const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;_meshPart, const int _id)</td></tr>
+<tr class="memdesc:a32583dc655877c87063c28363fddf675"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to generate individual field functions  <a href="#a32583dc655877c87063c28363fddf675">More...</a><br /></td></tr>
 <tr class="separator:a32583dc655877c87063c28363fddf675"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac670342d15dbc08ede726af118e7ac7a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac670342d15dbc08ede726af118e7ac7a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>PrecomputeFieldFunc</b> (const int _id, const int _res, const float _dim)</td></tr>
+<tr class="memitem:ac670342d15dbc08ede726af118e7ac7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#ac670342d15dbc08ede726af118e7ac7a">PrecomputeFieldFunc</a> (const int _id, const int _res, const float _dim)</td></tr>
+<tr class="memdesc:ac670342d15dbc08ede726af118e7ac7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to precompute fields into textures  <a href="#ac670342d15dbc08ede726af118e7ac7a">More...</a><br /></td></tr>
 <tr class="separator:ac670342d15dbc08ede726af118e7ac7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a359ad40bd85555529a05f4ba8c52dea5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a359ad40bd85555529a05f4ba8c52dea5"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateGlobalFieldFunc</b> ()</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a359ad40bd85555529a05f4ba8c52dea5">GenerateGlobalFieldFunc</a> ()</td></tr>
+<tr class="memdesc:a359ad40bd85555529a05f4ba8c52dea5"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to generate composition operators and composedd fields to build up global field <br /></td></tr>
 <tr class="separator:a359ad40bd85555529a05f4ba8c52dea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e22015664f10286c786f96dccb24ed4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9e22015664f10286c786f96dccb24ed4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>AddComposedField</b> (std::shared_ptr&lt; <a class="el" href="../../de/d96/classComposedField.html">ComposedField</a> &gt; _composedField)</td></tr>
+<tr class="memitem:a9e22015664f10286c786f96dccb24ed4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a9e22015664f10286c786f96dccb24ed4">AddComposedField</a> (std::shared_ptr&lt; <a class="el" href="../../de/d96/classComposedField.html">ComposedField</a> &gt; _composedField)</td></tr>
+<tr class="memdesc:a9e22015664f10286c786f96dccb24ed4"><td class="mdescLeft">&#160;</td><td class="mdescRight">add a composed field to the global field  <a href="#a9e22015664f10286c786f96dccb24ed4">More...</a><br /></td></tr>
 <tr class="separator:a9e22015664f10286c786f96dccb24ed4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fbdf65e403f123aa8e8c7b6e2fad13d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8fbdf65e403f123aa8e8c7b6e2fad13d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>AddFieldFunction</b> (std::shared_ptr&lt; <a class="el" href="../../d6/df1/classFieldFunction.html">FieldFunction</a> &gt; _fieldFunc)</td></tr>
+<tr class="memitem:a8fbdf65e403f123aa8e8c7b6e2fad13d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a8fbdf65e403f123aa8e8c7b6e2fad13d">AddFieldFunction</a> (std::shared_ptr&lt; <a class="el" href="../../d6/df1/classFieldFunction.html">FieldFunction</a> &gt; _fieldFunc)</td></tr>
+<tr class="memdesc:a8fbdf65e403f123aa8e8c7b6e2fad13d"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to field function to the global field  <a href="#a8fbdf65e403f123aa8e8c7b6e2fad13d">More...</a><br /></td></tr>
 <tr class="separator:a8fbdf65e403f123aa8e8c7b6e2fad13d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04591e62e352ff472d2b5c6c8ea1f876"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a04591e62e352ff472d2b5c6c8ea1f876"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>AddCompositionOp</b> (std::shared_ptr&lt; <a class="el" href="../../d1/ddf/classCompositionOp.html">CompositionOp</a> &gt; _compOp)</td></tr>
+<tr class="memitem:a04591e62e352ff472d2b5c6c8ea1f876"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a04591e62e352ff472d2b5c6c8ea1f876">AddCompositionOp</a> (std::shared_ptr&lt; <a class="el" href="../../d1/ddf/classCompositionOp.html">CompositionOp</a> &gt; _compOp)</td></tr>
+<tr class="memdesc:a04591e62e352ff472d2b5c6c8ea1f876"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to add composition operator to the global field.  <a href="#a04591e62e352ff472d2b5c6c8ea1f876">More...</a><br /></td></tr>
 <tr class="separator:a04591e62e352ff472d2b5c6c8ea1f876"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1a3835c54b9b701f65f53c3ffd7f3b6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa1a3835c54b9b701f65f53c3ffd7f3b6"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetRigidTransforms</b> (const std::vector&lt; glm::mat4 &gt; &amp;_transforms)</td></tr>
+<tr class="memitem:aa1a3835c54b9b701f65f53c3ffd7f3b6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#aa1a3835c54b9b701f65f53c3ffd7f3b6">SetRigidTransforms</a> (const std::vector&lt; glm::mat4 &gt; &amp;_transforms)</td></tr>
+<tr class="memdesc:aa1a3835c54b9b701f65f53c3ffd7f3b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to set bone transforms for each field  <a href="#aa1a3835c54b9b701f65f53c3ffd7f3b6">More...</a><br /></td></tr>
 <tr class="separator:aa1a3835c54b9b701f65f53c3ffd7f3b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8bbd29e40c1c71e5756813df01842b5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad8bbd29e40c1c71e5756813df01842b5"></a>
-std::vector&lt; std::shared_ptr&lt; <a class="el" href="../../d6/df1/classFieldFunction.html">FieldFunction</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>GetFieldFuncs</b> ()</td></tr>
+std::vector&lt; std::shared_ptr&lt; <a class="el" href="../../d6/df1/classFieldFunction.html">FieldFunction</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#ad8bbd29e40c1c71e5756813df01842b5">GetFieldFuncs</a> ()</td></tr>
+<tr class="memdesc:ad8bbd29e40c1c71e5756813df01842b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to get field functions <br /></td></tr>
 <tr class="separator:ad8bbd29e40c1c71e5756813df01842b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ebe578648d6b852f90c2aab151bfa0a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4ebe578648d6b852f90c2aab151bfa0a"></a>
-std::vector&lt; std::shared_ptr&lt; <a class="el" href="../../d1/ddf/classCompositionOp.html">CompositionOp</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>GetCompOps</b> ()</td></tr>
+std::vector&lt; std::shared_ptr&lt; <a class="el" href="../../d1/ddf/classCompositionOp.html">CompositionOp</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a4ebe578648d6b852f90c2aab151bfa0a">GetCompOps</a> ()</td></tr>
+<tr class="memdesc:a4ebe578648d6b852f90c2aab151bfa0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to get composition operators <br /></td></tr>
 <tr class="separator:a4ebe578648d6b852f90c2aab151bfa0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e2de1aaa09f16e7aa8337e74a456454"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8e2de1aaa09f16e7aa8337e74a456454"></a>
-std::vector&lt; std::shared_ptr&lt; <a class="el" href="../../de/d96/classComposedField.html">ComposedField</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>GetCompFields</b> ()</td></tr>
+std::vector&lt; std::shared_ptr&lt; <a class="el" href="../../de/d96/classComposedField.html">ComposedField</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a8e2de1aaa09f16e7aa8337e74a456454">GetCompFields</a> ()</td></tr>
+<tr class="memdesc:a8e2de1aaa09f16e7aa8337e74a456454"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to get CPU composed fields <br /></td></tr>
 <tr class="separator:a8e2de1aaa09f16e7aa8337e74a456454"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b5afb30913aede665c40442ba25d8b3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b5afb30913aede665c40442ba25d8b3"></a>
-std::vector&lt; <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>GetCompFieldsCuda</b> ()</td></tr>
+std::vector&lt; <a class="el" href="../../d6/dd9/classComposedFieldCuda.html">ComposedFieldCuda</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a2b5afb30913aede665c40442ba25d8b3">GetCompFieldsCuda</a> ()</td></tr>
+<tr class="memdesc:a2b5afb30913aede665c40442ba25d8b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to get GPU composed fields <br /></td></tr>
 <tr class="separator:a2b5afb30913aede665c40442ba25d8b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a312f448c044ddc61bab523d3b1b20e8a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a312f448c044ddc61bab523d3b1b20e8a"></a>
-std::vector&lt; cudaTextureObject_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>GetFieldFunc3DTextures</b> ()</td></tr>
+std::vector&lt; cudaTextureObject_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#a312f448c044ddc61bab523d3b1b20e8a">GetFieldFunc3DTextures</a> ()</td></tr>
+<tr class="memdesc:a312f448c044ddc61bab523d3b1b20e8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to get all primitive field cuda textures <br /></td></tr>
 <tr class="separator:a312f448c044ddc61bab523d3b1b20e8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb382b93bcd536d5649c7303296bb7df"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afb382b93bcd536d5649c7303296bb7df"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classGlobalFieldFunction.html#afb382b93bcd536d5649c7303296bb7df">IsGlobalFieldInit</a> () const </td></tr>
+<tr class="memdesc:afb382b93bcd536d5649c7303296bb7df"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to check if the global field has been genrated <br /></td></tr>
+<tr class="separator:afb382b93bcd536d5649c7303296bb7df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Idris Miles </dd></dl>
 <dl class="section version"><dt>Version</dt><dd>1.0 </dd></dl>
 <dl class="section date"><dt>Date</dt><dd>18/04/2017 </dd></dl>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a9e22015664f10286c786f96dccb24ed4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GlobalFieldFunction::AddComposedField </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="../../de/d96/classComposedField.html">ComposedField</a> &gt;&#160;</td>
+          <td class="paramname"><em>_composedField</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>add a composed field to the global field </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_composedField</td><td>: the composed field to add to the global field </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a04591e62e352ff472d2b5c6c8ea1f876"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GlobalFieldFunction::AddCompositionOp </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="../../d1/ddf/classCompositionOp.html">CompositionOp</a> &gt;&#160;</td>
+          <td class="paramname"><em>_compOp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>method to add composition operator to the global field. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_compOp</td><td>: composition operator to add. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a8fbdf65e403f123aa8e8c7b6e2fad13d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GlobalFieldFunction::AddFieldFunction </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="../../d6/df1/classFieldFunction.html">FieldFunction</a> &gt;&#160;</td>
+          <td class="paramname"><em>_fieldFunc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>method to field function to the global field </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_fieldFunc</td><td>: the field to add to the global field. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="a9226a98fa5f63736dae4155d99dec240"></a>
 <div class="memitem">
 <div class="memproto">
@@ -182,6 +266,98 @@ std::vector&lt; cudaTextureObject_t &gt;&#160;</td><td class="memItemRight" vali
 
 </div>
 </div>
+<a class="anchor" id="a32583dc655877c87063c28363fddf675"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GlobalFieldFunction::GenerateFieldFuncs </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;&#160;</td>
+          <td class="paramname"><em>_hrbfCentres</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;&#160;</td>
+          <td class="paramname"><em>_meshPart</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>method to generate individual field functions </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_hrbfCentres</td><td>: the hrbf centre to be used ot geneate the field function </td></tr>
+    <tr><td class="paramname">_meshParts</td><td>the original mesh of the part we are generating a field from </td></tr>
+    <tr><td class="paramname">_id</td><td>: id of the field function we want to generate </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000003">Todo:</a></b></dt><dd>Should probably call GenerateHRBFCentres and PrecomputeFieldFunc from within this method so everything is handled at once. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ac7b6f9c16ac3ad7dc1200bafa1a4649d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GlobalFieldFunction::GenerateHRBFCentres </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;&#160;</td>
+          <td class="paramname"><em>_meshPart</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::pair&lt; glm::vec3, glm::vec3 &gt; &amp;&#160;</td>
+          <td class="paramname"><em>_boneEnds</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_numPoints</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d9/d5e/classMesh.html">Mesh</a> &amp;&#160;</td>
+          <td class="paramname"><em>_hrbfCentres</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>method to generate HRBF centres from mesh and bone joints, stores results in _hrbfCentres </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_meshPart</td><td>: the mesh we want to generate HRBF centres from </td></tr>
+    <tr><td class="paramname">_boneEnds</td><td>: the start and end joint of the bone </td></tr>
+    <tr><td class="paramname">_numPoints</td><td>: the number of HRBF centres we want to create </td></tr>
+    <tr><td class="paramname">_hrbfCentres</td><td>: a mesh to store the resulting points. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="a49bffb060b34cb87706aa0fc3884174a"></a>
 <div class="memitem">
 <div class="memproto">
@@ -200,6 +376,72 @@ std::vector&lt; cudaTextureObject_t &gt;&#160;</td><td class="memItemRight" vali
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">glm::vec3</td><td>_x : Sample point to evaulate in global field. ] glm::vec3 : Gradient of field at sample point. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ac670342d15dbc08ede726af118e7ac7a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GlobalFieldFunction::PrecomputeFieldFunc </td>
+          <td>(</td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>_res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float&#160;</td>
+          <td class="paramname"><em>_dim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>method to precompute fields into textures </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_id</td><td>: id of field to precompute </td></tr>
+    <tr><td class="paramname">_res</td><td>: resolution of textures </td></tr>
+    <tr><td class="paramname">_dim</td><td>: dimension of sample space to map to texture space </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="aa1a3835c54b9b701f65f53c3ffd7f3b6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GlobalFieldFunction::SetRigidTransforms </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; glm::mat4 &gt; &amp;&#160;</td>
+          <td class="paramname"><em>_transforms</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>method to set bone transforms for each field </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_transform</td><td>: inverse bone transform to transform space before sampling field. </td></tr>
   </table>
   </dd>
 </dl>

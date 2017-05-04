@@ -18,6 +18,7 @@ The project is written in C++ and uses CUDA to speed up evaluation of field func
 
 ## Status
 ### Completed
+* :white_check_mark: Linear Blend Weight skinning implemented on the GPU
 * :white_check_mark: Generate fields for each mesh part.
 * :white_check_mark: Pre-compute fields into 3D textures.
 * :white_check_mark: Generate global field on the GPU.

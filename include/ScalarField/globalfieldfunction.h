@@ -1,6 +1,8 @@
 #ifndef GLOBALFIELDFUNCTION_H
 #define GLOBALFIELDFUNCTION_H
 
+//-------------------------------------------------------------------------------
+
 #include <ScalarField/compositionop.h>
 #include <ScalarField/fieldfunction.h>
 #include <ScalarField/composedfield.h>
@@ -48,71 +50,94 @@ public:
     //--------------------------------------------------------------------
     // Field generation functions
 
-    /// @brief
+    /// @brief method to initlise size of _fieldFuncs array
     void Fit(const int _numMeshParts);
 
-    /// @brief
+    /// @brief method to generate HRBF centres from mesh and bone joints, stores results in _hrbfCentres
+    /// @param _meshPart : the mesh we want to generate HRBF centres from
+    /// @param _boneEnds : the start and end joint of the bone
+    /// @param _numPoints : the number of HRBF centres we want to create
+    /// @param _hrbfCentres : a mesh to store the resulting points.
     void GenerateHRBFCentres(const Mesh &_meshPart,
-                             const glm::vec3 &_startJoint,
-                             const glm::vec3 &_endJoint,
+                             const std::pair<glm::vec3, glm::vec3> &_boneEnds,
                              const int _numPoints,
                              Mesh &_hrbfCentres);
 
-    /// @brief
+    /// @brief method to generate individual field functions
+    /// @param _hrbfCentres : the hrbf centre to be used ot geneate the field function
+    /// @param _meshParts: the original mesh of the part we are generating a field from
+    /// @param _id : id of the field function we want to generate
+    /// @todo Should probably call GenerateHRBFCentres and PrecomputeFieldFunc from within this method so everything is handled at once.
     void GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mesh &_meshPart, const int _id);
 
+    /// @brief method to precompute fields into textures
+    /// @param _id : id of field to precompute
+    /// @param _res : resolution of textures
+    /// @param _dim : dimension of sample space to map to texture space
     void PrecomputeFieldFunc(const int _id, const int _res, const float _dim);
 
-    /// @brief
+    /// @brief method to generate composition operators and composedd fields to build up global field
     void GenerateGlobalFieldFunc();
 
-    /// @brief
+    /// @brief add a composed field to the global field
+    /// @param _composedField : the composed field to add to the global field
     void AddComposedField(std::shared_ptr<ComposedField> _composedField);
 
-    /// @brief
+    /// @brief method to field function to the global field
+    /// @param _fieldFunc : the field to add to the global field.
     void AddFieldFunction(std::shared_ptr<FieldFunction> _fieldFunc);
 
-    /// @brief
+    /// @brief method to add composition operator to the global field.
+    /// @param _compOp : composition operator to add.
     void AddCompositionOp(std::shared_ptr<CompositionOp> _compOp);
 
     //--------------------------------------------------------------------
     // Setters
 
-    /// @brief
+    /// @brief method to set bone transforms for each field
+    /// @param _transform : inverse bone transform to transform space before sampling field.
     void SetRigidTransforms(const std::vector<glm::mat4> &_transforms);
 
     //--------------------------------------------------------------------
     // Getters
 
-    /// @brief
+    /// @brief method to get field functions
     std::vector<std::shared_ptr<FieldFunction>> &GetFieldFuncs();
 
-    /// @brief
+    /// @brief method to get composition operators
     std::vector<std::shared_ptr<CompositionOp>> &GetCompOps();
 
-    /// @brief
+    /// @brief method to get CPU composed fields
     std::vector<std::shared_ptr<ComposedField>> &GetCompFields();
 
-    /// @brief
+    /// @brief method to get GPU composed fields
     std::vector<ComposedFieldCuda> &GetCompFieldsCuda();
 
-    /// @brief
+    /// @brief method to get all primitive field cuda textures
     std::vector<cudaTextureObject_t> GetFieldFunc3DTextures();
+
+    /// @brief method to check if the global field has been genrated
+    bool IsGlobalFieldInit() const;
 
 private:
 
-    /// @brief
+    /// @brief vector of composed fields
     std::vector<std::shared_ptr<ComposedField>> m_composedFields;
 
-    /// @brief
+    /// @brief vector of composed field - GPU friendly
     std::vector<ComposedFieldCuda> m_composedFieldsCuda;
 
-    /// @brief
+    /// @brief vector of field functions
     std::vector<std::shared_ptr<FieldFunction>> m_fieldFuncs;
 
-    /// @brief
+    /// @brief vector of composition operators
     std::vector<std::shared_ptr<CompositionOp>> m_compOps;
 
+    /// @brief bool to check if the global field has been generated yet.
+    bool m_globalFieldInit;
+
 };
+
+//-------------------------------------------------------------------------------
 
 #endif // GLOBALFIELDFUNCTION_H

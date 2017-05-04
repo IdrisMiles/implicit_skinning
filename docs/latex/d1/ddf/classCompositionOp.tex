@@ -12,33 +12,35 @@ A class to operate on 2 field and compose them into a new field.
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-{\bfseries Composition\+Op} (const unsigned int \+\_\+dim=32)\hypertarget{classCompositionOp_aca1238b25d6ab1453a3811daa017aa82}{}\label{classCompositionOp_aca1238b25d6ab1453a3811daa017aa82}
+\hyperlink{classCompositionOp_aca1238b25d6ab1453a3811daa017aa82}{Composition\+Op} (const unsigned int \+\_\+dim=32)\hypertarget{classCompositionOp_aca1238b25d6ab1453a3811daa017aa82}{}\label{classCompositionOp_aca1238b25d6ab1453a3811daa017aa82}
 
-\item 
-void {\bfseries Set\+Theta} (std\+::function$<$ float(float)$>$ \+\_\+theta)\hypertarget{classCompositionOp_ad02524aa790a6c765434ab45c30c8cc7}{}\label{classCompositionOp_ad02524aa790a6c765434ab45c30c8cc7}
+\begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
+\hyperlink{classCompositionOp_a93fd65f54661fa7ba48bb8c78ed2a649}{$\sim$\+Composition\+Op} ()\hypertarget{classCompositionOp_a93fd65f54661fa7ba48bb8c78ed2a649}{}\label{classCompositionOp_a93fd65f54661fa7ba48bb8c78ed2a649}
 
-\item 
-void {\bfseries Set\+Composition\+Op} (std\+::function$<$ float(float, float, float)$>$ \+\_\+composition\+Op)\hypertarget{classCompositionOp_a01f25ef36a6118e8a55216a9d5db78cc}{}\label{classCompositionOp_a01f25ef36a6118e8a55216a9d5db78cc}
+\begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
+void \hyperlink{classCompositionOp_ad02524aa790a6c765434ab45c30c8cc7}{Set\+Theta} (std\+::function$<$ float(float)$>$ \+\_\+theta)\hypertarget{classCompositionOp_ad02524aa790a6c765434ab45c30c8cc7}{}\label{classCompositionOp_ad02524aa790a6c765434ab45c30c8cc7}
 
-\item 
-void {\bfseries Set\+Params} (float \+\_\+alpha0, float \+\_\+alpha1, float \+\_\+alpha2, float \+\_\+theta0, float \+\_\+theta1, float \+\_\+theta2, float \+\_\+w0, float \+\_\+w1)\hypertarget{classCompositionOp_acbc3386cd2afc194dcc621f47fca666d}{}\label{classCompositionOp_acbc3386cd2afc194dcc621f47fca666d}
+\begin{DoxyCompactList}\small\item\em method to set Theta Opening function \end{DoxyCompactList}\item 
+void \hyperlink{classCompositionOp_a01f25ef36a6118e8a55216a9d5db78cc}{Set\+Composition\+Op} (std\+::function$<$ float(float, float, float)$>$ \+\_\+composition\+Op)\hypertarget{classCompositionOp_a01f25ef36a6118e8a55216a9d5db78cc}{}\label{classCompositionOp_a01f25ef36a6118e8a55216a9d5db78cc}
 
-\item 
-void {\bfseries Precompute} (const unsigned int \+\_\+res=32)\hypertarget{classCompositionOp_aa80f5d11ae31e1f6863ad444d1f090e2}{}\label{classCompositionOp_aa80f5d11ae31e1f6863ad444d1f090e2}
+\begin{DoxyCompactList}\small\item\em methd to set composition function \end{DoxyCompactList}\item 
+void \hyperlink{classCompositionOp_acbc3386cd2afc194dcc621f47fca666d}{Set\+Params} (float \+\_\+alpha0, float \+\_\+alpha1, float \+\_\+alpha2, float \+\_\+theta0, float \+\_\+theta1, float \+\_\+theta2, float \+\_\+w0, float \+\_\+w1)\hypertarget{classCompositionOp_acbc3386cd2afc194dcc621f47fca666d}{}\label{classCompositionOp_acbc3386cd2afc194dcc621f47fca666d}
 
-\item 
+\begin{DoxyCompactList}\small\item\em method to set generic composition parameters (from \char`\"{}\+A Gradient-\/\+Based Implicit Blend\char`\"{} paper) \end{DoxyCompactList}\item 
+void \hyperlink{classCompositionOp_aa80f5d11ae31e1f6863ad444d1f090e2}{Precompute} (const unsigned int \+\_\+res=32)
+\begin{DoxyCompactList}\small\item\em method to precompute composition operator into a texture \end{DoxyCompactList}\item 
 float \hyperlink{classCompositionOp_a57732ab8935cfe1be82db7185feb5ae9}{Eval} (const float f1, const float f2, const float d)\hypertarget{classCompositionOp_a57732ab8935cfe1be82db7185feb5ae9}{}\label{classCompositionOp_a57732ab8935cfe1be82db7185feb5ae9}
 
 \begin{DoxyCompactList}\small\item\em Method to compute the result value of the composed field functions. \end{DoxyCompactList}\item 
 float \hyperlink{classCompositionOp_a402a1e7857bd812c016b10b4303a0367}{Theta} (const float \+\_\+angle\+Radians)\hypertarget{classCompositionOp_a402a1e7857bd812c016b10b4303a0367}{}\label{classCompositionOp_a402a1e7857bd812c016b10b4303a0367}
 
 \begin{DoxyCompactList}\small\item\em Method to map angle to a value between \mbox{[}0\+:1\mbox{]} Refered to as controller dc(alpha) parameter for composition operator in \char`\"{}\+Robust Iso-\/\+Surface Tracking for Interactive Character Skinning\char`\"{}. \end{DoxyCompactList}\item 
-cuda\+Texture\+Object\+\_\+t \& {\bfseries Get\+Field\+Func3\+D\+Texture} ()\hypertarget{classCompositionOp_a572988818063a3b9dfdd620931be8f43}{}\label{classCompositionOp_a572988818063a3b9dfdd620931be8f43}
+cuda\+Texture\+Object\+\_\+t \& \hyperlink{classCompositionOp_a572988818063a3b9dfdd620931be8f43}{Get\+Field\+Func3\+D\+Texture} ()\hypertarget{classCompositionOp_a572988818063a3b9dfdd620931be8f43}{}\label{classCompositionOp_a572988818063a3b9dfdd620931be8f43}
 
-\item 
-cuda\+Texture\+Object\+\_\+t \& {\bfseries Get\+Theta\+Texture} ()\hypertarget{classCompositionOp_a99e17507ff89a76d313e7acf36667937}{}\label{classCompositionOp_a99e17507ff89a76d313e7acf36667937}
+\begin{DoxyCompactList}\small\item\em method to get composition operator precomputed 3D texture \end{DoxyCompactList}\item 
+cuda\+Texture\+Object\+\_\+t \& \hyperlink{classCompositionOp_a99e17507ff89a76d313e7acf36667937}{Get\+Theta\+Texture} ()\hypertarget{classCompositionOp_a99e17507ff89a76d313e7acf36667937}{}\label{classCompositionOp_a99e17507ff89a76d313e7acf36667937}
 
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em method to get theta opening function precomputed 1D texture \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -53,6 +55,25 @@ Idris Miles
 \begin{DoxyDate}{Date}
 18/04/2017 
 \end{DoxyDate}
+
+
+\subsection{Member Function Documentation}
+\index{Composition\+Op@{Composition\+Op}!Precompute@{Precompute}}
+\index{Precompute@{Precompute}!Composition\+Op@{Composition\+Op}}
+\subsubsection[{\texorpdfstring{Precompute(const unsigned int \+\_\+res=32)}{Precompute(const unsigned int _res=32)}}]{\setlength{\rightskip}{0pt plus 5cm}void Composition\+Op\+::\+Precompute (
+\begin{DoxyParamCaption}
+\item[{const unsigned int}]{\+\_\+res = {\ttfamily 32}}
+\end{DoxyParamCaption}
+)}\hypertarget{classCompositionOp_aa80f5d11ae31e1f6863ad444d1f090e2}{}\label{classCompositionOp_aa80f5d11ae31e1f6863ad444d1f090e2}
+
+
+method to precompute composition operator into a texture 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+res} & \+: resolution of texture \\
+\hline
+\end{DoxyParams}
 
 
 The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}

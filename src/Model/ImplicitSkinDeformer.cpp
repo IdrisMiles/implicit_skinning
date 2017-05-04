@@ -9,7 +9,6 @@
 ImplicitSkinDeformer::ImplicitSkinDeformer():
     m_initMeshCudaMem(false),
     m_initFieldCudaMem(false),
-    m_initGobalFieldFunc(false),
     m_deformedMeshVertsMapped(false),
     m_deformedMeshNormsMapped(false),
     m_sigma(0.35f),
@@ -41,7 +40,7 @@ ImplicitSkinDeformer::~ImplicitSkinDeformer()
 
 void ImplicitSkinDeformer::InitialiseIsoValues()
 {
-    if(m_initFieldCudaMem && m_initMeshCudaMem & m_initGobalFieldFunc)
+    if(m_initFieldCudaMem && m_initMeshCudaMem & m_globalFieldFunction.IsGlobalFieldInit())
     {
         std::cout<<"init iso\n";
         // allocate and initialise temporary device memory
@@ -97,7 +96,7 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
         for(int mp=startId; mp<endId; mp++)
         {
             Mesh hrbfCentres;
-            m_globalFieldFunction.GenerateHRBFCentres(_meshParts[mp], _boneEnds[mp].first, _boneEnds[mp].second, _numHrbfCentres, hrbfCentres);
+            m_globalFieldFunction.GenerateHRBFCentres(_meshParts[mp], _boneEnds[mp], _numHrbfCentres, hrbfCentres);
             m_globalFieldFunction.GenerateFieldFuncs(hrbfCentres, _meshParts[mp], mp);
             m_globalFieldFunction.PrecomputeFieldFunc(mp, res, dim);
 
@@ -135,7 +134,6 @@ void ImplicitSkinDeformer::GenerateGlobalFieldFunction(const std::vector<Mesh> &
 
     // Generate global field function
     m_globalFieldFunction.GenerateGlobalFieldFunc();
-    m_initGobalFieldFunc = true;
 
 
     InitFieldCudaMem();
@@ -252,7 +250,7 @@ void ImplicitSkinDeformer::AddCompositionOp(std::shared_ptr<CompositionOp> _comp
 //------------------------------------------------------------------------------------------------
 void ImplicitSkinDeformer::SetRigidTransforms(const std::vector<glm::mat4> &_transforms)
 {
-    if(m_initGobalFieldFunc)
+    if(m_globalFieldFunction.IsGlobalFieldInit())
     {
         m_globalFieldFunction.SetRigidTransforms(_transforms);
     }
@@ -290,7 +288,7 @@ void ImplicitSkinDeformer::SetIterations(int _iterations)
 void ImplicitSkinDeformer::EvalGlobalField(std::vector<float> &_output, const std::vector<glm::vec3> &_samplePoints)
 {
     _output.clear();
-    if(!m_initGobalFieldFunc)
+    if(!m_globalFieldFunction.IsGlobalFieldInit())
     {
         return;
     }
@@ -312,7 +310,7 @@ void ImplicitSkinDeformer::EvalGlobalField(std::vector<float> &_output, const st
 void ImplicitSkinDeformer::EvalGlobalFieldInCube(std::vector<float> &_output, const int res, const float dim)
 {
     _output.clear();
-    if(!m_initGobalFieldFunc)
+    if(!m_globalFieldFunction.IsGlobalFieldInit())
     {
         return;
     }
@@ -518,7 +516,7 @@ void ImplicitSkinDeformer::InitMeshCudaMem(const Mesh _origMesh,
 
 void ImplicitSkinDeformer::InitFieldCudaMem()
 {
-    if(!m_initGobalFieldFunc || m_initFieldCudaMem) { return; }
+    if(!m_globalFieldFunction.IsGlobalFieldInit() || m_initFieldCudaMem) { return; }
 
     std::cout<<"init field cuda\n";
 

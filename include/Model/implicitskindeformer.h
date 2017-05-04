@@ -11,9 +11,12 @@
 #include "ScalarField/globalfieldfunction.h"
 
 
+//--------------------------------------------------------------------------------
 /// @author Idris Miles
 /// @version 1.0
-/// @date 18/04/2017
+/// @data 18/04/2017
+//--------------------------------------------------------------------------------
+
 
 
 /// @class ImplicitSkinDeformer
@@ -202,32 +205,37 @@ private:
     /// @brief The number of primitive fields that our global field is composed of.
     uint m_numFields;
 
+    /// @brief The number of composition operators
     uint m_numCompOps;
 
+    /// @brief The number of composed fields that our global field is composed of.
     uint m_numCompFields;
 
+    /// @brief The number of bone transforms
     int m_numTransforms;
 
+    /// @brief minimum of the axis aligned bounding box
     glm::vec3 m_minBBox;
 
+    /// @brief maximum of the axis aligned bounding box
     glm::vec3 m_maxBBox;
 
-    /// @brief
+    /// @brief The global field whose 0.5 iso-surface represents our mesh
     GlobalFieldFunction m_globalFieldFunction;
 
-    /// @brief
+    /// @brief a bool to check if we have uploaded mesh data to cuda
     bool m_initMeshCudaMem;
 
-    /// @brief
+    /// @brief a bool to check if we have uploaded field data to cuda
     bool m_initFieldCudaMem;
 
-    /// @brief
-    bool m_initGobalFieldFunc;
-
+    /// @brief scales vertex projection step in implicit skinning
     float m_sigma;
 
+    /// @brief threshold to apply vertex projection step
     float m_contactAngle;
 
+    /// @brief number of projection and relaxations iterations to perform
     int m_numIterations;
 
 
@@ -235,6 +243,7 @@ private:
     //---------------------------------------------------------------------
     // GPU data
 
+    /// @todo move below properties into a single data structure
     /// @brief
     glm::vec3 *d_deformedMeshVertsPtr;
 

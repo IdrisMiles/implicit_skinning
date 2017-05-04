@@ -1,7 +1,8 @@
 #include "ScalarField/globalfieldfunction.h"
 #include <algorithm>
 
-GlobalFieldFunction::GlobalFieldFunction()
+GlobalFieldFunction::GlobalFieldFunction():
+    m_globalFieldInit(false)
 {
 
 }
@@ -51,8 +52,7 @@ void GlobalFieldFunction::Fit(const int _numMeshParts)
 //----------------------------------------------------------------------------------------------------
 
 void GlobalFieldFunction::GenerateHRBFCentres(const Mesh &_meshPart,
-                                              const glm::vec3 &_startJoint,
-                                              const glm::vec3 &_endJoint,
+                                              const std::pair<glm::vec3, glm::vec3> &_boneEnds,
                                               const int _numPoints,
                                               Mesh &_hrbfCentres)
 {
@@ -61,7 +61,7 @@ void GlobalFieldFunction::GenerateHRBFCentres(const Mesh &_meshPart,
 
 
     // Determine distance of closest point to bone
-    glm::vec3 edge = _endJoint - _startJoint;
+    glm::vec3 edge = _boneEnds.second - _boneEnds.first;
     float minDist = FLT_MAX;
     for(auto &&tri : _meshPart.m_meshTris)
     {
@@ -69,34 +69,34 @@ void GlobalFieldFunction::GenerateHRBFCentres(const Mesh &_meshPart,
         glm::vec3 v1 = _meshPart.m_meshVerts[tri.y];
         glm::vec3 v2 = _meshPart.m_meshVerts[tri.z];
 
-        glm::vec3 e = v0 - _startJoint;
+        glm::vec3 e = v0 - _boneEnds.first;
         float t = glm::dot(e, edge);
-        float dist = glm::distance(v0, _startJoint + (t*edge));
+        float dist = glm::distance(v0, _boneEnds.first + (t*edge));
         minDist = dist < minDist ? dist : minDist;
 
-        e = v1 - _startJoint;
+        e = v1 - _boneEnds.first;
         t = glm::dot(e, edge);
-        dist = glm::distance(v1, _startJoint + (t*edge));
+        dist = glm::distance(v1, _boneEnds.first + (t*edge));
         minDist = dist < minDist ? dist : minDist;
 
-        e = v2 - _startJoint;
+        e = v2 - _boneEnds.first;
         t = glm::dot(e, edge);
-        dist = glm::distance(v2, _startJoint + (t*edge));
+        dist = glm::distance(v2, _boneEnds.first + (t*edge));
         minDist = dist < minDist ? dist : minDist;
     }
 
 
     // Add these points to close holes of scalar field smoothly
-    _hrbfCentres.m_meshVerts.push_back(_startJoint - (minDist * glm::normalize(edge)));
+    _hrbfCentres.m_meshVerts.push_back(_boneEnds.first - (minDist * glm::normalize(edge)));
     _hrbfCentres.m_meshNorms.push_back(-glm::normalize(edge));
-    _hrbfCentres.m_meshVerts.push_back(_endJoint + (minDist * glm::normalize(edge)));
+    _hrbfCentres.m_meshVerts.push_back(_boneEnds.second + (minDist * glm::normalize(edge)));
     _hrbfCentres.m_meshNorms.push_back(glm::normalize(edge));
 
 
     for(int i=0; i<_hrbfCentres.m_meshVerts.size(); i++)
     {
         glm::vec3 v = _hrbfCentres.m_meshVerts[i];
-        float f = glm::dot(v-_startJoint, _endJoint-_startJoint) / glm::dot(_endJoint-_startJoint, _endJoint-_startJoint);
+        float f = glm::dot(v-_boneEnds.first, _boneEnds.second-_boneEnds.first) / glm::dot(_boneEnds.second-_boneEnds.first, _boneEnds.second-_boneEnds.first);
         float h = 0.05f;
 
         if(f < h && f > 1.0f-h)
@@ -209,6 +209,8 @@ void GlobalFieldFunction::GenerateGlobalFieldFunc()
         AddComposedField(composedField);
         m_composedFieldsCuda.push_back(ComposedFieldCuda(mp, (fieldId<2)?-1:mp+1, 0));
     }
+
+    m_globalFieldInit = true;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -284,3 +286,8 @@ std::vector<cudaTextureObject_t> GlobalFieldFunction::GetFieldFunc3DTextures()
 }
 
 //----------------------------------------------------------------------------------------------------
+
+bool GlobalFieldFunction::IsGlobalFieldInit() const
+{
+    return m_globalFieldInit;
+}

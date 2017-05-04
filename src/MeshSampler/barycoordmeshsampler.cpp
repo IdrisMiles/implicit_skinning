@@ -4,6 +4,10 @@
 #include <random>
 #include <iostream>
 
+
+//-------------------------------------------------------------------------------
+
+
 struct AcceptSample
 {
     AcceptSample(const glm::vec3 &_samplePoint, const float _sampleDist) :
@@ -21,6 +25,8 @@ struct AcceptSample
     float sampleDist;
     bool accept;
 };
+
+//-------------------------------------------------------------------------------
 
 Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples)
 {
@@ -135,3 +141,4 @@ Mesh MeshSampler::BaryCoord::SampleMesh(const Mesh &_mesh, const int _numSamples
 
     return samples;
 }
+//-------------------------------------------------------------------------------

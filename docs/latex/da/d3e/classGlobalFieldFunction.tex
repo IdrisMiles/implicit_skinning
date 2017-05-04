@@ -17,48 +17,44 @@ float \hyperlink{classGlobalFieldFunction_a9226a98fa5f63736dae4155d99dec240}{Eva
 \begin{DoxyCompactList}\small\item\em Public method to evaluate global field function at a sample point. \end{DoxyCompactList}\item 
 glm\+::vec3 \hyperlink{classGlobalFieldFunction_a49bffb060b34cb87706aa0fc3884174a}{Grad} (const glm\+::vec3 \&\+\_\+x)
 \begin{DoxyCompactList}\small\item\em Public method to evaluate gradient of global field function at a sample point. \end{DoxyCompactList}\item 
-void {\bfseries Fit} (const int \+\_\+num\+Mesh\+Parts)\hypertarget{classGlobalFieldFunction_ad243a639230c57d507710c117751f5ab}{}\label{classGlobalFieldFunction_ad243a639230c57d507710c117751f5ab}
+void \hyperlink{classGlobalFieldFunction_ad243a639230c57d507710c117751f5ab}{Fit} (const int \+\_\+num\+Mesh\+Parts)\hypertarget{classGlobalFieldFunction_ad243a639230c57d507710c117751f5ab}{}\label{classGlobalFieldFunction_ad243a639230c57d507710c117751f5ab}
 
-\item 
-void {\bfseries Generate\+H\+R\+B\+F\+Centres} (const \hyperlink{classMesh}{Mesh} \&\+\_\+mesh\+Part, const glm\+::vec3 \&\+\_\+start\+Joint, const glm\+::vec3 \&\+\_\+end\+Joint, const int \+\_\+num\+Points, \hyperlink{classMesh}{Mesh} \&\+\_\+hrbf\+Centres)\hypertarget{classGlobalFieldFunction_a4e3740f30ea28bb9b6fe1cdd92f0706b}{}\label{classGlobalFieldFunction_a4e3740f30ea28bb9b6fe1cdd92f0706b}
+\begin{DoxyCompactList}\small\item\em method to initlise size of \+\_\+field\+Funcs array \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_ac7b6f9c16ac3ad7dc1200bafa1a4649d}{Generate\+H\+R\+B\+F\+Centres} (const \hyperlink{classMesh}{Mesh} \&\+\_\+mesh\+Part, const std\+::pair$<$ glm\+::vec3, glm\+::vec3 $>$ \&\+\_\+bone\+Ends, const int \+\_\+num\+Points, \hyperlink{classMesh}{Mesh} \&\+\_\+hrbf\+Centres)
+\begin{DoxyCompactList}\small\item\em method to generate H\+R\+BF centres from mesh and bone joints, stores results in \+\_\+hrbf\+Centres \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_a32583dc655877c87063c28363fddf675}{Generate\+Field\+Funcs} (const \hyperlink{classMesh}{Mesh} \&\+\_\+hrbf\+Centres, const \hyperlink{classMesh}{Mesh} \&\+\_\+mesh\+Part, const int \+\_\+id)
+\begin{DoxyCompactList}\small\item\em method to generate individual field functions \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_ac670342d15dbc08ede726af118e7ac7a}{Precompute\+Field\+Func} (const int \+\_\+id, const int \+\_\+res, const float \+\_\+dim)
+\begin{DoxyCompactList}\small\item\em method to precompute fields into textures \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_a359ad40bd85555529a05f4ba8c52dea5}{Generate\+Global\+Field\+Func} ()\hypertarget{classGlobalFieldFunction_a359ad40bd85555529a05f4ba8c52dea5}{}\label{classGlobalFieldFunction_a359ad40bd85555529a05f4ba8c52dea5}
 
-\item 
-void {\bfseries Generate\+Field\+Funcs} (const \hyperlink{classMesh}{Mesh} \&\+\_\+hrbf\+Centres, const \hyperlink{classMesh}{Mesh} \&\+\_\+mesh\+Part, const int \+\_\+id)\hypertarget{classGlobalFieldFunction_a32583dc655877c87063c28363fddf675}{}\label{classGlobalFieldFunction_a32583dc655877c87063c28363fddf675}
+\begin{DoxyCompactList}\small\item\em method to generate composition operators and composedd fields to build up global field \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_a9e22015664f10286c786f96dccb24ed4}{Add\+Composed\+Field} (std\+::shared\+\_\+ptr$<$ \hyperlink{classComposedField}{Composed\+Field} $>$ \+\_\+composed\+Field)
+\begin{DoxyCompactList}\small\item\em add a composed field to the global field \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_a8fbdf65e403f123aa8e8c7b6e2fad13d}{Add\+Field\+Function} (std\+::shared\+\_\+ptr$<$ \hyperlink{classFieldFunction}{Field\+Function} $>$ \+\_\+field\+Func)
+\begin{DoxyCompactList}\small\item\em method to field function to the global field \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_a04591e62e352ff472d2b5c6c8ea1f876}{Add\+Composition\+Op} (std\+::shared\+\_\+ptr$<$ \hyperlink{classCompositionOp}{Composition\+Op} $>$ \+\_\+comp\+Op)
+\begin{DoxyCompactList}\small\item\em method to add composition operator to the global field. \end{DoxyCompactList}\item 
+void \hyperlink{classGlobalFieldFunction_aa1a3835c54b9b701f65f53c3ffd7f3b6}{Set\+Rigid\+Transforms} (const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transforms)
+\begin{DoxyCompactList}\small\item\em method to set bone transforms for each field \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classFieldFunction}{Field\+Function} $>$ $>$ \& \hyperlink{classGlobalFieldFunction_ad8bbd29e40c1c71e5756813df01842b5}{Get\+Field\+Funcs} ()\hypertarget{classGlobalFieldFunction_ad8bbd29e40c1c71e5756813df01842b5}{}\label{classGlobalFieldFunction_ad8bbd29e40c1c71e5756813df01842b5}
 
-\item 
-void {\bfseries Precompute\+Field\+Func} (const int \+\_\+id, const int \+\_\+res, const float \+\_\+dim)\hypertarget{classGlobalFieldFunction_ac670342d15dbc08ede726af118e7ac7a}{}\label{classGlobalFieldFunction_ac670342d15dbc08ede726af118e7ac7a}
+\begin{DoxyCompactList}\small\item\em method to get field functions \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classCompositionOp}{Composition\+Op} $>$ $>$ \& \hyperlink{classGlobalFieldFunction_a4ebe578648d6b852f90c2aab151bfa0a}{Get\+Comp\+Ops} ()\hypertarget{classGlobalFieldFunction_a4ebe578648d6b852f90c2aab151bfa0a}{}\label{classGlobalFieldFunction_a4ebe578648d6b852f90c2aab151bfa0a}
 
-\item 
-void {\bfseries Generate\+Global\+Field\+Func} ()\hypertarget{classGlobalFieldFunction_a359ad40bd85555529a05f4ba8c52dea5}{}\label{classGlobalFieldFunction_a359ad40bd85555529a05f4ba8c52dea5}
+\begin{DoxyCompactList}\small\item\em method to get composition operators \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classComposedField}{Composed\+Field} $>$ $>$ \& \hyperlink{classGlobalFieldFunction_a8e2de1aaa09f16e7aa8337e74a456454}{Get\+Comp\+Fields} ()\hypertarget{classGlobalFieldFunction_a8e2de1aaa09f16e7aa8337e74a456454}{}\label{classGlobalFieldFunction_a8e2de1aaa09f16e7aa8337e74a456454}
 
-\item 
-void {\bfseries Add\+Composed\+Field} (std\+::shared\+\_\+ptr$<$ \hyperlink{classComposedField}{Composed\+Field} $>$ \+\_\+composed\+Field)\hypertarget{classGlobalFieldFunction_a9e22015664f10286c786f96dccb24ed4}{}\label{classGlobalFieldFunction_a9e22015664f10286c786f96dccb24ed4}
+\begin{DoxyCompactList}\small\item\em method to get C\+PU composed fields \end{DoxyCompactList}\item 
+std\+::vector$<$ \hyperlink{classComposedFieldCuda}{Composed\+Field\+Cuda} $>$ \& \hyperlink{classGlobalFieldFunction_a2b5afb30913aede665c40442ba25d8b3}{Get\+Comp\+Fields\+Cuda} ()\hypertarget{classGlobalFieldFunction_a2b5afb30913aede665c40442ba25d8b3}{}\label{classGlobalFieldFunction_a2b5afb30913aede665c40442ba25d8b3}
 
-\item 
-void {\bfseries Add\+Field\+Function} (std\+::shared\+\_\+ptr$<$ \hyperlink{classFieldFunction}{Field\+Function} $>$ \+\_\+field\+Func)\hypertarget{classGlobalFieldFunction_a8fbdf65e403f123aa8e8c7b6e2fad13d}{}\label{classGlobalFieldFunction_a8fbdf65e403f123aa8e8c7b6e2fad13d}
+\begin{DoxyCompactList}\small\item\em method to get G\+PU composed fields \end{DoxyCompactList}\item 
+std\+::vector$<$ cuda\+Texture\+Object\+\_\+t $>$ \hyperlink{classGlobalFieldFunction_a312f448c044ddc61bab523d3b1b20e8a}{Get\+Field\+Func3\+D\+Textures} ()\hypertarget{classGlobalFieldFunction_a312f448c044ddc61bab523d3b1b20e8a}{}\label{classGlobalFieldFunction_a312f448c044ddc61bab523d3b1b20e8a}
 
-\item 
-void {\bfseries Add\+Composition\+Op} (std\+::shared\+\_\+ptr$<$ \hyperlink{classCompositionOp}{Composition\+Op} $>$ \+\_\+comp\+Op)\hypertarget{classGlobalFieldFunction_a04591e62e352ff472d2b5c6c8ea1f876}{}\label{classGlobalFieldFunction_a04591e62e352ff472d2b5c6c8ea1f876}
+\begin{DoxyCompactList}\small\item\em method to get all primitive field cuda textures \end{DoxyCompactList}\item 
+bool \hyperlink{classGlobalFieldFunction_afb382b93bcd536d5649c7303296bb7df}{Is\+Global\+Field\+Init} () const \hypertarget{classGlobalFieldFunction_afb382b93bcd536d5649c7303296bb7df}{}\label{classGlobalFieldFunction_afb382b93bcd536d5649c7303296bb7df}
 
-\item 
-void {\bfseries Set\+Rigid\+Transforms} (const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transforms)\hypertarget{classGlobalFieldFunction_aa1a3835c54b9b701f65f53c3ffd7f3b6}{}\label{classGlobalFieldFunction_aa1a3835c54b9b701f65f53c3ffd7f3b6}
-
-\item 
-std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classFieldFunction}{Field\+Function} $>$ $>$ \& {\bfseries Get\+Field\+Funcs} ()\hypertarget{classGlobalFieldFunction_ad8bbd29e40c1c71e5756813df01842b5}{}\label{classGlobalFieldFunction_ad8bbd29e40c1c71e5756813df01842b5}
-
-\item 
-std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classCompositionOp}{Composition\+Op} $>$ $>$ \& {\bfseries Get\+Comp\+Ops} ()\hypertarget{classGlobalFieldFunction_a4ebe578648d6b852f90c2aab151bfa0a}{}\label{classGlobalFieldFunction_a4ebe578648d6b852f90c2aab151bfa0a}
-
-\item 
-std\+::vector$<$ std\+::shared\+\_\+ptr$<$ \hyperlink{classComposedField}{Composed\+Field} $>$ $>$ \& {\bfseries Get\+Comp\+Fields} ()\hypertarget{classGlobalFieldFunction_a8e2de1aaa09f16e7aa8337e74a456454}{}\label{classGlobalFieldFunction_a8e2de1aaa09f16e7aa8337e74a456454}
-
-\item 
-std\+::vector$<$ \hyperlink{classComposedFieldCuda}{Composed\+Field\+Cuda} $>$ \& {\bfseries Get\+Comp\+Fields\+Cuda} ()\hypertarget{classGlobalFieldFunction_a2b5afb30913aede665c40442ba25d8b3}{}\label{classGlobalFieldFunction_a2b5afb30913aede665c40442ba25d8b3}
-
-\item 
-std\+::vector$<$ cuda\+Texture\+Object\+\_\+t $>$ {\bfseries Get\+Field\+Func3\+D\+Textures} ()\hypertarget{classGlobalFieldFunction_a312f448c044ddc61bab523d3b1b20e8a}{}\label{classGlobalFieldFunction_a312f448c044ddc61bab523d3b1b20e8a}
-
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em method to check if the global field has been genrated \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -74,6 +70,54 @@ Idris Miles
 
 
 \subsection{Member Function Documentation}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Add\+Composed\+Field@{Add\+Composed\+Field}}
+\index{Add\+Composed\+Field@{Add\+Composed\+Field}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Add\+Composed\+Field(std\+::shared\+\_\+ptr$<$ Composed\+Field $>$ \+\_\+composed\+Field)}{AddComposedField(std::shared_ptr< ComposedField > _composedField)}}]{\setlength{\rightskip}{0pt plus 5cm}void Global\+Field\+Function\+::\+Add\+Composed\+Field (
+\begin{DoxyParamCaption}
+\item[{std\+::shared\+\_\+ptr$<$ {\bf Composed\+Field} $>$}]{\+\_\+composed\+Field}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_a9e22015664f10286c786f96dccb24ed4}{}\label{classGlobalFieldFunction_a9e22015664f10286c786f96dccb24ed4}
+
+
+add a composed field to the global field 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+composed\+Field} & \+: the composed field to add to the global field \\
+\hline
+\end{DoxyParams}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Add\+Composition\+Op@{Add\+Composition\+Op}}
+\index{Add\+Composition\+Op@{Add\+Composition\+Op}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Add\+Composition\+Op(std\+::shared\+\_\+ptr$<$ Composition\+Op $>$ \+\_\+comp\+Op)}{AddCompositionOp(std::shared_ptr< CompositionOp > _compOp)}}]{\setlength{\rightskip}{0pt plus 5cm}void Global\+Field\+Function\+::\+Add\+Composition\+Op (
+\begin{DoxyParamCaption}
+\item[{std\+::shared\+\_\+ptr$<$ {\bf Composition\+Op} $>$}]{\+\_\+comp\+Op}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_a04591e62e352ff472d2b5c6c8ea1f876}{}\label{classGlobalFieldFunction_a04591e62e352ff472d2b5c6c8ea1f876}
+
+
+method to add composition operator to the global field. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+comp\+Op} & \+: composition operator to add. \\
+\hline
+\end{DoxyParams}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Add\+Field\+Function@{Add\+Field\+Function}}
+\index{Add\+Field\+Function@{Add\+Field\+Function}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Add\+Field\+Function(std\+::shared\+\_\+ptr$<$ Field\+Function $>$ \+\_\+field\+Func)}{AddFieldFunction(std::shared_ptr< FieldFunction > _fieldFunc)}}]{\setlength{\rightskip}{0pt plus 5cm}void Global\+Field\+Function\+::\+Add\+Field\+Function (
+\begin{DoxyParamCaption}
+\item[{std\+::shared\+\_\+ptr$<$ {\bf Field\+Function} $>$}]{\+\_\+field\+Func}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_a8fbdf65e403f123aa8e8c7b6e2fad13d}{}\label{classGlobalFieldFunction_a8fbdf65e403f123aa8e8c7b6e2fad13d}
+
+
+method to field function to the global field 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+field\+Func} & \+: the field to add to the global field. \\
+\hline
+\end{DoxyParams}
 \index{Global\+Field\+Function@{Global\+Field\+Function}!Eval@{Eval}}
 \index{Eval@{Eval}!Global\+Field\+Function@{Global\+Field\+Function}}
 \subsubsection[{\texorpdfstring{Eval(const glm\+::vec3 \&\+\_\+x)}{Eval(const glm::vec3 &_x)}}]{\setlength{\rightskip}{0pt plus 5cm}float Global\+Field\+Function\+::\+Eval (
@@ -90,6 +134,55 @@ Public method to evaluate global field function at a sample point.
 {\em glm\+::vec3} & \+\_\+x \+: Sample point to evaulate in global field. \mbox{]} float \+: Value of field at sample point. \\
 \hline
 \end{DoxyParams}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Generate\+Field\+Funcs@{Generate\+Field\+Funcs}}
+\index{Generate\+Field\+Funcs@{Generate\+Field\+Funcs}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Generate\+Field\+Funcs(const Mesh \&\+\_\+hrbf\+Centres, const Mesh \&\+\_\+mesh\+Part, const int \+\_\+id)}{GenerateFieldFuncs(const Mesh &_hrbfCentres, const Mesh &_meshPart, const int _id)}}]{\setlength{\rightskip}{0pt plus 5cm}void Global\+Field\+Function\+::\+Generate\+Field\+Funcs (
+\begin{DoxyParamCaption}
+\item[{const {\bf Mesh} \&}]{\+\_\+hrbf\+Centres, }
+\item[{const {\bf Mesh} \&}]{\+\_\+mesh\+Part, }
+\item[{const int}]{\+\_\+id}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_a32583dc655877c87063c28363fddf675}{}\label{classGlobalFieldFunction_a32583dc655877c87063c28363fddf675}
+
+
+method to generate individual field functions 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+hrbf\+Centres} & \+: the hrbf centre to be used ot geneate the field function \\
+\hline
+{\em \+\_\+mesh\+Parts} & the original mesh of the part we are generating a field from \\
+\hline
+{\em \+\_\+id} & \+: id of the field function we want to generate \\
+\hline
+\end{DoxyParams}
+\begin{DoxyRefDesc}{Todo}
+\item[\hyperlink{todo__todo000003}{Todo}]Should probably call Generate\+H\+R\+B\+F\+Centres and Precompute\+Field\+Func from within this method so everything is handled at once. \end{DoxyRefDesc}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Generate\+H\+R\+B\+F\+Centres@{Generate\+H\+R\+B\+F\+Centres}}
+\index{Generate\+H\+R\+B\+F\+Centres@{Generate\+H\+R\+B\+F\+Centres}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Generate\+H\+R\+B\+F\+Centres(const Mesh \&\+\_\+mesh\+Part, const std\+::pair$<$ glm\+::vec3, glm\+::vec3 $>$ \&\+\_\+bone\+Ends, const int \+\_\+num\+Points, Mesh \&\+\_\+hrbf\+Centres)}{GenerateHRBFCentres(const Mesh &_meshPart, const std::pair< glm::vec3, glm::vec3 > &_boneEnds, const int _numPoints, Mesh &_hrbfCentres)}}]{\setlength{\rightskip}{0pt plus 5cm}void Global\+Field\+Function\+::\+Generate\+H\+R\+B\+F\+Centres (
+\begin{DoxyParamCaption}
+\item[{const {\bf Mesh} \&}]{\+\_\+mesh\+Part, }
+\item[{const std\+::pair$<$ glm\+::vec3, glm\+::vec3 $>$ \&}]{\+\_\+bone\+Ends, }
+\item[{const int}]{\+\_\+num\+Points, }
+\item[{{\bf Mesh} \&}]{\+\_\+hrbf\+Centres}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_ac7b6f9c16ac3ad7dc1200bafa1a4649d}{}\label{classGlobalFieldFunction_ac7b6f9c16ac3ad7dc1200bafa1a4649d}
+
+
+method to generate H\+R\+BF centres from mesh and bone joints, stores results in \+\_\+hrbf\+Centres 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+mesh\+Part} & \+: the mesh we want to generate H\+R\+BF centres from \\
+\hline
+{\em \+\_\+bone\+Ends} & \+: the start and end joint of the bone \\
+\hline
+{\em \+\_\+num\+Points} & \+: the number of H\+R\+BF centres we want to create \\
+\hline
+{\em \+\_\+hrbf\+Centres} & \+: a mesh to store the resulting points. \\
+\hline
+\end{DoxyParams}
 \index{Global\+Field\+Function@{Global\+Field\+Function}!Grad@{Grad}}
 \index{Grad@{Grad}!Global\+Field\+Function@{Global\+Field\+Function}}
 \subsubsection[{\texorpdfstring{Grad(const glm\+::vec3 \&\+\_\+x)}{Grad(const glm::vec3 &_x)}}]{\setlength{\rightskip}{0pt plus 5cm}glm\+::vec3 Global\+Field\+Function\+::\+Grad (
@@ -104,6 +197,44 @@ Public method to evaluate gradient of global field function at a sample point.
 
 \begin{DoxyParams}{Parameters}
 {\em glm\+::vec3} & \+\_\+x \+: Sample point to evaulate in global field. \mbox{]} glm\+::vec3 \+: Gradient of field at sample point. \\
+\hline
+\end{DoxyParams}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Precompute\+Field\+Func@{Precompute\+Field\+Func}}
+\index{Precompute\+Field\+Func@{Precompute\+Field\+Func}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Precompute\+Field\+Func(const int \+\_\+id, const int \+\_\+res, const float \+\_\+dim)}{PrecomputeFieldFunc(const int _id, const int _res, const float _dim)}}]{\setlength{\rightskip}{0pt plus 5cm}void Global\+Field\+Function\+::\+Precompute\+Field\+Func (
+\begin{DoxyParamCaption}
+\item[{const int}]{\+\_\+id, }
+\item[{const int}]{\+\_\+res, }
+\item[{const float}]{\+\_\+dim}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_ac670342d15dbc08ede726af118e7ac7a}{}\label{classGlobalFieldFunction_ac670342d15dbc08ede726af118e7ac7a}
+
+
+method to precompute fields into textures 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+id} & \+: id of field to precompute \\
+\hline
+{\em \+\_\+res} & \+: resolution of textures \\
+\hline
+{\em \+\_\+dim} & \+: dimension of sample space to map to texture space \\
+\hline
+\end{DoxyParams}
+\index{Global\+Field\+Function@{Global\+Field\+Function}!Set\+Rigid\+Transforms@{Set\+Rigid\+Transforms}}
+\index{Set\+Rigid\+Transforms@{Set\+Rigid\+Transforms}!Global\+Field\+Function@{Global\+Field\+Function}}
+\subsubsection[{\texorpdfstring{Set\+Rigid\+Transforms(const std\+::vector$<$ glm\+::mat4 $>$ \&\+\_\+transforms)}{SetRigidTransforms(const std::vector< glm::mat4 > &_transforms)}}]{\setlength{\rightskip}{0pt plus 5cm}void Global\+Field\+Function\+::\+Set\+Rigid\+Transforms (
+\begin{DoxyParamCaption}
+\item[{const std\+::vector$<$ glm\+::mat4 $>$ \&}]{\+\_\+transforms}
+\end{DoxyParamCaption}
+)}\hypertarget{classGlobalFieldFunction_aa1a3835c54b9b701f65f53c3ffd7f3b6}{}\label{classGlobalFieldFunction_aa1a3835c54b9b701f65f53c3ffd7f3b6}
+
+
+method to set bone transforms for each field 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+transform} & \+: inverse bone transform to transform space before sampling field. \\
 \hline
 \end{DoxyParams}
 

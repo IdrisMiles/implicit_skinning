@@ -165,7 +165,10 @@ void GenerateScatterAddress(int *begin,
 /// @param _verts : Device pointer to vertices
 /// @param _normals : Device pointer to normals
 /// @param _numVerts : Numbe rof vertices
-/// @param _centroidWeights :
+/// @param _centroidWeights : Device pointer to one ring centroid weights calculated using MVC.
+/// @param _oneRingVerts : Device pointer to flat array of vertex ids of each vertices one ring nighbour.
+/// @param _numNeighsPerVert : Device pointer to array holding number of neighbours per vertex.
+/// @param _neighScatterAddr : Device pointer holding start index into _oneRingVerts for each vertex.
 void GenerateOneRingCentroidWeights(glm::vec3 *_verts,
                                     const glm::vec3 *_normals,
                                     const int _numVerts,
