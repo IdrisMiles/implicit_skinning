@@ -197,7 +197,8 @@ void Model::UpdateIsoSurface(int xRes,
 
 
     // Polygonize scalar field using maching cube
-    MachingCube::Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, &f[0], 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
+//    MachingCube::Polygonize(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, &f[0], 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
+    MachingCube::PolygonizeGPU(m_meshIsoSurface.m_meshVerts, m_meshIsoSurface.m_meshNorms, &f[0], 0.5f, xRes, yRes, zRes, xScale, yScale, zScale);
 }
 
 

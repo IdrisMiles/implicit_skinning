@@ -123,8 +123,7 @@ glm::vec3 MachingCube::computeTriangleNormal(Triangle &itr)
     {
         norm = glm::normalize(norm);
     }
-    else
-        printf("");
+
     return norm;
 }
 

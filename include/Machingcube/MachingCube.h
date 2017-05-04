@@ -14,6 +14,15 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
+
+
+#include <cuda_runtime.h>
+#include <cuda.h>
+
+#define GLM_FORCE_CUDA
+#include <glm/glm.hpp>
+#include <glm/gtx/vector_angle.hpp>
+
 //----------------------------------------------------------------------------------------------------------------------
 /// @class MachingCube "include/MachingCube/MachingCube.h"
 /// @brief basic maching cube algorithm
@@ -55,6 +64,14 @@ public :
     /// @brief polygonize the iso surface
     //----------------------------------------------------------------------------------------------------------------------
     static void Polygonize(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
+
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// @brief polygonize the iso surface on the GPU,
+    /// probably not the most optimal as it's basically a cut and paste job of the CPU implementation,
+    /// but still much faster than the CPU version
+    //----------------------------------------------------------------------------------------------------------------------
+    static void PolygonizeGPU(std::vector<glm::vec3> &_verts, std::vector<glm::vec3> &_norms, float *_volumeData, const float &_isolevel, const int &_w, const int &_h, const int &_d, const float &_voxelW = 1.0f, const float &_voxelH = 1.0f, const float &_voxelD = 1.0f);
 
 protected :
 
