@@ -157,8 +157,8 @@ void isgw::GenerateScatterAddress(int *begin,
 
 //------------------------------------------------------------------------------------------------
 
-void isgw::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
-                                             const glm::vec3 *d_normals,
+void isgw::GenerateOneRingCentroidWeights(glm::vec3 *_verts,
+                                             const glm::vec3 *_normals,
                                              const int _numVerts,
                                              float *_centroidWeights,
                                              const int *_oneRingIds,
@@ -169,8 +169,8 @@ void isgw::GenerateOneRingCentroidWeights(glm::vec3 *d_verts,
     uint numThreads = 1024u;
     uint numBlocks = isgw::iDivUp(_numVerts, numThreads);
 
-    GenerateOneRingCentroidWeights_Kernel<<<numBlocks, numThreads>>>(d_verts,
-                                                                     d_normals,
+    GenerateOneRingCentroidWeights_Kernel<<<numBlocks, numThreads>>>(_verts,
+                                                                     _normals,
                                                                      _numVerts,
                                                                      _centroidWeights,
                                                                      _oneRingIds,
